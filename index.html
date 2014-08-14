@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link rel="shortcut icon" href="img/favicon.ico">
+    <script type="text/javascript" src="src/greeter.js"></script>
+    <script type="text/javascript" src="src/records.js"></script>
+</head>
+<body>
+<div id="main"></div>
+<div id="records"></div>
+</body>
+<script type="text/javascript">
+var greeter = new myapp.Greeter ();
+document.getElementById ("main").innerHTML = greeter.greet ("World");
+document.getElementById ("records").innerHTML = read_records ();
+</script>
+</html>

@@ -1,0 +1,27 @@
+{
+  "name": "Thing Tracker Network",
+  "version" : "0.0.1",
+  "description": "Distributed, versioned, thing management a la Youmagine and Thingiverse.",
+  "long_description" : "A way for makers to share the designs they have created and the things they have improved using BitTorrent protocol, couchdb and HTML5.",
+  "launch_path": "/",
+  "url": "http://www.thingtracker.net/",
+  "categories": ["making", "3D printing"],
+  "flattr_user_id" : "eckoit",
+  "icons": {
+         "16": "img/promo/icon_16.png",
+         "48": "img/promo/icon_48.png",
+         "96": "img/promo/icon_96.png",
+         "128": "img/promo/icon_128.png"
+  },
+  "promo_images": {
+         "small": "img/promo/promo_small.png"
+  },
+  "screenshots": [
+     "img/promo/screenshot1.png"
+  ],
+  "developer": {
+    "name": "Derrick Oswald",
+    "url": "http://9code.ch"
+  },
+  "default_locale": "en"
+}
