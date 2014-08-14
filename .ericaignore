@@ -1,0 +1,11 @@
+[
+    "^\.ericaignore",
+    "^\.externalToolBuilders",
+    "^\.project",
+    "^\.settings",
+	"JsTestDriver-1.3.5.jar",
+	"TestDriver.conf",
+	"run_tests",
+	"start_jstestdriver",
+	"test/*"
+]
