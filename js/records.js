@@ -14,7 +14,7 @@ function read_records ()
         if ((4 == xmlhttp.readyState) && (200 == xmlhttp.status))
         {
             var result = JSON.parse (xmlhttp.responseText);
-            ret = JSON.stringify (result.rows.map (function (element) { return (element.value); }));
+            ret = result.rows.map (function (element) { return (element.value); });
         }
     };
     xmlhttp.send ();

@@ -3,7 +3,7 @@ var URL = "/keybase/_/api/1.0/"; // corresponds to https://keybase.io/_/api/1.0/
 // i.e. add this line under the [httpd_global_handlers] section:
 // keybase = {couch_httpd_proxy, handle_proxy_req, <<"https://keybase.io/">>}
 
-// absolute minimum functionality
+// basic API, see https://keybase.io/docs/api/1.0
 function getsalt (name)
 {
     var url;

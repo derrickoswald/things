@@ -3,16 +3,18 @@
 <head>
     <title></title>
     <link rel="shortcut icon" href="img/favicon.ico">
-    <script type="text/javascript" src="src/greeter.js"></script>
-    <script type="text/javascript" src="src/records.js"></script>
+    <script type="text/javascript" src="js/keybase.js"></script>
+    <script type="text/javascript" src="js/records.js"></script>
+    <script type="text/javascript" src="js/btsync.js"></script>
 </head>
 <body>
-<div id="main"></div>
+<div id="keybase"></div>
 <div id="records"></div>
+<div id="btsync"></div>
 </body>
 <script type="text/javascript">
-var greeter = new myapp.Greeter ();
-document.getElementById ("main").innerHTML = greeter.greet ("World");
-document.getElementById ("records").innerHTML = read_records ();
+document.getElementById ("keybase").innerHTML = JSON.stringify (getsalt ("chris"));
+document.getElementById ("records").innerHTML = JSON.stringify (read_records ());
+document.getElementById ("btsync").innerHTML = JSON.stringify (getFolders ());
 </script>
 </html>

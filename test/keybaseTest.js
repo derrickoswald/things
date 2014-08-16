@@ -1,7 +1,7 @@
 
 KeybaseTest = TestCase("KeybaseTest");
 
-KeybaseTest.prototype.testRecords = function ()
+KeybaseTest.prototype.testKeybase = function ()
 {
     assertNotNull ("keybase access failure", getsalt ("chris"));
 };
