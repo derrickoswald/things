@@ -1,24 +1,80 @@
-<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title></title>
-    <link rel="shortcut icon" href="img/favicon.ico">
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="shortcut icon" href="img/favicon.ico">
+<title>things</title>
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+<link rel="stylesheet" href="css/things.css">
+<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+      <script src="//oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="//oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+    <!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span> <span class="icon-bar"></span> <span class="icon-bar"></span> <span
+                        class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">things</a>
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="#">Home</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                    <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Settings<span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li class="dropdown-header">Preferences</li>
+                            <li><a href="#" onclick="alert ('UI')">User Interface</a></li>
+                            <li class="divider"></li>
+                            <li class="dropdown-header">Configuration</li>
+                            <li><a href="#" onclick="alert ('sample')">Sample</a></li>
+                        </ul></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="#">Code</a></li>
+                    <li class="active"><a href="#">View</a></li>
+                </ul>
+            </div>
+            <!--/.nav-collapse -->
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row" id="main_area">
+            <div class="col-md-8">
+                <div id="keybase"></div>
+                <div id="records"></div>
+                <div id="btsync"></div>
+                <div id="other"></div>
+            </div>
+            <div class="col-md-4" id="sidebar">
+                <div id="deluge"></div>
+            </div>
+        </div>
+
+    </div>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="js/keybase.js"></script>
     <script type="text/javascript" src="js/records.js"></script>
     <script type="text/javascript" src="js/btsync.js"></script>
     <script type="text/javascript" src="js/deluge.js"></script>
-</head>
-<body>
-<div id="keybase"></div>
-<div id="records"></div>
-<div id="btsync"></div>
-<div id="deluge"></div>
+    <script type="text/javascript">
+        document.getElementById ("keybase").innerHTML = JSON.stringify (getsalt ("chris"));
+        document.getElementById ("records").innerHTML = JSON.stringify (read_records ());
+        //document.getElementById ("btsync").innerHTML = JSON.stringify (getFolders ());
+        if (login (Password))
+            document.getElementById ("deluge").innerHTML = JSON.stringify (getTorrentInfo ("ad2516c50852db638bdcd5d129547585786f639b"));
+    </script>
 </body>
-<script type="text/javascript">
-document.getElementById ("keybase").innerHTML = JSON.stringify (getsalt ("chris"));
-document.getElementById ("records").innerHTML = JSON.stringify (read_records ());
-document.getElementById ("btsync").innerHTML = JSON.stringify (getFolders ());
-if (login (Password))
-	document.getElementById ("deluge").innerHTML = JSON.stringify (getTorrentInfo ("ad2516c50852db638bdcd5d129547585786f639b"));
-</script>
 </html>
