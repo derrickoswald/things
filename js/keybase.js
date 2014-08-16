@@ -16,9 +16,7 @@ function getsalt (name)
     xmlhttp.onreadystatechange = function ()
     {
         if ((4 == xmlhttp.readyState) && (200 == xmlhttp.status))
-        {
             ret = JSON.parse (xmlhttp.responseText);
-        }
     };
     xmlhttp.send ();
     
