@@ -1,5 +1,5 @@
 
-KeybaseTest = TestCase("KeybaseTest");
+KeybaseTest = TestCase ("KeybaseTest");
 
 KeybaseTest.prototype.testKeybase = function ()
 {

@@ -1,4 +1,4 @@
-DelugeTest = TestCase("DelugeTest");
+DelugeTest = TestCase ("DelugeTest");
 
 DelugeTest.prototype.testTorrentInfo = function ()
 {

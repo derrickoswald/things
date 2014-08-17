@@ -1,5 +1,5 @@
 
-//BtSyncTest = TestCase("BtSyncTest");
+//BtSyncTest = TestCase ("BtSyncTest");
 //
 //BtSyncTest.prototype.testToken = function ()
 //{

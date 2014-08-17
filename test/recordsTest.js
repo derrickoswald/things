@@ -1,4 +1,4 @@
-RecordsTest = TestCase("RecordsTest");
+RecordsTest = TestCase ("RecordsTest");
 
 RecordsTest.prototype.testRecords = function ()
 {
