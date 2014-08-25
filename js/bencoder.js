@@ -26,6 +26,8 @@
  * @param {any} raw Non-null if strings should be returned as ArrayBuffer 
  * @return {Object|Array|ArrayBuffer|String|Number}
  */
+define(function () {
+
 function decode (buffer, raw)
 {
     if (!(buffer instanceof ArrayBuffer))
@@ -365,3 +367,10 @@ var HexConverter =
         return (parseInt (hex, 16));
     }
 };
+
+return ({
+    "decode": decode,
+    "encode": encode,
+    "HexConverter": HexConverter
+});
+});

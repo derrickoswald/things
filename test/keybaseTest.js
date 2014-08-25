@@ -1,8 +1,17 @@
-
-KeybaseTest = TestCase ("KeybaseTest");
-
-KeybaseTest.prototype.testKeybase = function ()
-{
-    assertNotNull ("keybase access failure", getsalt ("chris"));
-};
-
+define
+(
+    ["keybase"],
+    function (k)
+    {
+        TestCase
+        (
+            "KeybaseTest",
+            {
+                testKeybase: function ()
+                {
+                    assertNotNull ("keybase access failure", k.getsalt ("chris"));
+                }
+            }
+        );
+    }
+);

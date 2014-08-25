@@ -3,6 +3,7 @@
  * Secure Hash Algorithm (SHA1) http://www.webtoolkit.info/
  * 
  */
+define(function () {
 
 function sha1 (msg, binary)
 {
@@ -237,3 +238,8 @@ function sha1 (msg, binary)
 
     return (ret);
 }
+
+return ({
+    "sha1": sha1
+});
+});

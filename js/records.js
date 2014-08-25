@@ -1,10 +1,7 @@
-
-
 define
 (
-    function ()
     {
-        function read_records ()
+        read_records: function ()
         {
             var url;
             var xmlhttp;
@@ -25,7 +22,5 @@ define
             
             return (ret);
         }
-    
-        return ( {"read_records": read_records});
     }
 );
