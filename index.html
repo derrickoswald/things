@@ -65,16 +65,6 @@
     </div>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="js/keybase.js"></script>
-    <script type="text/javascript" src="js/records.js"></script>
-    <script type="text/javascript" src="js/btsync.js"></script>
-    <script type="text/javascript" src="js/deluge.js"></script>
-    <script type="text/javascript">
-        document.getElementById ("keybase").innerHTML = JSON.stringify (getsalt ("chris"));
-        document.getElementById ("records").innerHTML = JSON.stringify (read_records ());
-        //document.getElementById ("btsync").innerHTML = JSON.stringify (getFolders ());
-        if (login (Password))
-            document.getElementById ("deluge").innerHTML = JSON.stringify (getTorrentInfo ("ad2516c50852db638bdcd5d129547585786f639b"));
-    </script>
+    <script type="text/javascript" src="js/require.js" data-main="js/main.js"></script>
 </body>
 </html>
