@@ -25,6 +25,18 @@ requirejs
         if (deluge.login (deluge.Password))
             document.getElementById ("deluge").innerHTML = JSON.stringify (deluge.getTorrentInfo ("ad2516c50852db638bdcd5d129547585786f639b"));
         //document.getElementById ("btsync").innerHTML = JSON.stringify (btsync.getFolders ());
+        
+        //$.couch.urlPrefix = "http://localhost:5984";
+        $.couch.info({
+            success: function(data) {
+                document.getElementById ("info").innerHTML = JSON.stringify (data);
+            }
+        });
+        $.couch.allDbs({
+            success: function(data) {
+                document.getElementById ("dbs").innerHTML = JSON.stringify (data);
+            }
+        });
     }
 );
 
