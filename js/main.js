@@ -20,7 +20,7 @@ requirejs
     ["records", "keybase", "deluge"], // , "btsync"
     function (records, keybase, deluge) // , btsync
     {
-        document.getElementById ("records").innerHTML = JSON.stringify (records.read_records ());
+        records.read_records (function (data) { document.getElementById ("records").innerHTML = JSON.stringify (data); });
         document.getElementById ("keybase").innerHTML = JSON.stringify (keybase.getsalt ("chris"));
         if (deluge.login (deluge.Password))
             document.getElementById ("deluge").innerHTML = JSON.stringify (deluge.getTorrentInfo ("ad2516c50852db638bdcd5d129547585786f639b"));

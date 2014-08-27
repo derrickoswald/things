@@ -3,13 +3,21 @@ define
     ["records"],
     function (r)
     {
-        TestCase
+        AsyncTestCase
         (
             "RecordsTest",
             {
-                testRecords: function ()
+                testRecords: function (queue)
                 {
-                    assertEquals (["greg"], r.read_records ());
+                    queue.call
+                    (
+                        "read records",
+                        function (callbacks)
+                        {
+                            var myCallback = callbacks.add (function (data) { assertEquals (["greg"], data); });
+                            r.read_records (myCallback);
+                        }
+                    );
                 }
             }
         );
