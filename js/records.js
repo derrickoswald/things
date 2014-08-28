@@ -1,24 +1,23 @@
 define
 (
     {
-        read_records: function (fn)
+        read_records: function (db, fn)
         {
-            if (fn)
-                $.couch.db ("things").view
-                (
-                    "things/OverView",
+            $.couch.db (db).view
+            (
+                db + "/OverView",
+                {
+                    success: function (data)
                     {
-                        success: function (data)
-                        {
-                            fn (data.rows.map (function (element) { return (element.value); }));
-                        },
-                        error: function (status)
-                        {
-                            console.log (status);
-                        },
-                        reduce: false
-                    }
-                );
+                        fn (data.rows.map (function (element) { return (element.value); }));
+                    },
+                    error: function (status)
+                    {
+                        console.log (status);
+                    },
+                    reduce: false
+                }
+            );
         }
     }
 );
