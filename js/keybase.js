@@ -11,7 +11,7 @@ define
             var url;
             var xmlhttp;
             var ret = null;
-        
+
             url = this.URL + "getsalt.json" + "?email_or_username=" + name;
             xmlhttp = new XMLHttpRequest ();
             xmlhttp.open ("GET", url, false);
@@ -21,7 +21,7 @@ define
                     ret = JSON.parse (xmlhttp.responseText);
             };
             xmlhttp.send ();
-            
+
             return (ret);
         }
     }

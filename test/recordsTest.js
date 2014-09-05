@@ -9,7 +9,8 @@ define
             {
                 testCouch: function (queue)
                 {
-                    var db = "testdb";
+                	var nonce = Math.floor ((Math.random () * 1000) + 1); 
+                    var db = "testdb" + "_" + nonce;
                     var del = null;
                     var view =
                     {
