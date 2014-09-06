@@ -9,7 +9,10 @@ These instructions are fairly rough and haven't been tried out on a virgin machi
 * Install eclipse.
 * Add the jsTestDriver plugin described at https://code.google.com/p/js-test-driver/wiki/UsingTheEclipsePlugin.
 * Configure browser startup commands in the jsTestDriver properties and open the jsTestDriver window under Javascript.
-* Install couchdb from http://couchdb.apache.org/ and test that futon can access it after a reboot at http://localhost:5984/_utils/index.html.
+* Install couchdb from http://couchdb.apache.org/ and test that futon can access it (after a reboot on Windows) at http://localhost:5984/_utils/index.html.
+* Add the following lines to the local configuration (use command couchdb -c in order to see where the local configuration file is, on linux it's /etc/couchdb/local.ini) under the [httpd_global_handlers] section (which initially has a commented out google proxy):
+  * keybase = {couch_httpd_proxy, handle_proxy_req, <<"https://keybase.io/">>}
+  * json = {couch_httpd_proxy, handle_proxy_req, <<"http://localhost:8112">>}
 * Install erica as described at https://github.com/benoitc/erica (some issues with current git repo, so use prebuilt binaries). The project assumes linux and that erica can be found in /usr/local/bin/erica.
 * Install deluge and deluge-web. Enable the web interface under WebUI in preferences.
 * Clone the things project found at https://github.com/derrickoswald/things.
