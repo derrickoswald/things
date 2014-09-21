@@ -16,3 +16,25 @@ body
     font-style: italic;
     font-weight: bold;
 }
+
+.wizard_button_next
+{
+	float: right;
+	margin-top: 2em;
+}
+
+.wizard_button_prev
+{
+	float: left;
+	margin-top: 2em;
+}
+
+.wizard_image_next
+{
+	padding-left: 1em;
+}
+
+.wizard_image_prev
+{
+	padding-right: 1em;
+}

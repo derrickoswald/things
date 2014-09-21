@@ -17,26 +17,24 @@
 
 requirejs
 (
-    ["records", "keybase", "deluge"], // , "btsync"
-    function (records, keybase, deluge) // , btsync
+    ["home", "thingwizard"],
+    function (home, thingwizard)
     {
-        records.read_records (function (data) { document.getElementById ("records").innerHTML = JSON.stringify (data); });
-        document.getElementById ("keybase").innerHTML = JSON.stringify (keybase.getsalt ("chris"));
-        if (deluge.login (deluge.Password))
-            document.getElementById ("deluge").innerHTML = JSON.stringify (deluge.getTorrentInfo ("ad2516c50852db638bdcd5d129547585786f639b"));
-        //document.getElementById ("btsync").innerHTML = JSON.stringify (btsync.getFolders ());
-        
-        //$.couch.urlPrefix = "http://localhost:5984";
-        $.couch.info({
-            success: function(data) {
-                document.getElementById ("info").innerHTML = JSON.stringify (data);
-            }
-        });
-        $.couch.allDbs({
-            success: function(data) {
-                document.getElementById ("dbs").innerHTML = JSON.stringify (data);
-            }
-        });
+        function activate (id, fn)
+        {
+            return (
+                function ()
+                {
+                    var link = $ (document.getElementById (id));
+                    link.parent ().parent ().find ('.active').removeClass ('active');
+                    link.parent ().addClass ('active');
+                    fn ();
+                }
+            );
+        }
+        document.getElementById ("home").onclick = activate ("home", home.initialize);
+        document.getElementById ("new_thing").onclick = activate ("new_thing", thingwizard.initialize);
+        //activate ("home", home.initialize) ();
+        activate ("new_thing", thingwizard.initialize) ();
     }
 );
-

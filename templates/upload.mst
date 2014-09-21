@@ -1,0 +1,16 @@
+                    <h2>Upload</h2>
+                    Download the torrent file by clicking on the link below, save it, and together
+                    with the files that you specified in the base torrent file in Step 1,
+                    seed your thing in your BitTorrent client.
+                    <div id="bencode_content"></div>
+                    Then you can publish your <em>Thing</em> by proudly displaying this magnet link.
+                    <div id="magnet_content"></div>
+                    Alternatively, you can push this button to send the thing to the server that
+                    served this page and let the <em>Thing Tracker Network</em> handle it.
+                    <form id="upload_form" action="javascript:upload_form ();">
+                        <ul>
+                            <li><input class="upload_form_button" form="upload_form" type="submit" value="Upload Thing"
+                                name="upload_thing" disabled="disabled"></li>
+                        </ul>
+                    </form>
+                    <div id="torrent_content"></div>

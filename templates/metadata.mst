@@ -1,0 +1,25 @@
+
+                    <h2>Enter Metadata</h2>
+                    Fill in this form with the metadata for your <em>Thing</em> and press the <b>Make Thing</b> button.<br>
+                    For details about the fields, consult the <a href="http://thingtracker.net/#specification">specification</a>.
+                    Authors, licenses and tags are comma separated.
+                    <form id="thing_form" action="javascript:submit_form ();">
+                        <ul>
+                            <li><label class="thing_form_label" form="thing_form" for="title">Title</label><input id="title"
+                                form="thing_form" type="text" name="title"></li>
+                            <li><label class="thing_form_label" form="thing_form" for="url">URL</label><input id="url"
+                                form="thing_form" type="text" name="url"></li>
+                            <li><label class="thing_form_label" form="thing_form" for="authors">Authors</label><input id="authors"
+                                form="thing_form" type="text" name="authors"></li>
+                            <li><label class="thing_form_label" form="thing_form" for="licenses">Licenses</label><input
+                                id="licenses" form="thing_form" type="text" name="licenses"></li>
+                            <li><label class="thing_form_label" form="thing_form" for="tags">Tags</label><input id="tags"
+                                form="thing_form" type="text" name="tags"></li>
+                            <li><label class="thing_form_label" form="thing_form" for="thumbnailURL">Thumbnail URL</label><input
+                                id="thumbnailURL" form="thing_form" type="text" name="thumbnailURL"></li>
+                            <li><label class="thing_form_label" form="thing_form" for="description">Description</label><input
+                                id="description" form="thing_form" type="text" name="description"></li>
+                            <li><input class="thing_form_button" form="thing_form" type="submit" value="Make Thing"
+                                name="make_thing" disabled="disabled"></li>
+                        </ul>
+                    </form>

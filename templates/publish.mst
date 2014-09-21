@@ -1,0 +1,9 @@
+                    <h2>Publish</h2>
+                    Publish the thing using this form
+                    <form id="publish_form" action="javascript:publish_form ();">
+                        <ul>
+                            <li><input class="publish_form_button" form="publish_form" type="submit" value="Publish Thing"
+                                name="publish_thing" disabled="disabled"></li>
+                        </ul>
+                    </form>
+                    <div id="publish_status"></div>

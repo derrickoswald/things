@@ -8,6 +8,11 @@
     <title>things</title>
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+    <!-- 
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css">
+    -->
     <link rel="stylesheet" href="css/things.css">
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -29,7 +34,8 @@
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li class="active"><a href="#">Home</a></li>
+                    <li class="active"><a id="home" href="#">Home</a></li>
+                    <li><a id="new_thing" href="#new">New Thing</a></li>
                     <li><a href="#about">About</a></li>
                     <li><a href="#contact">Contact</a></li>
                     <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Settings<span class="caret"></span></a>
@@ -49,30 +55,25 @@
             <!--/.nav-collapse -->
         </div>
     </div>
-
-    <div class="container">
-        <div class="row" id="main_area">
-            <div class="col-md-8">
-                <div id="keybase"></div>
-                <div id="records"></div>
-                <div id="btsync"></div>
-                <div id="info"></div>
-                <div id="dbs"></div>
-                <div id="other"></div>
+	<div id="main" class="container-fluid">
+        <div id="default_area" class="row">
+            <div id="sidebar" class="col-md-4">
             </div>
-            <div class="col-md-4" id="sidebar">
-                <div id="deluge"></div>
+            <div id="middle" class="col-md-8">
+                <h1>Welcome</h1>
+                <p>The trouble is, you shouldn't be seeing this text. If everything had gone as planned, you should be seeing the contents of this thing tracker network.</p>
+                <p>Very embarrassing, really. Try reloading the page after clearing your browser cache.</p>
             </div>
         </div>
-
     </div>
     <script src="/_utils/script/json2.js"></script>
     <script src="/_utils/script/sha1.js"></script>
-    <script src="/_utils/script/jquery.js?1.4.2"></script>
+    <script src="/_utils/script/jquery.js?1.8.3"></script>
     <script src="/_utils/script/jquery.couch.js?0.11.0"></script>
     <script src="/_utils/script/jquery.dialog.js?0.11.0"></script>
     <!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script> -->
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <!-- <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script> -->
     <script type="text/javascript" src="js/require.js" data-main="js/main.js"></script>
 </body>
 </html>
