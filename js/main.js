@@ -17,7 +17,7 @@
 
 requirejs
 (
-    ["home", "thingwizard"],
+    ["home", "thingmaker/thingwizard"],
     function (home, thingwizard)
     {
         function activate (id, fn)

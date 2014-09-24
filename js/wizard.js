@@ -1,7 +1,7 @@
 define
 (
-    ["records", "keybase", "deluge", "mustache"], // , "btsync"
-    function (records, keybase, deluge, mustache) // , btsync
+    ["mustache", "thingmaker/files"],
+    function (mustache, files)
     {
         // removes item from array, returns true if it did, false otherwise
         function remove (array, item) // brain dead Javascript has no remove() function
@@ -85,11 +85,22 @@ define
             }
         };
 
-        function addStep (list, content, steps, view, id, title, template, active)
+        function addStep (list, content, steps, data, index)
         {
             var item;
             var link;
+            var id;
+            var title;
+            var template;
+            var active;
+            var hooks;
             
+            id = steps[index].id;
+            title = steps[index].title;
+            template = steps[index].template;
+            active = (0 == index);
+            hooks = steps[index].hooks;
+
             // make the left nav item
             item = document.createElement ("li");
             list.appendChild (item);
@@ -104,7 +115,7 @@ define
             link.setAttribute ("role", "tab"); 
             link.setAttribute ("data-toggle", "tab"); 
             link.appendChild (document.createTextNode (title));
-            link.addEventListener ("click", function (event) { jump (event, steps, view); });
+            link.addEventListener ("click", function (event) { jump (event, steps, data); });
             
             // get mustache to make the page
             item = document.createElement ("div");
@@ -116,19 +127,30 @@ define
                 template,
                 function (template)
                 {
-                    document.getElementById (id).innerHTML = mustache.render (template, view); // $("#" + id).html (mustache.render (template, view));
+                    document.getElementById (id).innerHTML = mustache.render (template, data); // $("#" + id).html (mustache.render (template, view));
+                    if (hooks)
+                        for (var i = 0; i < hooks.length; i++)
+                        {
+                            var element = document.getElementById (hooks[i].id);
+                            var handler = (function ()
+                            {
+                                var fn = hooks[i].code;
+                                return (function (event) { fn (event, data); });
+                            })();
+                            element.addEventListener (hooks[i].event, handler.bind (hooks[i].obj));
+                        }
                 }
             );
         };
 
-        function wizard (nav, content, steps, data)
+        function bork (nav, content, steps, data)
         {
             var input;
             var button;
             var image;
             
             for (var i = 0; i < steps.length; i++)
-                addStep (nav, content, steps, data, steps[i].id, steps[i].title, steps[i].template, (0 == i));
+                addStep (nav, content, steps, data, i);
             
             input = document.createElement ("div");
             content.appendChild (input);
@@ -163,58 +185,7 @@ define
 
         return (
             {
-                initialize: function ()
-                {
-                    var steps =
-                        [
-                            { id: "overview", title: "Overview", template: "templates/overview.html"},
-                            { id: "select_files", title: "Select files", template: "templates/files.mst"},
-                            { id: "use_template", title: "Use a template", template: "templates/template.mst"},
-                            { id: "enter_metadata", title: "Enter metadata", template: "templates/metadata.mst"},
-                            { id: "sign", title: "Sign the thing", template: "templates/sign.mst"},
-                            { id: "upload", title: "Upload the thing", template: "templates/upload.mst"},
-                            { id: "publish", title: "Publish the thing", template: "templates/publish.mst"}
-                        ];
-
-                    // wizard data
-                    // to be filled in from user storage
-                    var data =
-                    {
-                    };
-             
-                    var row;
-                    var nav;
-                    var content;
-                    var stream;
-                    var main;
-                    
-                    row = document.createElement ("div");
-                    row.id = "main_area";
-                    row.className = "row";
-
-                    nav = document.createElement ("ul");
-                    row.appendChild (nav);
-                    nav.className = "col-md-3 nav nav-tabs nav-stacked";
-                    nav.setAttribute ("role", "tablist");
-                    nav.id = "sidebar";
-
-                    content = document.createElement ("div");
-                    row.appendChild (content);
-                    content.className = "col-md-6 tab-content";
-                    content.id = "panes";
-
-                    wizard (nav, content, steps, data);
-
-                    stream = document.createElement ("div");
-                    row.appendChild (stream);
-                    stream.className = "col-md-3";
-                    stream.id = "stream";
-
-                    main = document.getElementById ("main");
-                    while (main.firstChild)
-                        main.removeChild (main.firstChild);
-                    main.appendChild (row);
-                }
+                wizard: bork
             }
         );
     }
