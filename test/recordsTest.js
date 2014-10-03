@@ -7,46 +7,47 @@ define
         (
             "RecordsTest",
             {
-                testCouch: function (queue)
+                _Db: null, // 'global' variable with the name of the database under test
+
+                // executed before each test - login, clean up messes, and create a new test database
+                setUp : function (queue)
                 {
-                	var nonce = Math.floor ((Math.random () * 1000) + 1); 
-                    var db = "testdb" + "_" + nonce;
+                    _Db = "testdb" + "_" + Math.floor ((Math.random () * 1000) + 1);
                     var del = null;
-                    var view =
-                    {
-                        "_id":"_design/" + db,
-                        "language": "javascript",
-                        "views":
+                    queue.call
+                    (
+                        "login",
+                        function (callbacks)
                         {
-                            "OverView":
-                            {
-                                "map": "function(doc) { emit (doc._id, doc.name); }"
-                            }
+                            var list = callbacks.add
+                            (
+                                function (data)
+                                {
+                                    console.log (data);
+                                }
+                            );
+                            $.couch.login
+                            (
+                                {
+                                    name: "admin",
+                                    password: "secret",
+                                    success: list
+                                }
+                            );
                         }
-                    };
-                    var doc =
-                    {
-                        "name": "greg"
-                    };
+                    );
 
                     queue.call
                     (
                         "check",
                         function (callbacks)
                         {
-
-
-                            [
-                                "_replicator",
-                                "_users"
-                            ]
-                            
                             var list = callbacks.add
                             (
                                 function (data)
                                 {
                                     console.log (data);
-                                    del = -1 != data.indexOf (db);
+                                    del = -1 != data.indexOf (_Db);
                                 }
                             );
                             $.couch.allDbs
@@ -64,7 +65,7 @@ define
                         function (callbacks)
                         {
                             if (del)
-                                $.couch.db (db).drop
+                                $.couch.db (_Db).drop
                                 (
                                     {
                                         success: callbacks.noop ()
@@ -83,11 +84,12 @@ define
                                 function (data)
                                 {
                                     console.log (data);
+                                    jstestdriver.console.log ("setUp " + _Db);
                                     assertTrue ("create", data.ok);
                                 }
                             );
-                            var fail = callbacks.addErrback ('Failed to create database');
-                            $.couch.db (db).create
+                            var fail = callbacks.addErrback ("create database");
+                            $.couch.db (_Db).create
                             (
                                 {
                                     success: ok,
@@ -97,6 +99,57 @@ define
                         }
                     );
                     
+
+                },
+
+                tearDown : function (queue)
+                {
+                    queue.call
+                    (
+                        "drop database",
+                        function (callbacks)
+                        {
+                            var ok = callbacks.add
+                            (
+                                function (data)
+                                {
+                                    console.log (data);
+                                    jstestdriver.console.log ("tearDown " + _Db);
+                                    assertTrue ("drop", data.ok);
+                                }
+                            );
+                            var fail = callbacks.addErrback ("drop database");
+                            $.couch.db (_Db).drop
+                            (
+                                {
+                                    success: ok,
+                                    error: fail
+                                }
+                            );
+                        }
+                    );
+                },
+
+                testBasic: function (queue)
+                {
+                    var view =
+                    {
+                        "_id":"_design/" + _Db,
+                        "language": "javascript",
+                        "views":
+                        {
+                            "OverView":
+                            {
+                                "map": "function(doc) { emit (doc._id, doc.name); }"
+                            }
+                        }
+                    };
+                    var payload = "data" + "_" + Math.floor ((Math.random () * 1000) + 1);
+                    var doc =
+                    {
+                        "name": payload
+                    };
+
                     queue.call
                     (
                         "create view",
@@ -110,8 +163,8 @@ define
                                     assertTrue ("create view", data.ok);
                                 }
                             );
-                            var fail = callbacks.addErrback ('Failed to create view');
-                            $.couch.db (db).saveDoc
+                            var fail = callbacks.addErrback ("create view");
+                            $.couch.db (_Db).saveDoc
                             (
                                 view,
                                 {
@@ -135,8 +188,8 @@ define
                                     assertTrue ("create document", data.ok);
                                 }
                             );
-                            var fail = callbacks.addErrback ('Failed to create document');
-                            $.couch.db (db).saveDoc
+                            var fail = callbacks.addErrback ("create document");
+                            $.couch.db (_Db).saveDoc
                             (
                                 doc,
                                 {
@@ -157,16 +210,38 @@ define
                                 function (data)
                                 {
                                     console.log (data);
-                                    assertEquals (["greg"], data);
+                                    assertEquals ([payload], data);
                                 }
                             );
-                            r.read_records (db, result);
+                            r.read_records (_Db, result);
                         }
                     );
+                },
+
+                str2ab: function (str)
+                {
+                    var len = str.length;
+                    var ret = new ArrayBuffer (str.length);
+                    var view = new Uint8Array (ret);
+                    for (var i = 0; i < len; i++)
+                        view[i] = (0xff & str.charCodeAt (i));
+
+                    return (ret);
+                },
+
+                testAttachment: function (queue)
+                {
+                    var payload = "data" + "_" + Math.floor ((Math.random () * 1000) + 1);
+                    var doc =
+                    {
+                        "_id": "ad2516c50852db638bdcd5d129547585786f639b",
+                        "name": payload
+                    };
+                    var filecontent = "file" + "_" + Math.floor ((Math.random () * 1000) + 1);
 
                     queue.call
                     (
-                        "drop database",
+                        "create doc attach",
                         function (callbacks)
                         {
                             var ok = callbacks.add
@@ -174,16 +249,21 @@ define
                                 function (data)
                                 {
                                     console.log (data);
-                                    assertTrue ("drop", data.ok);
+                                    assertTrue ("create document with attachment", data.ok);
                                 }
                             );
-                            var fail = callbacks.addErrback ('Failed to drop database');
-                            $.couch.db (db).drop
+                            var fail = callbacks.addErrback ("create document with attachment");
+                            var file = new Blob ([filecontent], {type : 'text/html'}); // the blob
+                            r.saveDocWithAttachments.call // $.couch.db (_Db)
                             (
+                                r, // this variable
+                                _Db,
+                                doc,
                                 {
                                     success: ok,
                                     error: fail
-                                }
+                                },
+                                [file]
                             );
                         }
                     );

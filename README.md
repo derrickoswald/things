@@ -18,8 +18,6 @@ These instructions are fairly rough and haven't been tried out on a virgin machi
 * Clone the things project found at https://github.com/derrickoswald/things.
 * Import the project into eclipse (don't copy into workspace).
 * Windows users will need to change the command line for the "erica push to couchdb" builder to C:\Program Files (x86)\Apache Software Foundation\CouchDB\bin\erica.cmd or wherever you placed it.
+* All users will need to modify the build variables for ${couchdb_admin}, ${couchdb_password}, ${couchdb_host} and ${couchdb_port}.
 * Add a "run configuration" for jsTestDriver for the project to run every save.
 * Build the project. This should push it to the local couchdb and run the unit tests.
-
-
-

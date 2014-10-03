@@ -115,6 +115,7 @@ define
             {
                 //alert ("file " + i + ": " + files[i].name + " " + files[i].type + " " + files[i].size + "\n");
                 filelist.push ({ filename: files[i].name, filesize: files[i].size, filetype: files[i].type })
+                // also ??? files[i].lastModifiedDate ? files[i].lastModifiedDate.toLocaleDateString () : 'n/a'
                 total += files[i].size;
 
            //     var reader = new FileReader ();
@@ -137,15 +138,12 @@ define
             }
             data.filelist = filelist;
             data.total = total;
-            data.filename = function ()
-            {
-                return (this.name + " xx " + this.size + " yy");
-            };
             var file_table_template =
                 "{{#filelist}}" +
                 "<tr><td><img src=\"../img/file_extension_pdf.png\">{{filetype}}</img></td><td>{{filename}}</td><td class=\"right\">{{filesize}}</td></tr>" +
                 "{{/filelist}}" +
-                "{{^filelist}}<tr><td><td>No files selected</td><td class=\"right\"></td></tr>{{/filelist}}";
+                "{{^filelist}}<tr><td><td>No files selected</td><td class=\"right\"></td></tr>{{/filelist}}" +
+                "{{total}}";
             document.getElementById ("file_table").innerHTML = mustache.render (file_table_template, data);
         };
 
@@ -176,15 +174,33 @@ define
             var files;
 
             files = event.target.files;
-            if (0 != files.length)
-            {
-                var s = "";
-                for (var i = 0; i < files.length; i++)
-                    s += "file " + i + ": " + files[i].name + " " + files[i].type + " " + files[i].size + "\n";
-                ReadFilesAsync (files, data, done);
-            }
+            ReadFilesAsync (files, data, done);
         };
-        
+
+        function file_drop (event, data)
+        {
+            var files;
+
+            event.stopPropagation ();
+            event.preventDefault ();
+
+            files = event.dataTransfer.files;
+
+            var s = "";
+            for (var i = 0; i < files.length; i++)
+                s += "file " + i + ": " + files[i].name + " " + files[i].type + " " + files[i].size + "\n";
+            alert (s);
+
+            ReadFilesAsync (files, data, done);
+        }
+
+        function file_drag (event, data)
+        {
+            event.stopPropagation();
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'copy';
+        }
+
         function directory_change (event, data)
         {
             var dir;
@@ -197,7 +213,7 @@ define
                 delete data.directory;
             update (data);
         };
-        
+
         return (
             {
                 getStep: function ()
@@ -205,7 +221,10 @@ define
                     var select_files_hooks =
                         [
                             { id: "thing_files", event: "change", code: file_change, obj: this },
-                            { id: "thing_directory", event: "keyup", code: directory_change, obj: this }
+                            { id: "thing_directory", event: "keyup", code: directory_change, obj: this },
+                            // drag and drop listeners
+                            { id: "drop_zone", event: "dragover", code: file_drag, obj: this },
+                            { id: "drop_zone", event: "drop", code: file_drop, obj: this }
                         ];
                     return ({ id: "select_files", title: "Select files", template: "templates/files.mst", hooks: select_files_hooks });
                 }

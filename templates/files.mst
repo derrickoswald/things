@@ -1,13 +1,16 @@
                     <h2>Select Files</h2>
                     Identify the files to be included in your <em>Thing</em>.<br>
                     You can either select a single file or multiple files by clicking on the <b>Add files</b> button below and using the dialog to navigate to and identify the file(s),
-                    or you can drag and drop a list of files onto the button (this only works in FireFox but will be fixed eventually),
+                    or you can drag and drop one or more files onto the <b>Drop files here...</b> area,
                     or (TBD) you can paste files onto this form.
                     Note that if you specify multiple files, you must then also specify the directory for the files.
 
                     <div id="choose_thing_directory" class="directoryinput-field">
                         Directory: <input id="thing_directory" type="text" name="directory" />
-                    </div>                    
+                    </div>
+					<div id="drop_zone">
+					Drop files here...
+                    </div>
                     <span id="choose_thing_form" class="btn btn-success fileinput-button">
 	                    <i class="glyphicon glyphicon-plus"></i>
 	                    <span>Add files...</span>

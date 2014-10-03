@@ -101,3 +101,13 @@ table.file_list tr:nth-child(even)
 {
     margin-top: 1em;
 }
+
+#drop_zone
+{
+    margin-top: 1em;
+    border: 2px dashed #bbb;
+    border-radius: 5px;
+    color: #bbb;
+    padding: 25px;
+    text-align: center;
+}
