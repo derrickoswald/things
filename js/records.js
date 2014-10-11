@@ -106,7 +106,7 @@ define
         {
             if (doc._id && doc._rev && this.rawDocs[doc._id] && this.rawDocs[doc._id].rev == doc._rev)
             {
-                // todo: can we use commonjs require here?
+                // ToDo: can we use commonjs require here?
                 if (typeof Base64 == "undefined")
                 {
                     throw 'Base64 support not found.';
@@ -145,12 +145,12 @@ define
             if (doc._id === undefined)
             {
                 var method = "POST";
-                var uri = "http://127.0.0.1:42442/" + db + "/";
+                var uri = "/" + db + "/";
             }
             else
             {
                 var method = "PUT";
-                var uri = "http://127.0.0.1:42442/" + db + "/" + $.couch.encodeDocId (doc._id);
+                var uri = "/" + db + "/" + $.couch.encodeDocId (doc._id);
                 delete (doc._id);
             }
             var versioned = this.maybeApplyVersion (doc);
@@ -171,20 +171,24 @@ define
                 contentType : "multipart/related;boundary=\"abc123\"", // "application/json",
                 dataType : "json",
                 data :
-                    "\n" +
-                    "--abc123\n" +
-                    "Content-Type: application/json\n" +
-                    "\n" +
-                    JSON.stringify (doc) + "\n" +
-                    "\n" +
-                    "--abc123\n" +
-                    "\n" +
-                    stuff + "\n" +
-                    "--abc123--\n" +
-                    "\n\n\n",
+                    "\r\n" +
+                    "--abc123\r\n" +
+                    "Content-Type: application/json\r\n" +
+                    "\r\n" +
+                    JSON.stringify (doc) + "\r\n" +
+                    "\r\n" +
+                    "--abc123\r\n" +
+                    "\r\n" +
+                    stuff + "\r\n" +
+                    "--abc123--\r\n" +
+                    "\r\n\r\n\r\n",
                 beforeSend : beforeSend,
-                complete : function (req)
+                complete : function (req, outcome)
                 {
+                    switch (outcome)
+                    {
+                    // ("success", "notmodified", "error", "timeout", "abort", or "parsererror")
+                    }
                     var resp = $.parseJSON (req.responseText);
                     if (req.status == 200 || req.status == 201 || req.status == 202)
                     {
@@ -211,7 +215,19 @@ define
                     }
                     else if (options.error)
                     {
-                        options.error (req.status, resp.error, resp.reason);
+                        var msg;
+                        var reason;
+                        if (null == resp)
+                        {
+                            msg = req.responseText;
+                            reason = "unknown reason";
+                        }
+                        else
+                        {
+                            msg = resp.error;
+                            reason = resp.reason;
+                        }
+                        options.error (req.status, msg, reason);
                     }
                     else
                     {

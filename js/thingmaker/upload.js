@@ -10,7 +10,7 @@ define
                 records.login ();
                 records.insert_record
                 (
-                    "things",
+                    data.database,
                     data.filelist[0],
                     function (rec)
                     {

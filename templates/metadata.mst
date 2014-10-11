@@ -3,7 +3,7 @@
                     Fill in this form with the metadata for your <em>Thing</em> and press the <b>Make Thing</b> button.<br>
                     For details about the fields, consult the <a href="http://thingtracker.net/#specification">specification</a>.
                     Authors, licenses and tags are comma separated.
-                    <form id="thing_form" action="javascript:submit_form ();">
+                    <form id="thing_form">
                         <ul>
                             <li><label class="thing_form_label" form="thing_form" for="title">Title</label><input id="title"
                                 form="thing_form" type="text" name="title"></li>
@@ -23,3 +23,8 @@
                                 name="make_thing" disabled="disabled"></li>
                         </ul>
                     </form>
+
+                    <button id="make_thing_button" class="btn btn-primary start" type="submit">
+	                    <i class="glyphicon glyphicon-upload"></i>
+	                    <span>Make</span>
+                    </button>

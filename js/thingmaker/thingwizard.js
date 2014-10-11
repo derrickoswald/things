@@ -1,7 +1,7 @@
 define
 (
-    ["wizard", "thingmaker/files", "thingmaker/upload"],
-    function (wiz, files, upload)
+    ["wizard", "thingmaker/files", "thingmaker/make", "thingmaker/upload"],
+    function (wiz, files, make, upload)
     {
         return (
             {
@@ -10,9 +10,9 @@ define
                     var steps =
                         [
                             { id: "overview", title: "Overview", template: "templates/overview.html"},
-                            files.getStep (), //{ id: "select_files", title: "Select files", template: "templates/files.mst", hooks: select_files_hooks },
+                            files.getStep (), // { id: "select_files", title: "Select files", template: "templates/files.mst", hooks: select_files_hooks },
                             { id: "use_template", title: "Use a template", template: "templates/template.mst"},
-                            { id: "enter_metadata", title: "Enter metadata", template: "templates/metadata.mst"},
+                            make.getStep (), // { id: "enter_metadata", title: "Enter metadata", template: "templates/metadata.mst"},
                             { id: "sign", title: "Sign the thing", template: "templates/sign.mst"},
                             upload.getStep (), // { id: "upload", title: "Upload the thing", template: "templates/upload.mst", hooks: upload_hooks}
                             { id: "publish", title: "Publish the thing", template: "templates/publish.mst"}
@@ -22,6 +22,7 @@ define
                     // to be filled in from user storage
                     var data =
                     {
+                        database: "things",
                         piece_length: 16384,
                     };
              
