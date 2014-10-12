@@ -130,17 +130,16 @@ define
         * field, then the document will be created with the specified document
         * ID. If the _id field is not specified, a new unique ID will be
         * generated.
-        * @see <a href="http://docs.couchdb.org/en/latest/api/document
-        * /common.html#put--db-docid">docs for PUT /db/doc</a>
-        * @param {String} doc document to save
-        * @param {ajaxSettings} options <a href="http://api.jquery.com/
+        * @param {String} db - the database to save the document in
+        * @param {String} doc - the document to save
+        * @param {ajaxSettings} options - <a href="http://api.jquery.com/
         * jQuery.ajax/#jQuery-ajax-settings">jQuery ajax settings</a>
-        * @param {[ArrayBuffer]} files
+        * @param {Blob[]} files - the list of files to attach to the document
+        * @param {callback} fn - not used
         */
         saveDocWithAttachments : function (db, doc, options, files, fn)
         {
             options = options || {};
-            //var db  = this;
             var beforeSend = this.fullCommit (options);
             if (doc._id === undefined)
             {
@@ -154,7 +153,47 @@ define
                 delete (doc._id);
             }
             var versioned = this.maybeApplyVersion (doc);
-            var stuff = "some data written to the file so it looks legit\n";
+            function decodeUtf8 (arrayBuffer)
+            {
+                var result = "";
+                var i = 0;
+                var c = 0;
+                var c1 = 0;
+                var c2 = 0;
+
+                var data = new Uint8Array(arrayBuffer);
+
+                // If we have a BOM skip it
+                if (data.length >= 3 && data[0] === 0xef && data[1] === 0xbb && data[2] === 0xbf) {
+                    i = 3;
+                }
+
+                while (i < data.length) {
+                    c = data[i];
+
+                    if (c < 128) {
+                        result += String.fromCharCode(c);
+                        i++;
+                    } else if (c > 191 && c < 224) {
+                        if( i+1 >= data.length ) {
+                            throw "UTF-8 Decode failed. Two byte character was truncated.";
+                        }
+                        c2 = data[i+1];
+                        result += String.fromCharCode( ((c&31)<<6) | (c2&63) );
+                        i += 2;
+                    } else {
+                        if (i+2 >= data.length) {
+                            throw "UTF-8 Decode failed. Multi byte character was truncated.";
+                        }
+                        c2 = data[i+1];
+                        c3 = data[i+2];
+                        result += String.fromCharCode( ((c&15)<<12) | ((c2&63)<<6) | (c3&63) );
+                        i += 3;
+                    }
+                }
+                return result;
+            };
+            var stuff = decodeUtf8 (files[0]);
             doc._attachments =
             {
                 "foo.txt":
@@ -168,7 +207,7 @@ define
             {
                 type : method,
                 url : uri + this.encodeOptions (options),
-                contentType : "multipart/related;boundary=\"abc123\"", // "application/json",
+                contentType : "multipart/related;boundary=\"abc123\"",
                 dataType : "json",
                 data :
                     "\r\n" +

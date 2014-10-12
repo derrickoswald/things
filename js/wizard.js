@@ -1,10 +1,28 @@
+/**
+ * @fileOverview Simple UI wizard for stepping the user through a linear sequence of steps.
+ * @name wizard
+ * @author Derrick Oswald
+ * @version: 1.0
+ */
 define
 (
     ["mustache", "thingmaker/files"],
+    /**
+     * @summary A wizard based on jQuery Bootstrap Wizard.
+     * @see http://github.com/VinceG/twitter-bootstrap-wizard
+     * @exports wizard
+     * @version 1.0
+     */
     function (mustache, files)
     {
-        // removes item from array, returns true if it did, false otherwise
-        function remove (array, item) // brain dead Javascript has no remove() function
+        /**
+         * @summary Removes item from array.
+         * @description Brain dead Javascript has no remove() function, so this plugs that gap.
+         * @param {Array} array - the array to remove the item from
+         * @param {*} item - the item to remove
+         * @returns true if it did, false otherwise
+         */
+        function remove (array, item)
         {
             var ret;
             
@@ -19,7 +37,11 @@ define
             return (ret);
         };
         
-        // get current step index based on which XXX_nav is active
+        /**
+         * Get current step index based on which XXX_nav is active.
+         * @param {Step[]} steps - the list of steps provided to the wizard
+         * @returns {Number} the index of the current step
+         */
         function currentIndex (steps)
         {
             var ret;
@@ -33,7 +55,12 @@ define
             return (ret);
         };
 
-        // get index of step given the id
+        /**
+         * Get index of step given the id.
+         * @param {string} id - the id to search for
+         * @param {Step[]} steps - the list of steps provided to the wizard
+         * @returns {Number} the index of the requested step
+         */
         function indexOf (id, steps)
         {
             var ret;
@@ -47,14 +74,18 @@ define
             return (ret);
         };
 
-        // handle button visibility based on XXX_lnk clicked
-        function jump (event, steps, data)
+        /**
+         * Handle button visibility based on XXX_lnk clicked.
+         * @param {string} target - the click event target
+         * @param {Step[]} steps - the list of steps provided to the wizard
+         * @param {*} data - the data used as context for the action
+         */
+        function jump (target, steps, data)
         {
             var target;
             var id;
             var current;
             
-            target = event.target.id;
             id = target.substring (0, target.length - 4);
             current = indexOf (id, steps);
             if (-1 != current)
@@ -70,7 +101,12 @@ define
             }
         };
 
-        // handle button click
+        /**
+         * Handle button click.
+         * @param {Step[]} steps - the list of steps provided to the wizard
+         * @param {*} data - the data used as context for the action
+         * @param {number} increment - direction to step (+ or - 1)
+         */
         function step (steps, data, increment)
         {
             var current;
@@ -85,6 +121,13 @@ define
             }
         };
 
+        /**
+         * Initialize a step with nav item, page and listeners.
+         * @param {element} list - the DOM element to add nav link items to
+         * @param {element} content - the DOM element to add the wizard page to
+         * @param {Step[]} steps - the list of steps provided to the wizard
+         * @param {*} data - the data used as context for the action
+         */
         function addStep (list, content, steps, data, index)
         {
             var item;
@@ -115,7 +158,7 @@ define
             link.setAttribute ("role", "tab"); 
             link.setAttribute ("data-toggle", "tab"); 
             link.appendChild (document.createTextNode (title));
-            link.addEventListener ("click", function (event) { jump (event, steps, data); });
+            link.addEventListener ("click", function (event) { jump (event.target.id, steps, data); });
             
             // get mustache to make the page
             item = document.createElement ("div");
@@ -143,7 +186,7 @@ define
             );
         };
 
-        function bork (nav, content, steps, data)
+        function wizard (nav, content, steps, data)
         {
             var input;
             var button;
@@ -183,11 +226,12 @@ define
             button.onclick = function () { step (steps, data, -1); };
         };
 
-        return (
-            {
-                wizard: bork
-            }
-        );
+        var functions =
+        {
+            "wizard": wizard
+        }
+
+        return (functions);
     }
 );
 

@@ -272,7 +272,7 @@ define
 
                     queue.call
                     (
-                        "create doc attach",
+                        "create document with attachment",
                         function (callbacks)
                         {
                             var ok = callbacks.add
@@ -284,8 +284,9 @@ define
                                 }
                             );
                             var fail = callbacks.addErrback ("create document with attachment");
-                            var file = new Blob ([filecontent], {type : 'text/html'}); // the blob
-                            r.saveDocWithAttachments.call // $.couch.db (_Db)
+                            //var file = new Blob ([filecontent], {type : 'text/html'}); // the blob
+                            var file = this.str2ab (filecontent);
+                            r.saveDocWithAttachments.call
                             (
                                 r, // this variable
                                 _Db,
