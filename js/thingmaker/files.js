@@ -1,8 +1,27 @@
+/**
+ * @fileOverview File selection step of the ThingMaker wizard.
+ * @name thingmaker/files
+ * @author Derrick Oswald
+ * @version: 1.0
+ */
 define
 (
     ["mustache"],
+    /**
+     * @summary Allows user selection of files from the file system.
+     * @description Presents a list of files to which the user can add and remove files
+     * selected from the file system. Allows either native file selection dialog via button activation
+     * or drag and drop onto this wizard page.
+     * This code also generates the SHA1 values (used in the torrent creation) from the contents of the files.
+     * @name thingmaker/files
+     * @exports thingmaker/files
+     * @version 1.0
+     */
     function (mustache)
     {
+        /**
+         * Creates a function for handling the end of the file reading.
+         */
         function makeLoadEndFunction (blobs, index, afterall)
         {
             return function (evt)
@@ -22,6 +41,14 @@ define
             };
         }
 
+        /**
+         * @summary Convert a number into an eight character hexadecimal string.
+         * @description Isolates the lowest 8 nibbles of the number one by one and
+         * converts them into a hex character, concatenating them into a string.
+         * @param {number} val - the value to convert.
+         * @returns {string} the equivalent hexadecimal string value of the number with leading zeros (always 8 characters).
+         * @memberOf module:thingmaker/files
+         */
         function cvt_hex (val)
         {
             var str = "";
@@ -36,6 +63,14 @@ define
             return str;
         }
 
+        /**
+         * @summary Code for addition of a file to the file set.
+         * @description Performs the file read and the accumulation of SH1 values for the pieces.
+         * @param {File} file - the file to add
+         * @param data - the context object for the wizard
+         * @param callback - the function to call when processing is complete
+         * @memberOf module:thingmaker/files 
+         */
         function ReadFileAsync (file, data, callback)
         {
             var reader = new FileReader ();
@@ -58,6 +93,15 @@ define
             reader.readAsArrayBuffer (file);
         };
 
+        /**
+         * @summary Common code for addition of files to the file set.
+         * @description Performs the reading of files and the accumulation of file data.
+         * Specifically it computes the SHA1 values for the pieces of the file set.
+         * @param {FileList} files - the list of files to add
+         * @param data - the context object for the wizard
+         * @param callback - the function to call when processing is complete
+         * @memberOf module:thingmaker/files 
+         */
         function ReadFilesAsync (files, data, callback)
         {
             data.files = files;
@@ -177,6 +221,15 @@ define
             ReadFilesAsync (files, data, done);
         };
 
+        /**
+         * @summary Event handler for dropped files.
+         * @description Attached to the drop target, this handler responds to dropped files,
+         * by triggering the asynchronous reading.
+         * @see {module:thingmaker/files.ReadFilesAsync}
+         * @param {event} event - the drop event
+         * @param data - the context object for the wizard
+         * @memberOf module:thingmaker/files 
+         */
         function file_drop (event, data)
         {
             var files;
@@ -194,6 +247,14 @@ define
             ReadFilesAsync (files, data, done);
         }
 
+        /**
+         * @summary Event handler for dragging files.
+         * @description Attached to the drop target, this handler simply modifies the effect to copy,
+         * (which produces the typical hand cursor).
+         * @param {event} event - the dragover event
+         * @param data - the context object for the wizard
+         * @memberOf module:thingmaker/files 
+         */
         function file_drag (event, data)
         {
             event.stopPropagation();
@@ -201,6 +262,13 @@ define
             event.dataTransfer.dropEffect = 'copy';
         }
 
+        /**
+         * @summary Event handler for a directory change.
+         * @description Attached to the directory input box .
+         * @param {event} event - the keyup event
+         * @param data - the context object for the wizard
+         * @memberOf module:thingmaker/files 
+         */
         function directory_change (event, data)
         {
             var dir;

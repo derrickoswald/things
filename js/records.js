@@ -1,7 +1,9 @@
 define
 (
+    ["multipart"],
+    function (multipart)
     {
-        login: function ()
+        function login ()
         {
             $.couch.login
             (
@@ -18,9 +20,9 @@ define
                     }
                 }
             );
-        },
+        };
 
-        read_records: function (db, fn)
+        function read_records (db, fn)
         {
             $.couch.db (db).view
             (
@@ -37,9 +39,9 @@ define
                     reduce: false
                 }
             );
-        },
+        };
         
-        insert_record: function (db, doc, fn)
+        function insert_record (db, doc, fn)
         {
             $.couch.db (db).saveDoc
             (
@@ -55,12 +57,12 @@ define
                     }
                 }
             );
-        },
+        };
 
         /**
         * @private
         */
-        fullCommit : function (options)
+        function fullCommit (options)
         {
             var options = options || {};
             if (typeof (options.ensure_full_commit) !== "undefined")
@@ -73,14 +75,14 @@ define
                     xhr.setRequestHeader ("X-Couch-Full-Commit", commit.toString ());
                 };
             }
-        },
+        };
 
         /**
         * @private
         */
         // Convert a options object to an url query string.
         // ex: {key:'value',key2:'value2'} becomes '?key="value"&key2="value2"'
-        encodeOptions : function (options)
+        function encodeOptions (options)
         {
             var buf = [];
             if (typeof (options) === "object" && options !== null)
@@ -98,13 +100,13 @@ define
                 }
             }
             return buf.length ? "?" + buf.join ("&") : "";
-        },
+        };
 
-        rawDocs: {},
+        rawDocs = {};
 
-        maybeApplyVersion : function (doc)
+        function maybeApplyVersion (doc)
         {
-            if (doc._id && doc._rev && this.rawDocs[doc._id] && this.rawDocs[doc._id].rev == doc._rev)
+            if (doc._id && doc._rev && rawDocs[doc._id] && rawDocs[doc._id].rev == doc._rev)
             {
                 // ToDo: can we use commonjs require here?
                 if (typeof Base64 == "undefined")
@@ -122,7 +124,7 @@ define
                     return true;
                 }
             }
-        },
+        };
 
         /**
         * Create a new document in the specified database, using the supplied
@@ -137,10 +139,10 @@ define
         * @param {Blob[]} files - the list of files to attach to the document
         * @param {callback} fn - not used
         */
-        saveDocWithAttachments : function (db, doc, options, files, fn)
+        function saveDocWithAttachments (db, doc, options, files, fn)
         {
             options = options || {};
-            var beforeSend = this.fullCommit (options);
+            var beforeSend = fullCommit (options);
             if (doc._id === undefined)
             {
                 var method = "POST";
@@ -152,7 +154,7 @@ define
                 var uri = "/" + db + "/" + $.couch.encodeDocId (doc._id);
                 delete (doc._id);
             }
-            var versioned = this.maybeApplyVersion (doc);
+            var versioned = maybeApplyVersion (doc);
             function decodeUtf8 (arrayBuffer)
             {
                 var result = "";
@@ -160,6 +162,7 @@ define
                 var c = 0;
                 var c1 = 0;
                 var c2 = 0;
+                var c3 = 0;
 
                 var data = new Uint8Array(arrayBuffer);
 
@@ -203,24 +206,27 @@ define
                     "length": stuff.length
                 }
             };
+            var ab = multipart.pack (null, doc, "abc123", stuff);
+            alert (ab.byteLength);
             return $.ajax (
             {
                 type : method,
-                url : uri + this.encodeOptions (options),
+                url : uri + encodeOptions (options),
                 contentType : "multipart/related;boundary=\"abc123\"",
                 dataType : "json",
-                data :
-                    "\r\n" +
-                    "--abc123\r\n" +
-                    "Content-Type: application/json\r\n" +
-                    "\r\n" +
-                    JSON.stringify (doc) + "\r\n" +
-                    "\r\n" +
-                    "--abc123\r\n" +
-                    "\r\n" +
-                    stuff + "\r\n" +
-                    "--abc123--\r\n" +
-                    "\r\n\r\n\r\n",
+                processData: false, // needed for data as ArrayBuffer
+                data : ab,
+//                    "\r\n" +
+//                    "--abc123\r\n" +
+//                    "Content-Type: application/json\r\n" +
+//                    "\r\n" +
+//                    JSON.stringify (doc) + "\r\n" +
+//                    "\r\n" +
+//                    "--abc123\r\n" +
+//                    "\r\n" +
+//                    stuff + "\r\n" +
+//                    "--abc123--\r\n" +
+//                    "\r\n\r\n\r\n",
                 beforeSend : beforeSend,
                 complete : function (req, outcome)
                 {
@@ -274,6 +280,16 @@ define
                     }
                 }
             });
-        },
+        };
+ 
+        var functions =
+        {
+            "login": login,
+            "read_records": read_records,
+            "insert_record": insert_record,
+            "saveDocWithAttachments": saveDocWithAttachments
+        };
+        
+        return (functions);
     }
 );

@@ -21,6 +21,7 @@ define
          * @param {Array} array - the array to remove the item from
          * @param {*} item - the item to remove
          * @returns true if it did, false otherwise
+         * @memberOf module:wizard
          */
         function remove (array, item)
         {
@@ -41,6 +42,7 @@ define
          * Get current step index based on which XXX_nav is active.
          * @param {Step[]} steps - the list of steps provided to the wizard
          * @returns {Number} the index of the current step
+         * @memberOf module:wizard
          */
         function currentIndex (steps)
         {
@@ -60,6 +62,7 @@ define
          * @param {string} id - the id to search for
          * @param {Step[]} steps - the list of steps provided to the wizard
          * @returns {Number} the index of the requested step
+         * @memberOf module:wizard
          */
         function indexOf (id, steps)
         {
@@ -79,6 +82,7 @@ define
          * @param {string} target - the click event target
          * @param {Step[]} steps - the list of steps provided to the wizard
          * @param {*} data - the data used as context for the action
+         * @memberOf module:wizard
          */
         function jump (target, steps, data)
         {
@@ -106,6 +110,7 @@ define
          * @param {Step[]} steps - the list of steps provided to the wizard
          * @param {*} data - the data used as context for the action
          * @param {number} increment - direction to step (+ or - 1)
+         * @memberOf module:wizard
          */
         function step (steps, data, increment)
         {
@@ -126,7 +131,8 @@ define
          * @param {element} list - the DOM element to add nav link items to
          * @param {element} content - the DOM element to add the wizard page to
          * @param {Step[]} steps - the list of steps provided to the wizard
-         * @param {*} data - the data used as context for the action
+         * @param {*} data - the data used as context for each action
+         * @memberOf module:wizard
          */
         function addStep (list, content, steps, data, index)
         {
@@ -186,6 +192,18 @@ define
             );
         };
 
+        /**
+         * @summary Create and handle a wizard user interface.
+         * @description Builds the HTML elements and attaches event handlers.
+         * The wizard is composed of two parts, a nav bar and a (tabbed) page area.
+         * The only affordances provided by this basic wizard are Previous and Next buttons.
+         * @todo i18n
+         * @param {element} nav - the DOM element to add nav link items to
+         * @param {element} content - the DOM element to add the wizard page to
+         * @param {Step[]} steps - the list of steps provided to the wizard
+         * @param {*} data - the data used as context for each action
+         * @memberOf module:wizard
+         */
         function wizard (nav, content, steps, data)
         {
             var input;

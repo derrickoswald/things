@@ -1,4 +1,4 @@
-/** vim: et:ts=4:sw=4:sts=4
+/* vim: et:ts=4:sw=4:sts=4
  * @license RequireJS 2.1.14 Copyright (c) 2010-2014, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
  * see: http://github.com/jrburke/requirejs for details
@@ -1434,7 +1434,7 @@ var requirejs, require, define;
                 mixin(localRequire, {
                     isBrowser: isBrowser,
 
-                    /**
+                    /*
                      * Converts a module name + .extension into an URL path.
                      * *Requires* the use of a module name. It does not support using
                      * plain URLs like nameToUrl.

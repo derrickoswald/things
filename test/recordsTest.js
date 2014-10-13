@@ -4,11 +4,6 @@
 // find out a way to supply credentials to test systems without hard coding it
 // determine architecture to allow couchdb replication without passwords (keybase.io public keys?)
 
-// determined why PUT call returns 'Bad Gateway' 503 error : CRLF required not just LF, from https://groups.google.com/forum/#!topic/couchdb-user-archive/3vwpr2mY95c
-//* Make sure the line breaks in the MIME separators/headers are CRLF, not just LF!
-//* (fixed) CouchDB crashes if a multipart body is sent in HTTP ‘chunked’ mode (COUCHDB-1403, filed by me two years ago and still unresolved. My colleague working on the Java port of my replicator just ran into this a few weeks ago.)
-//* (no longer required) I remember there being a bug in CouchDB where it required a CRLF after the closing MIME separator, i.e. the body had to end “--separator--\r\n” not just “--separator--“) but I can’t find a reference to the bug in my source code anymore. It may have been fixed.
-//* CouchDB used to ignore the headers in attachment MIME parts and assumed that the attachments appeared in the same order as in the “_attachments” object in the main JSON body. I believe this has been fixed and that it now looks at the Content-Disposition header to find the attachment’s filename, but I can’t remember for sure. 
 
 // add timeout maybe:
 //        // default timeout value is 0.5 second
