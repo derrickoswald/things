@@ -23,7 +23,8 @@ define
                 console.log (data);
                 alert ("make failed");
             };
-            var file = new Blob ([filecontent], {type : 'text/html'}); // the blob
+            var file = new Blob ([filecontent], {type: 'text/html'}); // the blob
+            file.name = "foo.txt";
             records.login ();
             records.saveDocWithAttachments.call // $.couch.db (_Db)
             (

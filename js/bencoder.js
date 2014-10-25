@@ -407,7 +407,7 @@ define
             ret = list.join ("");
         
             return (ret);};
-        
+
         /**
          * Convert a string into UTF-8 encoded (all high order bytes are zero) string.
          * @see {http://monsur.hossa.in/2012/07/20/utf-8-in-javascript.html}

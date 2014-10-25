@@ -279,8 +279,8 @@ define
                                 }
                             );
                             var fail = callbacks.addErrback ("create document with attachment");
-                            //var file = new Blob ([filecontent], {type : 'text/html'}); // the blob
-                            var file = this.str2ab (filecontent);
+                            var file = new Blob ([this.str2ab (filecontent)], { type: "text/html"}); // the blob
+                            file.name = "foo.txt"; // add a name - as if it were a File object
                             r.saveDocWithAttachments.call
                             (
                                 r, // this variable

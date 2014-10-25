@@ -1,8 +1,26 @@
+/**
+ * @fileOverview CouchDB support specific to things.
+ * @name records
+ * @author Derrick Oswald
+ * @version: 1.0
+ */
 define
 (
     ["multipart"],
+    /**
+     * @summary Support for reading and writing things and their attachments.
+     * @name records
+     * @exports records
+     * @version 1.0
+     */
     function (multipart)
     {
+        /**
+         * @summary Login to the CouchDB database.
+         * @description Uses the simple "Cookie Authentication" method provided by CouchDB out of the box.
+         * @function login
+         * @memberOf module:records
+         */
         function login ()
         {
             $.couch.login
@@ -22,6 +40,12 @@ define
             );
         };
 
+        /**
+         * @summary Read the "Overview" view and calls back the given function with the data.
+         * @description Stupid functionality - to be replaced.
+         * @function read_records
+         * @memberOf module:records
+         */
         function read_records (db, fn)
         {
             $.couch.db (db).view
@@ -40,7 +64,13 @@ define
                 }
             );
         };
-        
+
+        /**
+         * @summary Insert a document into the database.
+         * @description Yup, that's all - to be replaced.
+         * @function insert_record
+         * @memberOf module:records
+         */
         function insert_record (db, doc, fn)
         {
             $.couch.db (db).saveDoc
@@ -53,7 +83,7 @@ define
                     },
                     error: function(status)
                     {
-                        console.log (status); 
+                        console.log (status);
                     }
                 }
             );
@@ -134,10 +164,11 @@ define
         * generated.
         * @param {String} db - the database to save the document in
         * @param {String} doc - the document to save
-        * @param {ajaxSettings} options - <a href="http://api.jquery.com/
-        * jQuery.ajax/#jQuery-ajax-settings">jQuery ajax settings</a>
+        * @param {ajaxSettings} options - <a href="http://api.jquery.com/jQuery.ajax/#jQuery-ajax-settings">jQuery ajax settings</a>
         * @param {Blob[]} files - the list of files to attach to the document
-        * @param {callback} fn - not used
+        * @param {callback} fn - not used yet
+        * @returns {Deferred} with the {jqXHR} ajax object Promise
+        * @memberOf module:records
         */
         function saveDocWithAttachments (db, doc, options, files, fn)
         {
@@ -197,91 +228,84 @@ define
                 return result;
             };
             var stuff = decodeUtf8 (files[0]);
-            doc._attachments =
-            {
-                "foo.txt":
+
+            var data_deferred = multipart.pack (files, doc, "abc123");
+            ret = data_deferred.then
+            (
+                function (ab)
                 {
-                    "follows": true,
-                    "content_type": "text/plain",
-                    "length": stuff.length
-                }
-            };
-            var ab = multipart.pack (null, doc, "abc123", stuff);
-            alert (ab.byteLength);
-            return $.ajax (
-            {
-                type : method,
-                url : uri + encodeOptions (options),
-                contentType : "multipart/related;boundary=\"abc123\"",
-                dataType : "json",
-                processData: false, // needed for data as ArrayBuffer
-                data : ab,
-//                    "\r\n" +
-//                    "--abc123\r\n" +
-//                    "Content-Type: application/json\r\n" +
-//                    "\r\n" +
-//                    JSON.stringify (doc) + "\r\n" +
-//                    "\r\n" +
-//                    "--abc123\r\n" +
-//                    "\r\n" +
-//                    stuff + "\r\n" +
-//                    "--abc123--\r\n" +
-//                    "\r\n\r\n\r\n",
-                beforeSend : beforeSend,
-                complete : function (req, outcome)
-                {
-                    switch (outcome)
-                    {
-                    // ("success", "notmodified", "error", "timeout", "abort", or "parsererror")
-                    }
-                    var resp = $.parseJSON (req.responseText);
-                    if (req.status == 200 || req.status == 201 || req.status == 202)
-                    {
-                        doc._id = resp.id;
-                        doc._rev = resp.rev;
-                        if (versioned)
+                    // convert here from the list created by the when() call into a single (any one of the) ArrayBuffer arguments
+                    if (Array.isArray (ab))
+                        ab = ab[0];
+                    $.ajax
+                    (
                         {
-                            db.openDoc (doc._id,
+                            type : method,
+                            url : uri + encodeOptions (options),
+                            contentType : "multipart/related;boundary=\"abc123\"",
+                            dataType : "json",
+                            processData: false, // needed for data as ArrayBuffer
+                            data : ab,
+                            beforeSend : beforeSend,
+                            complete : function (req, outcome)
                             {
-                                attachPrevRev : true,
-                                success : function (d)
+                                switch (outcome)
                                 {
-                                    doc._attachments = d._attachments;
-                                    if (options.success)
-                                        options.success (resp);
+                                // ("success", "notmodified", "error", "timeout", "abort", or "parsererror")
                                 }
-                            });
+                                var resp = $.parseJSON (req.responseText);
+                                if (req.status == 200 || req.status == 201 || req.status == 202)
+                                {
+                                    doc._id = resp.id;
+                                    doc._rev = resp.rev;
+                                    if (versioned)
+                                    {
+                                        db.openDoc (doc._id,
+                                        {
+                                            attachPrevRev : true,
+                                            success : function (d)
+                                            {
+                                                doc._attachments = d._attachments;
+                                                if (options.success)
+                                                    options.success (resp);
+                                            }
+                                        });
+                                    }
+                                    else
+                                    {
+                                        if (options.success)
+                                            options.success (resp);
+                                    }
+                                }
+                                else if (options.error)
+                                {
+                                    var msg;
+                                    var reason;
+                                    if (null == resp)
+                                    {
+                                        msg = req.responseText;
+                                        reason = "unknown reason";
+                                    }
+                                    else
+                                    {
+                                        msg = resp.error;
+                                        reason = resp.reason;
+                                    }
+                                    options.error (req.status, msg, reason);
+                                }
+                                else
+                                {
+                                    throw "The document could not be saved: " + resp.reason;
+                                }
+                            }
                         }
-                        else
-                        {
-                            if (options.success)
-                                options.success (resp);
-                        }
-                    }
-                    else if (options.error)
-                    {
-                        var msg;
-                        var reason;
-                        if (null == resp)
-                        {
-                            msg = req.responseText;
-                            reason = "unknown reason";
-                        }
-                        else
-                        {
-                            msg = resp.error;
-                            reason = resp.reason;
-                        }
-                        options.error (req.status, msg, reason);
-                    }
-                    else
-                    {
-                        throw "The document could not be saved: " + resp.reason;
-                    }
+                    )
                 }
-            });
+            );
+
+            return (ret);
         };
- 
+
         var functions =
         {
             "login": login,
@@ -289,7 +313,8 @@ define
             "insert_record": insert_record,
             "saveDocWithAttachments": saveDocWithAttachments
         };
-        
+
         return (functions);
+
     }
 );
