@@ -244,17 +244,6 @@ define
                     );
                 },
 
-                str2ab: function (str)
-                {
-                    var len = str.length;
-                    var ret = new ArrayBuffer (str.length);
-                    var view = new Uint8Array (ret);
-                    for (var i = 0; i < len; i++)
-                        view[i] = (0xff & str.charCodeAt (i));
-
-                    return (ret);
-                },
-
                 testAttachment: function (queue)
                 {
                     var payload = "data" + "_" + Math.floor ((Math.random () * 1000) + 1);
@@ -264,6 +253,8 @@ define
                         "name": payload
                     };
                     var filecontent = "file" + "_" + Math.floor ((Math.random () * 1000) + 1);
+                    var filename = "foo.txt";
+                    var id = null;
 
                     queue.call
                     (
@@ -274,13 +265,15 @@ define
                             (
                                 function (data)
                                 {
+                                    console.log ("create document with attachment");
                                     console.log (data);
                                     assertTrue ("create document with attachment", data.ok);
+                                    id = data.id;
                                 }
                             );
                             var fail = callbacks.addErrback ("create document with attachment");
-                            var file = new Blob ([this.str2ab (filecontent)], { type: "text/html"}); // the blob
-                            file.name = "foo.txt"; // add a name - as if it were a File object
+                            var file = new Blob ([filecontent], { type: "text/html"}); // the blob
+                            file.name = filename; // add a name - as if it were a File object
                             r.saveDocWithAttachments.call
                             (
                                 r, // this variable
@@ -294,6 +287,24 @@ define
                             );
                         }
                     );
+
+//                    queue.call
+//                    (
+//                        "read attachment",
+//                        function (callbacks)
+//                        {
+//                            var result = callbacks.add
+//                            (
+//                                function (data)
+//                                {
+//                                    console.log ("read attachment");
+//                                    console.log (data);
+//                                    assertEquals (filecontent, data);
+//                                }
+//                            );
+//                            r.read_attachment (_Db, id, filename, result);
+//                        }
+//                    );
                 }
             }
         );

@@ -19,8 +19,6 @@
                                 id="thumbnailURL" form="thing_form" type="text" name="thumbnailURL"></li>
                             <li><label class="thing_form_label" form="thing_form" for="description">Description</label><input
                                 id="description" form="thing_form" type="text" name="description"></li>
-                            <li><input class="thing_form_button" form="thing_form" type="submit" value="Make Thing"
-                                name="make_thing" disabled="disabled"></li>
                         </ul>
                     </form>
 

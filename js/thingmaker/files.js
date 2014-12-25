@@ -6,7 +6,7 @@
  */
 define
 (
-    ["mustache"],
+    ["mustache", "sha1"],
     /**
      * @summary Allows user selection of files from the file system.
      * @description Presents a list of files to which the user can add and remove files
@@ -17,7 +17,7 @@ define
      * @exports thingmaker/files
      * @version 1.0
      */
-    function (mustache)
+    function (mustache, sha)
     {
         /**
          * Creates a function for handling the end of the file reading.
@@ -69,7 +69,7 @@ define
          * @param {File} file - the file to add
          * @param data - the context object for the wizard
          * @param callback - the function to call when processing is complete
-         * @memberOf module:thingmaker/files 
+         * @memberOf module:thingmaker/files
          */
         function ReadFileAsync (file, data, callback)
         {
@@ -100,13 +100,13 @@ define
          * @param {FileList} files - the list of files to add
          * @param data - the context object for the wizard
          * @param callback - the function to call when processing is complete
-         * @memberOf module:thingmaker/files 
+         * @memberOf module:thingmaker/files
          */
         function ReadFilesAsync (files, data, callback)
         {
             data.files = files;
-            Blobs = [];
-            Blobs.length = files.length;
+            data.Blobs = [];
+            data.Blobs.length = files.length;
             PieceLength = data.piece_length;
 
             var afterall = function ()
@@ -115,28 +115,28 @@ define
                 var text;
                 text = "";
                 length = 0;
-                for (var i = 0; i < Blobs.length; i++)
+                for (var i = 0; i < data.Blobs.length; i++)
                 {
-                    text += "file " + i + ": " + files[i].name + " " + files[i].type + " " + files[i].size + " loaded " + Blobs[i].byteLength + " @ " + length + "\n";
-                    length += Blobs[i].byteLength;
+                    text += "file " + i + ": " + files[i].name + " " + files[i].type + " " + files[i].size + " loaded " + data.Blobs[i].byteLength + " @ " + length + "\n";
+                    length += data.Blobs[i].byteLength;
                 }
                 text += "length total " + length + "\n";
                 // now we have our blobs, build it into one big blob
                 var blob = new ArrayBuffer (length);
                 var view = new Uint8Array (blob, 0, length);
                 length = 0;
-                for (var i = 0; i < Blobs.length; i++)
+                for (var i = 0; i < data.Blobs.length; i++)
                 {
-                    view.set (new Uint8Array (Blobs[i], 0, Blobs[i].byteLength), length);
-                    length += Blobs[i].byteLength;
+                    view.set (new Uint8Array (data.Blobs[i], 0, data.Blobs[i].byteLength), length);
+                    length += data.Blobs[i].byteLength;
                 }
                 // compute the hashes
-                Hashes = new ArrayBuffer (Math.ceil (length / data.piece_length) * 20);
-                var hashview = new Uint8Array (Hashes);
+                data.Hashes = new ArrayBuffer (Math.ceil (length / data.piece_length) * 20);
+                var hashview = new Uint8Array (data.Hashes);
                 var index = 0;
                 for (var j = 0; j < length; j += data.piece_length)
                 {
-                    var hash = sha1 (blob.slice (j, j + data.piece_length), true);
+                    var hash = sha.sha1 (blob.slice (j, j + data.piece_length), true);
                     var temp = new Uint8Array (hash);
                     for (var k = 0; k < 20; k++)
                         hashview[index++] = temp[k];
@@ -150,7 +150,8 @@ define
                     }
                     text += raw_text.toLowerCase () + "\n";
                 }
-                callback (text);
+                data.text = text;
+                callback (data);
             };
 
             var total = 0;
@@ -162,7 +163,7 @@ define
                 // also ??? files[i].lastModifiedDate ? files[i].lastModifiedDate.toLocaleDateString () : 'n/a'
                 total += files[i].size;
 
-           //     var reader = new FileReader ();
+                var reader = new FileReader ();
 //                onabort
 //                Called when the read operation is aborted.
 //                onerror
@@ -177,8 +178,8 @@ define
 //                Called periodically while the data is being read.
 
                 // if we use onloadend, we need to check the readyState.
-           //     reader.onloadend = makeLoadEndFunction (Blobs, i, afterall);
-           //     reader.readAsArrayBuffer (files[i]);
+                reader.onloadend = makeLoadEndFunction (data.Blobs, i, afterall);
+                reader.readAsArrayBuffer (files[i]);
             }
             data.filelist = filelist;
             data.total = total;
@@ -211,7 +212,7 @@ define
         {
             button.setAttribute ("disabled", "disabled");
         };
- 
+
 
         function file_change (event, data)
         {
@@ -228,7 +229,7 @@ define
          * @see {module:thingmaker/files.ReadFilesAsync}
          * @param {event} event - the drop event
          * @param data - the context object for the wizard
-         * @memberOf module:thingmaker/files 
+         * @memberOf module:thingmaker/files
          */
         function file_drop (event, data)
         {
@@ -253,7 +254,7 @@ define
          * (which produces the typical hand cursor).
          * @param {event} event - the dragover event
          * @param data - the context object for the wizard
-         * @memberOf module:thingmaker/files 
+         * @memberOf module:thingmaker/files
          */
         function file_drag (event, data)
         {
@@ -267,7 +268,7 @@ define
          * @description Attached to the directory input box .
          * @param {event} event - the keyup event
          * @param data - the context object for the wizard
-         * @memberOf module:thingmaker/files 
+         * @memberOf module:thingmaker/files
          */
         function directory_change (event, data)
         {

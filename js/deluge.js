@@ -6,16 +6,18 @@ define
         // json = {couch_httpd_proxy, handle_proxy_req, <<"http://localhost:8112">>}
         // NOTE: the json name is not optional, since the cookie contains the path /json and hence
         // will only match through the proxy if the trigger path is also json, hence the /json/json
-        
+
+        // ToDo: look up webtorrent and peermaps
+
         Password: "deluge", // default
-        
+
         // get the magic cookie
         login: function (password)
         {
             var url;
             var xmlhttp;
             var ret = null;
-        
+
             url = this.URL;
             xmlhttp = new XMLHttpRequest ();
             xmlhttp.open ("POST", url, false);
@@ -27,17 +29,17 @@ define
                     ret = true;
             };
             xmlhttp.send (JSON.stringify ({"method": "auth.login", "params": ["deluge"], "id": 1}));
-            
+
             return (ret);
         },
-        
+
         // get information about a torrent
         getTorrentInfo: function (hash)
         {
             var url;
             var xmlhttp;
             var ret = null;
-        
+
             url = this.URL;
             xmlhttp = new XMLHttpRequest ();
             xmlhttp.open ("POST", url, false);
@@ -49,7 +51,7 @@ define
                     ret = JSON.parse (xmlhttp.responseText).result;
             };
             xmlhttp.send (JSON.stringify ({"method": "web.get_torrent_files", "params": [hash], "id": 1}));
-        
+
             return (ret);
         }
     }
