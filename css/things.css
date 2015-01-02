@@ -111,3 +111,41 @@ table.file_list tr:nth-child(even)
     padding: 25px;
     text-align: center;
 }
+
+.thing_form
+{
+    min-width: 100%;
+    display: inline-block;
+}
+
+.thing_form_list
+{
+	list-style: none;
+	padding: 0;
+	margin: 20px;
+}
+
+.thing_form_item
+{
+    line-height: 20px;
+    margin: 5px;
+}
+
+.thing_form_input
+{
+    background-color: #e3edf9;
+    box-shadow: 1px 1px 0 #cccccc inset;
+    display: inline-block;
+    width: 75%;
+    float: right;
+}
+
+.thing_form_label
+{
+    display: inline-block;
+    min-width: 25%;
+    padding-right: 8px;
+    text-align: right;
+    width: auto;
+}
+
