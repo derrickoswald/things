@@ -9,7 +9,7 @@ define
             {
                 testKeybase: function ()
                 {
-                    assertNotNull ("keybase access failure", k.getsalt ("chris"));
+                    assertNotNull ("keybase access failure", k.getsalt ("max"));
                 }
             }
         );

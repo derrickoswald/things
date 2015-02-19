@@ -26,8 +26,8 @@
 
 define
 (
-    ["records"],
-    function (r)
+    ["records", "login_credentials"],
+    function (r, l)
     {
         AsyncTestCase
         (
@@ -55,8 +55,8 @@ define
                             $.couch.login
                             (
                                 {
-                                    name: "admin",
-                                    password: "secret",
+                                    name: l.get ("username"), // "admin"
+                                    password: l.get ("password"), // "secret"
                                     success: list
                                 }
                             );

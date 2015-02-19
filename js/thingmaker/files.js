@@ -258,8 +258,8 @@ define
          */
         function file_drag (event, data)
         {
-            event.stopPropagation();
-            event.preventDefault();
+            event.stopPropagation ();
+            event.preventDefault ();
             event.dataTransfer.dropEffect = 'copy';
         }
 
