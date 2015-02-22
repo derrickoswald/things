@@ -1,0 +1,14 @@
+                    <li id="login" class="dropdown">
+                        <a id="login_button_link" href="#" data-toggle="dropdown">Login</a>
+                        <div class="dropdown-menu loginform">
+                            <form id="login_form" action="#" role="form">
+                                <div class="form-group">
+                                    <label for="username">User name</label>
+                                    <input type="text" class="form-control" id="username" placeholder="User name" />
+                                    <label for="password">Password</label>
+                                    <input type="password" class="form-control" id="password" placeholder="Password" />
+                                </div>
+                                <button type="submit" class="btn btn-default">Sign in</button>
+                            </form>
+                        </div>
+                    </li>

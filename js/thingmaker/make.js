@@ -1,7 +1,7 @@
 define
 (
-    ["mustache", "../records", "../bencoder", "../sha1"],
-    function (mustache, records, bencoder, sha)
+    ["mustache", "../records", "../bencoder", "../sha1", "../login"],
+    function (mustache, records, bencoder, sha, login)
     {
         function MakeTorrent (data, template)
         {
@@ -117,18 +117,20 @@ define
                 console.log (data);
                 alert ("make failed");
             };
-            records.login ();
-            records.saveDocWithAttachments.call // $.couch.db (_Db)
-            (
-                records,
-                data.database,
-                torrent,
-                {
-                    success: ok,
-                    error: fail
-                },
-                (data.files) ? data.files : null
-            );
+            if (login.isLoggedIn ())
+                records.saveDocWithAttachments.call // $.couch.db (_Db)
+                (
+                    records,
+                    data.database,
+                    torrent,
+                    {
+                        success: ok,
+                        error: fail
+                    },
+                    (data.files) ? data.files : null
+                );
+            else
+                alert ("You must be logged in to make a thing");
         };
 
         return (

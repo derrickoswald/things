@@ -14,29 +14,6 @@ define ([ "multipart" ],
     function (multipart)
     {
         /**
-         * @summary Login to the CouchDB database.
-         * @description Uses the simple "Cookie Authentication" method provided by CouchDB out of the box.
-         * @function login
-         * @memberOf module:records
-         */
-        function login ()
-        {
-            $.couch.login (
-            {
-                name : "admin",
-                password : "secret",
-                success : function (data)
-                {
-                    console.log (data);
-                },
-                error : function (status)
-                {
-                    console.log (status);
-                }
-            });
-        };
-
-        /**
          * @summary Read the "Overview" view and calls back the given function with the data.
          * @description Stupid functionality - to be replaced.
          * @function read_records

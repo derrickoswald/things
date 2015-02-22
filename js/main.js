@@ -17,8 +17,8 @@
 
 requirejs
 (
-    ["home", "thingmaker/thingwizard"],
-    function (home, thingwizard)
+    ["home", "thingmaker/thingwizard", "login"],
+    function (home, thingwizard, login)
     {
         function activate (id, fn)
         {
@@ -32,6 +32,8 @@ requirejs
                 }
             );
         }
+
+        login.build ("utility");
         document.getElementById ("home").onclick = activate ("home", home.initialize);
         document.getElementById ("new_thing").onclick = activate ("new_thing", thingwizard.initialize);
         //activate ("home", home.initialize) ();

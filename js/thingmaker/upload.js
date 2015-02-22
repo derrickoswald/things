@@ -1,23 +1,27 @@
 define
 (
-    ["mustache", "../records"],
-    function (mustache, records)
+    ["mustache", "../records", "../login"],
+    function (mustache, records, login)
     {
         function upload (event, data)
         {
             if (data.filelist)
             {
-                records.login ();
-                records.insert_record
-                (
-                    data.database,
-                    data.filelist[0],
-                    function (rec)
-                    {
-                        document.getElementById ("torrent_content").innerHTML = JSON.stringify (rec);
-                    }
-                );
-                alert (JSON.stringify (data.filelist));
+                if (login.isLoggedIn ())
+                {
+                    records.insert_record
+                    (
+                        data.database,
+                        data.filelist[0],
+                        function (rec)
+                        {
+                            document.getElementById ("torrent_content").innerHTML = JSON.stringify (rec);
+                        }
+                    );
+                    alert (JSON.stringify (data.filelist));
+                }
+                else
+                    alert ("You must be logged in to upload files");
             }
         };
 
