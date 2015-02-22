@@ -126,7 +126,8 @@ define (
 
         var functions =
         {
-            "build": build
+            "build": build,
+            "isLoggedIn": isLoggedIn
         }
 
         return (functions);

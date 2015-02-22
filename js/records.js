@@ -405,7 +405,6 @@ define ([ "multipart" ],
 
         var functions =
         {
-            "login" : login,
             "read_records" : read_records,
             "insert_record" : insert_record,
             "saveDocWithAttachments" : saveDocWithAttachments,
