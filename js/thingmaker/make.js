@@ -34,7 +34,7 @@ define
                 infohash = {
                         "files": filedata,
                         "name": data.directory,
-                        "piece length": piece_length,
+                        "piece length": data.piece_length,
                         "pieces": data.Hashes
                     };
             }
