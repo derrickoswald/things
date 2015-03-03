@@ -131,6 +131,8 @@ define
             {
                 console.log (data);
                 alert ("make succeeded");
+                // remove added _rev field for publishing
+                delete torrent["_rev"];
                 showlink (bencoder.encode (torrent));
             };
             function fail (data)
@@ -146,7 +148,7 @@ define
                     files.push (data.files.item (i));
 
             // add the torrent to the list of files to be saved
-            files.push (new File([bencoder.encode (torrent)], primary_key + ".torrent", { type: "application/octet-stream" }));
+            files.push (new File([str2ab (bencoder.encode (torrent))], primary_key + ".torrent", { type: "application/octet-stream" }));
 
             if (login.isLoggedIn ())
                 records.saveDocWithAttachments.call // $.couch.db (_Db)

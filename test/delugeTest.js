@@ -101,7 +101,7 @@ define
                                     console.log (data);
                                 }
                             );
-                            var fail = callbacks.addErrback ("getTorrentInfo");
+                            var fail = callbacks.addErrback ("addTorrent");
                             deluge.addTorrent (
                                 null,
                                 {

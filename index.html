@@ -46,8 +46,21 @@
                     </li>
                 </ul>
                 <ul id="utility" class="nav navbar-nav navbar-right">
-                    <li class="active"><a href="./api/index.html">Code</a></li>
-                    <li><a href="#">View</a></li>
+                    <li><a href="./api/index.html">Code</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">View<span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li class="dropdown-header">Local</li>
+                            <li><a href="/_utils/">Futon (Couchdb)</a></li>
+                            <li><a href="http://localhost:8112/">Deluge Web</a></li>
+                            <li class="divider"></li>
+                            <li class="dropdown-header">External</li>
+                            <li><a href="https://keybase.io/">Keybase</a></li>
+                            <li><a href="http://bittorrent.org">Bittorrent</a></li>
+                            <li><a href="https://couchdb.apache.org/">Apache Couchdb</a></li>
+                            <li><a href="http://deluge-torrent.org/">Deluge</a></li>
+                        </ul>
+                    </li>
                 </ul>
             </div>
         </div>
