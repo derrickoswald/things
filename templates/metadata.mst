@@ -40,3 +40,4 @@
                         <i class = "glyphicon glyphicon-cog"></i>
                         <span>Make</span>
                     </button>
+                    <div id="torrent_link"></div>

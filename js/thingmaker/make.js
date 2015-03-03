@@ -75,6 +75,21 @@ define
             return (sha.sha1 (str2ab (bencoder.encode (info))));
         }
 
+        // show the contents of the encoded Thing as a link in the content area
+        function showlink (torrent)
+        {
+            // show the torrent contents
+            var a = document.createElement ("a");
+            a.setAttribute ("href", "data:application/octet-stream;base64," + btoa (torrent));
+            a.setAttribute ("download", "test.torrent");
+            var text = document.createTextNode ("Torrent File");
+            a.appendChild (text);
+            var content = document.getElementById ('torrent_link');
+            while (content.firstChild)
+                content.removeChild (content.firstChild);
+            content.appendChild (a);
+        }
+
         function make (event, data)
         {
             var torrent;
@@ -107,16 +122,32 @@ define
             var primary_key = info_hash (info);
             torrent["_id"] = primary_key;
 
+            // add the webseed
+            torrent["url-list"] = "http://localhost:5984/things/" + primary_key + "/";
+            if (1 == data.files.length)
+                torrent["url-list"] += data.files[0].name;
+
             function ok (data)
             {
                 console.log (data);
                 alert ("make succeeded");
+                showlink (bencoder.encode (torrent));
             };
             function fail (data)
             {
                 console.log (data);
                 alert ("make failed");
             };
+
+            // make the list of files for attachment
+            var files = [];
+            if (data.files)
+                for (var i = 0; i < data.files.length; i++)
+                    files.push (data.files.item (i));
+
+            // add the torrent to the list of files to be saved
+            files.push (new File([bencoder.encode (torrent)], primary_key + ".torrent", { type: "application/octet-stream" }));
+
             if (login.isLoggedIn ())
                 records.saveDocWithAttachments.call // $.couch.db (_Db)
                 (
@@ -127,7 +158,7 @@ define
                         success: ok,
                         error: fail
                     },
-                    (data.files) ? data.files : null
+                    files
                 );
             else
                 alert ("You must be logged in to make a thing");

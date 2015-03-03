@@ -3,7 +3,7 @@
  * @name bencoder
  * @author Derrick Oswald
  * @version: 1.0
- * 
+ *
  * Google search on "bencode" "javascript" yields:
  * https://github.com/themasch/node-bencode/blob/master/bencode.js
  * https://github.com/clarkf/node-bencoding/blob/master/lib/bencoding.js
@@ -13,7 +13,7 @@
  * http://demon.tw/my-work/javascript-bencode.html
  * http://svn.mg2.org/projects/pco/browser/trunk/net/cjdns-mikey/admin/http/text/javascript/bencode.js?rev=8
  * https://code.google.com/p/jsxt/source/browse/trunk/js/Bencode.js?spec=svn491&r=491
- * 
+ *
  * All of the above either depend on the node.js Buffer class so they aren't applicable
  * to client side use (maybe lobrow could be used) or have done string
  * encoding wrong in various ways (I think).
@@ -32,9 +32,9 @@ define
     {
         /**
          * @summary Decodes bencoded data.
-         * 
+         *
          * @param {ArrayBuffer} buffer - the source to read the bencoded data from
-         * @param {*} raw Non-null if strings should be returned as ArrayBuffer 
+         * @param {*} raw Non-null if strings should be returned as ArrayBuffer
          * @return {Object|Array|ArrayBuffer|String|Number}
          * @memberOf module:bencoder
          */
@@ -42,12 +42,12 @@ define
         {
             if (!(buffer instanceof ArrayBuffer))
                 throw "not an ArrayBuffer";
-        
+
             decode.position = 0;
             decode.buffer = buffer;
             decode.size = buffer.byteLength;
             decode.data = new DataView (buffer);
-        
+
             return (decode.next (raw));
         }
 
@@ -60,15 +60,15 @@ define
             decode.encoding_table.push (encodeURIComponent (String.fromCharCode (i)));
 
         /**
-         * Convert the next bencoded element into a property. 
-         * @param {*} raw Non-null if strings should be returned as ArrayBuffer 
+         * Convert the next bencoded element into a property.
+         * @param {*} raw Non-null if strings should be returned as ArrayBuffer
          * @return {Object|Array|ArrayBuffer|String|Number}
          * @memberOf module:bencoder.decode
          */
         decode.next = function (raw)
         {
             var ret;
-        
+
             switch (decode.data.getUint8 (decode.position))
             {
                 case 0x64: // 'd'
@@ -84,53 +84,53 @@ define
                     ret = decode.bytes (raw);
                     break;
             }
-            
+
             return (ret);
         };
 
         /**
-         * Convert the next bencoded dictionary into an object. 
-         * @param {*} raw Non-null if strings should be returned as ArrayBuffer 
+         * Convert the next bencoded dictionary into an object.
+         * @param {*} raw Non-null if strings should be returned as ArrayBuffer
          * @return {Object}
          * @memberOf module:bencoder.decode
          */
         decode.dictionary = function (raw)
         {
             var ret;
-        
+
             ret = {};
-        
+
             decode.position++; // past the 'd'
             while (decode.data.getUint8 (decode.position) !== 0x65) // 'e'
-                ret[decode.next (false)] = decode.next (raw); // keys must be strings 
+                ret[decode.next (false)] = decode.next (raw); // keys must be strings
             decode.position++; // past the 'e'
-        
+
             return (ret);
         };
-        
+
         /**
-         * Convert the next bencoded list into an array. 
-         * @param {*} raw Non-null if strings should be returned as ArrayBuffer 
+         * Convert the next bencoded list into an array.
+         * @param {*} raw Non-null if strings should be returned as ArrayBuffer
          * @return {Array}
          * @memberOf module:bencoder.decode
          */
         decode.list = function (raw)
         {
             var ret;
-        
+
             ret = [];
-        
+
             decode.position++; // past the 'l'
             while (decode.data.getUint8 (decode.position) !== 0x65) // 'e'
                 ret.push (decode.next (raw));
             decode.position++; // past the 'e'
-        
+
             return (ret);
-        
+
         };
-        
+
         /**
-         * Convert the next bencoded integer into a number. 
+         * Convert the next bencoded integer into a number.
          * @param {*} raw Non-null if strings should be returned as ArrayBuffer <em>not used</em>
          * @return {Array}
          * @memberOf module:bencoder.decode
@@ -142,9 +142,9 @@ define
             var c;
             var sign;
             var ret;
-            
+
             ret = 0;
-            
+
             i = ++decode.position; // past the 'i'
             limit = decode.size;
             sign = 1;
@@ -173,13 +173,13 @@ define
                 throw "'e' not found at end of number at offset " + decode.position;
             decode.position = i;
             ret *= sign;
-        
+
             return (ret);
         };
-        
+
         /**
-         * Convert the next bencoded byte array into an ArrayBuffer or a String. 
-         * @param {*} raw Non-null if strings should be returned as ArrayBuffer 
+         * Convert the next bencoded byte array into an ArrayBuffer or a String.
+         * @param {*} raw Non-null if strings should be returned as ArrayBuffer
          * @return {ArrayBuffer|String}
          * @memberOf module:bencoder.decode
          */
@@ -190,9 +190,9 @@ define
             var c;
             var length;
             var ret;
-        
+
             ret = null;
-        
+
             length = 0;
             i = decode.position;
             limit = decode.size;
@@ -213,10 +213,10 @@ define
             ret = decode.buffer.slice (i, decode.position);
             if (!raw)
                 ret = decode.stringize (ret);
-        
+
             return (ret);
         };
-        
+
         /**
          * Convert an ArrayBuffer, theoretically of UTF-8 encoded bytes, into a String.
          * All strings in a .torrent file that contains text must be UTF-8 encoded.
@@ -233,9 +233,9 @@ define
             var c;
             var str;
             var ret;
-            
+
             ret = "";
-            
+
             // we use the hack described here:
             // http://monsur.hossa.in/2012/07/20/utf-8-in-javascript.html
             // but the correct way is to use a reader to read the utf8 encoded bytes into a string
@@ -266,7 +266,7 @@ define
             if (bytes != str)
                 alert ("oops: converted byte data not correct, raw: " + bytes + " String: " + str);
             /* end: comment out for production code */
-        
+
             return (ret);
         };
 
@@ -282,9 +282,9 @@ define
             var limit;
             var i;
             var ret;
-        
+
             ret = null;
-        
+
             if (data instanceof ArrayBuffer)
             {
                 ret = data.byteLength.toString () + ':';
@@ -309,13 +309,13 @@ define
                         alert ("oops: data type \"" + (typeof data) + "\" not encoded");
                         break;
                 }
-        
+
             return (ret);
         }
 
         /**
          * @summary Encodes bytes into a bencode string.
-         * @param {Array|String|ArrayBuffer|Object|Number} data he plain javascript object to encode as bencode
+         * @param {Array|String|ArrayBuffer|Object|Number} data the plain javascript object to encode as bencode
          * @return {String}
          * @memberOf module:bencoder.encode
          */
@@ -324,12 +324,12 @@ define
             var str;
             var prefix;
             var ret;
-        
+
             // create a UTF-8 encoded string
             str = encode.encode_utf8 (data);
             prefix = str.length.toString () + ':';
             ret = prefix + str;
-        
+
             return (ret);
         };
 
@@ -343,10 +343,10 @@ define
         {
             var str;
             var ret;
-        
+
             str = data.toString ();
             ret = "i" + str + "e";
-        
+
             return (ret);
         };
 
@@ -364,7 +364,7 @@ define
             var i;
             var k;
             var ret;
-        
+
             keys = [];
             for (var d in data)
                 if (!('function' == typeof data[d])) // ignore functions in objects
@@ -381,10 +381,10 @@ define
             }
             der.push ("e");
             ret = der.join ("");
-        
+
             return (ret);
         };
-        
+
         /**
          * Encodes an array into a bencode list.
          * @param {Array} data - the array to encode
@@ -397,7 +397,7 @@ define
             var limit;
             var i;
             var ret;
-        
+
             list = [];
             list.push ("l");
             limit = data.length;
@@ -405,7 +405,7 @@ define
                 list.push (encode (data[i]));
             list.push ("e");
             ret = list.join ("");
-        
+
             return (ret);};
 
         /**
@@ -438,7 +438,7 @@ define
             {
                 return (this.hexDigits[dec >> 4] + this.hexDigits[dec & 15]);
             },
-        
+
             /**
              * Convert a two character hexadecmal string into a number.
              * @param {String} hex - the string to convert, should be two hexadecimal characters, but more will probably work

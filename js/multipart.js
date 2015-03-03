@@ -163,6 +163,9 @@ define
                 serialized = JSON.stringify (doc, null, "    ");
                 attachments = "";
                 for (var i = 0; i < files.length; i++)
+                {
+                    if (0 != i)
+                        attachments += ",\n";
                     attachments +=
                         "        \"" + files[i].name + "\":\n" +
                         "        {\n" +
@@ -170,6 +173,7 @@ define
                         ((files[i].type && ("" != files[i].type)) ? ("            \"content_type\": \"" + files[i].type + "\",\n") : "") +
                         "            \"length\": " + files[i].size + "\n" +
                         "        }\n";
+                }
                 attachments = encode_utf8 (attachments);
                 index = serialized.lastIndexOf ("}") - 1; // -1 to also trim off the newline
                 serialized = serialized.substring (0, index) + ",\n    \"_attachments\":\n    {\n" + attachments + "\n    }\n}";
@@ -204,9 +208,9 @@ define
                 {   // here we add the file bytes with spacers between files
                     getter = createDeferredFileGetter (files[i], view, index);
                     getters.push (getter);
-                    index += files[i].length;
-                    for (var i = 0; i < spacer.length; i++)
-                        view[index++] = (0xff & spacer.charCodeAt (i));
+                    index += files[i].size;
+                    for (var j = 0; j < spacer.length; j++)
+                        view[index++] = (0xff & spacer.charCodeAt (j));
                 }
                 for (var i = 0; i < suffix.length; i++)
                     view[size - suffix.length + i] = (0xff & suffix.charCodeAt (i));

@@ -204,9 +204,7 @@ define ([ "multipart" ],
                     }
                 }
                 return result;
-            }
-            ;
-            var stuff = decodeUtf8 (files[0]);
+            };
 
             var data_deferred = multipart.pack (files, doc, "abc123");
             ret = data_deferred.then (function (ab)
