@@ -1,7 +1,7 @@
 define
 (
-    ["mustache", "../records", "../bencoder", "../sha1", "../login"],
-    function (mustache, records, bencoder, sha, login)
+    ["mustache", "../records", "../bencoder", "../sha1", "../login", "../deluge"],
+    function (mustache, records, bencoder, sha, login, deluge)
     {
         function MakeTorrent (data, template)
         {
@@ -25,7 +25,7 @@ define
                     data.directory = "directory" + "_" + Math.floor ((Math.random () * 1000) + 1);
                     alert ("generating required directory " + data.directory);
                 }
-                filedata = [];
+                var filedata = [];
                 for (var i = 0; i < data.files.length; i++)
                     filedata[filedata.length] = {
                         "length": data.files[i].size,
@@ -100,7 +100,7 @@ define
             var form = document.getElementById ("thing_form");
             if (null != form)
             {
-                for (i = 0; i < form.elements.length; i++)
+                for (var i = 0; i < form.elements.length; i++)
                 {
                     var child = form.elements[i];
                     var id = child.getAttribute ("id");
@@ -127,6 +127,15 @@ define
             if (1 == data.files.length)
                 torrent["url-list"] += data.files[0].name;
 
+            // make the list of files for attachment
+            if (typeof (data.files) == "undefined")
+                data.files = [];
+
+            // add the torrent to a copy of the list of files to be saved
+            var copy = [];
+            data.files.forEach (function (item) { copy.push (item); });
+            copy.push (new File([str2ab (bencoder.encode (torrent))], primary_key + ".torrent", { type: "application/octet-stream" }));
+
             function ok (data)
             {
                 console.log (data);
@@ -134,19 +143,31 @@ define
                 // remove added _rev field for publishing
                 delete torrent["_rev"];
                 showlink (bencoder.encode (torrent));
+                // push to deluge
+                deluge.login (
+                    deluge.Password,
+                    {
+                        success:
+                            function ()
+                            {
+                                deluge.addTorrent (
+                                    "http://localhost:5984/things/" + primary_key + "/" + primary_key + ".torrent",
+                                    {
+                                        success: function () { alert ("torrent push to deluge succeeded"); },
+                                        error: function () { alert ("torrent push to deluge failed"); }
+                                    }
+                                );
+                            },
+                        error: fail
+                    }
+                );
             };
+
             function fail (data)
             {
                 console.log (data);
                 alert ("make failed");
             };
-
-            // make the list of files for attachment
-            if (typeof (data.files) == "undefined")
-                data.files = [];
-
-            // add the torrent to the list of files to be saved
-            data.files.push (new File([str2ab (bencoder.encode (torrent))], primary_key + ".torrent", { type: "application/octet-stream" }));
 
             if (login.isLoggedIn ())
                 records.saveDocWithAttachments.call // $.couch.db (_Db)
@@ -158,7 +179,7 @@ define
                         success: ok,
                         error: fail
                     },
-                    data.files
+                    copy
                 );
             else
                 alert ("You must be logged in to make a thing");

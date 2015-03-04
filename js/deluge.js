@@ -120,8 +120,11 @@ define
                     {
                         var reply = JSON.parse (xmlhttp.responseText);
                         if (reply.error)
-                            callbacks.fail (reply.error);
-                        if (callbacks && callbacks.success)
+                        {
+                            if (callbacks && callbacks.fail)
+                                callbacks.fail (reply.error);
+                        }
+                        else if (callbacks && callbacks.success)
                             callbacks.success (reply.result);
                     }
                     else
@@ -145,8 +148,6 @@ define
             var xmlhttp;
             var ret = null;
 
-            // as a test we try loading the torrent from a known source of a valid .torrent file
-            var temp_test = "http://extratorrent.cc/download/1151544/Hitchhikers+Guide+To+The+Galaxy+-+BBC+Radio+complete+series.torrent";
             url = URL;
             xmlhttp = new XMLHttpRequest ();
             xmlhttp.open ("POST", url, false);
@@ -169,7 +170,7 @@ define
 //                scope: this,
 //                torrentId: torrentId
 //            });
-            xmlhttp.send (JSON.stringify ({"method": "web.download_torrent_from_url", "params": [temp_test /*, cookies */], "id": 3}));
+            xmlhttp.send (JSON.stringify ({"method": "web.download_torrent_from_url", "params": [torrent /*, cookies */], "id": 3}));
 
             return (ret);
         }
