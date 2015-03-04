@@ -102,11 +102,15 @@ define
          * @param callback - the function to call when processing is complete
          * @memberOf module:thingmaker/files
          */
-        function ReadFilesAsync (files, data, callback)
+        function ReadFilesAsync (filesx, data, callback)
         {
-            data.files = files;
+            // ToDo: be smarter about re-reading all these files... they could be big
+            if (typeof (data.files) == "undefined")
+                data.files = [];
+            for (var i = 0; i < filesx.length; i++)
+                data.files.push (filesx.item (i));
             data.Blobs = [];
-            data.Blobs.length = files.length;
+            data.Blobs.length = data.files.length;
             PieceLength = data.piece_length;
 
             var afterall = function ()
@@ -117,7 +121,7 @@ define
                 length = 0;
                 for (var i = 0; i < data.Blobs.length; i++)
                 {
-                    text += "file " + i + ": " + files[i].name + " " + files[i].type + " " + files[i].size + " loaded " + data.Blobs[i].byteLength + " @ " + length + "\n";
+                    text += "file " + i + ": " + data.files[i].name + " " + data.files[i].type + " " + data.files[i].size + " loaded " + data.Blobs[i].byteLength + " @ " + length + "\n";
                     length += data.Blobs[i].byteLength;
                 }
                 text += "length total " + length + "\n";
@@ -156,12 +160,11 @@ define
 
             var total = 0;
             var filelist = [];
-            for (var i = 0; i < files.length; i++)
+            for (var i = 0; i < data.files.length; i++)
             {
-                //alert ("file " + i + ": " + files[i].name + " " + files[i].type + " " + files[i].size + "\n");
-                filelist.push ({ filename: files[i].name, filesize: files[i].size, filetype: files[i].type })
-                // also ??? files[i].lastModifiedDate ? files[i].lastModifiedDate.toLocaleDateString () : 'n/a'
-                total += files[i].size;
+                filelist.push ({ filename: data.files[i].name, filesize: data.files[i].size, filetype: data.files[i].type })
+                // also ??? data.files[i].lastModifiedDate ? data.files[i].lastModifiedDate.toLocaleDateString () : 'n/a'
+                total += data.files[i].size;
 
                 var reader = new FileReader ();
 //                onabort
@@ -179,7 +182,7 @@ define
 
                 // if we use onloadend, we need to check the readyState.
                 reader.onloadend = makeLoadEndFunction (data.Blobs, i, afterall);
-                reader.readAsArrayBuffer (files[i]);
+                reader.readAsArrayBuffer (data.files[i]);
             }
             data.filelist = filelist;
             data.total = total;
@@ -194,11 +197,10 @@ define
 
         function done (data)
         {
-            //if (null != Files && (1 == Files.length))
-            //    enablebutton ();
             update (data);
         };
 
+        // disable the next button
         function update (data)
         {
             if (data.files && ((1 == data.files.length) || ((1 < data.files.length) && data.directory)))
@@ -207,19 +209,9 @@ define
                 data.next_button.setAttribute ("disabled", "disabled");
         }
 
-        // disable the next button
-        function disablebutton (button)
-        {
-            button.setAttribute ("disabled", "disabled");
-        };
-
-
         function file_change (event, data)
         {
-            var files;
-
-            files = event.target.files;
-            ReadFilesAsync (files, data, done);
+            ReadFilesAsync (event.target.files, data, done);
         };
 
         /**

@@ -142,13 +142,11 @@ define
             };
 
             // make the list of files for attachment
-            var files = [];
-            if (data.files)
-                for (var i = 0; i < data.files.length; i++)
-                    files.push (data.files.item (i));
+            if (typeof (data.files) == "undefined")
+                data.files = [];
 
             // add the torrent to the list of files to be saved
-            files.push (new File([str2ab (bencoder.encode (torrent))], primary_key + ".torrent", { type: "application/octet-stream" }));
+            data.files.push (new File([str2ab (bencoder.encode (torrent))], primary_key + ".torrent", { type: "application/octet-stream" }));
 
             if (login.isLoggedIn ())
                 records.saveDocWithAttachments.call // $.couch.db (_Db)
@@ -160,7 +158,7 @@ define
                         success: ok,
                         error: fail
                     },
-                    files
+                    data.files
                 );
             else
                 alert ("You must be logged in to make a thing");
