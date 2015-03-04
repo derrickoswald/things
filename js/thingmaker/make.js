@@ -1,7 +1,7 @@
 define
 (
-    ["mustache", "../records", "../bencoder", "../sha1", "../login", "../deluge"],
-    function (mustache, records, bencoder, sha, login, deluge)
+    ["mustache", "../records", "../bencoder", "../sha1", "../login"],
+    function (mustache, records, bencoder, sha, login)
     {
         function MakeTorrent (data, template)
         {
@@ -121,68 +121,9 @@ define
             var info = torrent["info"];
             var primary_key = info_hash (info);
             torrent["_id"] = primary_key;
+            data.torrent = torrent;
 
-            // add the webseed
-            torrent["url-list"] = "http://localhost:5984/things/" + primary_key + "/";
-            if (1 == data.files.length)
-                torrent["url-list"] += data.files[0].name;
-
-            // make the list of files for attachment
-            if (typeof (data.files) == "undefined")
-                data.files = [];
-
-            // add the torrent to a copy of the list of files to be saved
-            var copy = [];
-            data.files.forEach (function (item) { copy.push (item); });
-            copy.push (new File([str2ab (bencoder.encode (torrent))], primary_key + ".torrent", { type: "application/octet-stream" }));
-
-            function ok (data)
-            {
-                console.log (data);
-                alert ("make succeeded");
-                // remove added _rev field for publishing
-                delete torrent["_rev"];
-                showlink (bencoder.encode (torrent));
-                // push to deluge
-                deluge.login (
-                    deluge.Password,
-                    {
-                        success:
-                            function ()
-                            {
-                                deluge.addTorrent (
-                                    "http://localhost:5984/things/" + primary_key + "/" + primary_key + ".torrent",
-                                    {
-                                        success: function () { alert ("torrent push to deluge succeeded"); },
-                                        error: function () { alert ("torrent push to deluge failed"); }
-                                    }
-                                );
-                            },
-                        error: fail
-                    }
-                );
-            };
-
-            function fail (data)
-            {
-                console.log (data);
-                alert ("make failed");
-            };
-
-            if (login.isLoggedIn ())
-                records.saveDocWithAttachments.call // $.couch.db (_Db)
-                (
-                    records,
-                    data.database,
-                    torrent,
-                    {
-                        success: ok,
-                        error: fail
-                    },
-                    copy
-                );
-            else
-                alert ("You must be logged in to make a thing");
+            showlink (bencoder.encode (torrent));
         };
 
         return (

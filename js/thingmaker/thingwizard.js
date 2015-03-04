@@ -6,22 +6,22 @@
  */
 define
 (
-    ["wizard", "thingmaker/files", "thingmaker/make", "thingmaker/upload"],
+    ["wizard", "thingmaker/files", "thingmaker/make", "thingmaker/upload", "thingmaker/publish"],
     /**
      * @summary Create a new thing by specifying the files, template and metadata.
      * @exports thingmaker/thingwizard
      * @version 1.0
      */
-    function (wiz, files, make, upload)
+    function (wiz, files, make, upload, publish)
     {
         /**
          * @summary Create the wizard.
          *
          * @description Builds on the generic wizard module and adds specific html id values and
          * method steps to create a functioning thing wizard.
-         * 
+         *
          * @function initialize
-         */ 
+         */
         function initialize ()
         {
             var steps =
@@ -32,26 +32,26 @@ define
                     make.getStep (), // { id: "enter_metadata", title: "Enter metadata", template: "templates/metadata.mst"},
                     { id: "sign", title: "Sign the thing", template: "templates/sign.mst"},
                     upload.getStep (), // { id: "upload", title: "Upload the thing", template: "templates/upload.mst", hooks: upload_hooks}
-                    { id: "publish", title: "Publish the thing", template: "templates/publish.mst"}
+                    publish.getStep (), // { id: "publish", title: "Publish the thing", template: "templates/publish.mst", hooks: publish_hooks}
                 ];
 
             /**
              * @summary Wizard data.
              * @description The object passed around to maintain state. The aim is to have this eventually filled in from user storage.
              * @member
-             */ 
+             */
             var data =
             {
                 database: "things",
                 piece_length: 16384,
             };
-     
+
             var row;
             var nav;
             var content;
             var stream;
             var main;
-            
+
             row = document.createElement ("div");
             row.id = "main_area";
             row.className = "row";
@@ -79,12 +79,12 @@ define
                 main.removeChild (main.firstChild);
             main.appendChild (row);
         };
-        
+
         var functions =
         {
             "initialize": initialize
         };
-        
+
         return (functions);
     }
 );

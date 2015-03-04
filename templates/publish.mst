@@ -1,9 +1,6 @@
                     <h2>Publish</h2>
-                    Publish the thing using this form
-                    <form id="publish_form" action="javascript:publish_form ();">
-                        <ul>
-                            <li><input class="publish_form_button" form="publish_form" type="submit" value="Publish Thing"
-                                name="publish_thing" disabled="disabled"></li>
-                        </ul>
-                    </form>
-                    <div id="publish_status"></div>
+                    Publish the thing using this form and let the <em>Thing Tracker Network</em> handle it.
+                    <button id="publish_button" class="btn btn-primary publish_form_button" type="submit">
+                    <i class="glyphicon glyphicon-book"></i>
+                    <span>Publish</span>
+                    </button>
