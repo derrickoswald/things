@@ -23,7 +23,7 @@ define (
 
         /**
          * Handler for show.bs.dropdown events.
-         * Checks for logged in state and if so perorms a logout and bypass opening the dropdown.
+         * Checks for logged in state and if so performs a logout and bypass opening the dropdown.
          * @param event the dropdown-is-about-to-happen event from the .dropdown list item
          */
         function show (event)
@@ -46,6 +46,18 @@ define (
                     }
                 });
             }
+            else
+            {
+                var credentials = getCredentials ();
+                if (null != credentials)
+                {
+                    document.getElementById ("username").value = credentials.name;
+                    document.getElementById ("password").value = credentials.password;
+                    document.getElementById ("remember").checked = true;
+                }
+                else
+                    document.getElementById ("remember").checked = false;
+            }
         }
 
         /**
@@ -57,6 +69,56 @@ define (
         {
             var username = document.getElementById ("username");
             username.focus ();
+        }
+
+        function haslLocalStorage ()
+        {
+            var ret;
+
+            ret = false;
+
+            try
+            {
+                ret = (('localStorage' in window) && (null != window['localStorage']));
+            }
+            catch (e)
+            {
+            }
+
+            return (ret);
+          }
+
+        function storeCredentials (name, password)
+        {
+            if (haslLocalStorage ())
+            {
+                localStorage.setItem ("couchdb_user", name);
+                localStorage.setItem ("couchdb_password", password);
+            }
+        }
+
+        function clearCredentials ()
+        {
+            if (haslLocalStorage ())
+            {
+                localStorage.removeItem ("couchdb_user");
+                localStorage.removeItem ("couchdb_password");
+            }
+        }
+
+        function getCredentials ()
+        {
+            var ret = null;
+
+            if (haslLocalStorage ())
+            {
+                var name = localStorage.getItem ("couchdb_user");
+                var password = localStorage.getItem ("couchdb_password");
+                if ((null != name) || (null != password))
+                    ret = { "name": name, "password": password };
+            }
+
+            return (ret);
         }
 
         /**
@@ -71,18 +133,23 @@ define (
             event.stopPropagation ();
             var username = document.getElementById ("username");
             var password = document.getElementById ("password");
+            var remember = document.getElementById ("remember");
             $.couch.login (
             {
-                name : username.value,
-                password : password.value,
-                success : function (data)
+                name: username.value,
+                password: password.value,
+                success: function (data)
                 {
                     console.log (data);
+                    if (remember.checked)
+                        storeCredentials (username.value, password.value);
+                    else
+                        clearCredentials ();
                     var link = document.getElementById ("login_button_link");
                     link.innerHTML = "Logout";
                     $(link).dropdown ('toggle');
                 },
-                error : function (status)
+                error: function (status)
                 {
                     console.log (status);
                     alert ("Login failed.");

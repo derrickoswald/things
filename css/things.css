@@ -159,3 +159,13 @@ table.file_list tr:nth-child(even)
 	 padding: 10px;
 	 background: #ddd;
 }
+
+#remember
+{
+	float: right;
+}
+
+#remember_label
+{
+	display: inline;
+}
