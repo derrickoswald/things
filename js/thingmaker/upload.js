@@ -66,9 +66,17 @@ define
                     if (1 == data.files.length)
                         data.torrent["url-list"] += data.files[0].name;
 
-                    // make the list of files for attachment
+                    // make the list of files for attachment with names adjusted for directory
                     var copy = [];
-                    data.files.forEach (function (item) { copy.push (item); });
+                    data.files.forEach (
+                        function (item)
+                        {
+                            if (1 < data.files.length)
+                                copy.push (new File ([item], data.torrent.info.name + "/" + item.name, { type: item.type, lastModifiedDate: item.lastModifiedDate }));
+                            else
+                                copy.push (item);
+                        }
+                    );
 
                     // add the torrent to a copy of the list of files to be saved
                     copy.push (new File ([str2ab (bencoder.encode (data.torrent))], primary_key + ".torrent", { type: "application/octet-stream" }));
