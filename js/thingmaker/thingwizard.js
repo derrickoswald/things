@@ -37,7 +37,8 @@ define
 
             /**
              * @summary Wizard data.
-             * @description The object passed around to maintain state. The aim is to have this eventually filled in from user storage.
+             * @description The object passed around to maintain state.
+             * The aim is to have this eventually filled in from user storage.
              * @member
              */
             var data =
@@ -51,6 +52,17 @@ define
             var content;
             var stream;
             var main;
+
+//            var template =
+//                "<div id='main_area' class='row'>" +
+//                    "<ul class='col-md-3 nav nav-tabs nav-stacked' role='tablist' id='sidebar'>" +
+//                       /* li */
+//                    "</ul>" +
+//                    "<div class='col-md-6 tab-content' id='panes'>" +
+//                       /* div */
+//                    "</div>" +
+//                    "<div class='col-md-3' id='stream'></div>" +
+//                "</div>";
 
             row = document.createElement ("div");
             row.id = "main_area";

@@ -26,7 +26,7 @@ define
         function remove (array, item)
         {
             var ret;
-            
+
             ret = false;
             for (var i = array.length; i--; )
                 if (array[i] === item)
@@ -34,10 +34,10 @@ define
                     array.splice (i, 1);
                     ret = true;
                 }
-            
+
             return (ret);
         };
-        
+
         /**
          * Get current step index based on which XXX_nav is active.
          * @param {Step[]} steps - the list of steps provided to the wizard
@@ -47,13 +47,13 @@ define
         function currentIndex (steps)
         {
             var ret;
-            
+
             ret = -1;
 
             for (var i = 0; (i < steps.length) && (0 > ret); i++)
                 if (-1 != document.getElementById (steps[i].id + "_nav").className.split (" ").indexOf ("active")) // $("#" + steps[i].id + "_nav").hasClass ("active"))
                     ret = i;
-            
+
             return (ret);
         };
 
@@ -67,13 +67,13 @@ define
         function indexOf (id, steps)
         {
             var ret;
-            
+
             ret = -1;
 
             for (var i = 0; (i < steps.length) && (0 > ret); i++)
                 if (id == steps[i].id)
                     ret = i
-            
+
             return (ret);
         };
 
@@ -89,7 +89,7 @@ define
             var target;
             var id;
             var current;
-            
+
             id = target.substring (0, target.length - 4);
             current = indexOf (id, steps);
             if (-1 != current)
@@ -116,7 +116,7 @@ define
         {
             var current;
             var future;
-            
+
             current = currentIndex (steps);
             if (-1 != current)
             {
@@ -143,7 +143,7 @@ define
             var template;
             var active;
             var hooks;
-            
+
             id = steps[index].id;
             title = steps[index].title;
             template = steps[index].template;
@@ -160,12 +160,12 @@ define
             link = document.createElement ("a");
             item.appendChild (link);
             link.id = id + "_lnk";
-            link.setAttribute ("href", "#" + id); 
-            link.setAttribute ("role", "tab"); 
-            link.setAttribute ("data-toggle", "tab"); 
+            link.setAttribute ("href", "#" + id);
+            link.setAttribute ("role", "tab");
+            link.setAttribute ("data-toggle", "tab");
             link.appendChild (document.createTextNode (title));
             link.addEventListener ("click", function (event) { jump (event.target.id, steps, data); });
-            
+
             // get mustache to make the page
             item = document.createElement ("div");
             content.appendChild (item);
@@ -206,15 +206,16 @@ define
          */
         function wizard (nav, content, steps, data)
         {
+            var outer;
             var input;
             var button;
             var image;
-            
-            for (var i = 0; i < steps.length; i++)
-                addStep (nav, content, steps, data, i);
-            
+
+            outer = document.createElement ("div");
+            outer.className = "row";
+
             input = document.createElement ("div");
-            content.appendChild (input);
+            outer.appendChild (input);
             input.className = "wizard_button_next";
             button = document.createElement ("button");
             input.appendChild (button);
@@ -229,7 +230,7 @@ define
             button.onclick = function () { step (steps, data, 1); };
 
             input = document.createElement ("div");
-            content.appendChild (input);
+            outer.appendChild (input);
             input.className = "wizard_button_prev";
             button = document.createElement ("button");
             input.appendChild (button);
@@ -242,6 +243,12 @@ define
             button.appendChild (document.createTextNode ("Previous"));
             data.prev_button = button;
             button.onclick = function () { step (steps, data, -1); };
+
+            content.appendChild (outer);
+
+            for (var i = 0; i < steps.length; i++)
+                addStep (nav, content, steps, data, i);
+
         };
 
         var functions =
