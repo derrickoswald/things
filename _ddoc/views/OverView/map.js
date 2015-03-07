@@ -1,4 +1,7 @@
-function bb (doc)
+function map (doc)
 {
-    emit (doc._id, doc.info.thing.title);
+    // need a copy because doc is read-only
+    var thing = JSON.parse (JSON.stringify (doc.info.thing));
+    thing.id = doc._id;
+    emit (doc._id, thing);
 }
