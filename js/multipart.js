@@ -44,25 +44,6 @@ define
         var CONT = "Content-Type: application/json";
 
         /**
-         * @summary Stupid conversion string to array buffer.
-         * @description Assumes ASCII and just copies byte by byte.
-         * @function str2ab
-         * @memberOf module:multipart
-         * @param {string} str - the string to turn into an ArrayBuffer
-         * @returns {ArrayBuffer} the string as an ArrayBuffer
-         */
-        function str2ab (str)
-        {
-            var len = str.length;
-            var ret = new ArrayBuffer (str.length);
-            var view = new Uint8Array (ret);
-            for (var i = 0; i < len; i++)
-                view[i] = (0xff & str.charCodeAt (i));
-
-            return (ret);
-        };
-
-        /**
          * Convert a string into UTF-8 encoded (all high order bytes are zero) string.
          * @see {@link http://monsur.hossa.in/2012/07/20/utf-8-in-javascript.html}
          * @param {String} str - the string to encode

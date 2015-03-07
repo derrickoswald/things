@@ -31,6 +31,25 @@ define
     function ()
     {
         /**
+         * @summary Stupid conversion of string to array buffer.
+         * @description Assumes ASCII and just copies byte by byte.
+         * @function str2ab
+         * @memberOf module:bencoder
+         * @param {string} str - the string to turn into an ArrayBuffer
+         * @returns {ArrayBuffer} the string as an ArrayBuffer
+         */
+        function str2ab (str)
+        {
+            var len = str.length;
+            var ret = new ArrayBuffer (str.length);
+            var view = new Uint8Array (ret);
+            for (var i = 0; i < len; i++)
+                view[i] = (0xff & str.charCodeAt (i));
+
+            return (ret);
+        };
+
+        /**
          * @summary Decodes bencoded data.
          *
          * @param {ArrayBuffer} buffer - the source to read the bencoded data from
@@ -452,6 +471,7 @@ define
         };
 
 return ({
+    "str2ab": str2ab,
     "decode": decode,
     "encode": encode,
     "HexConverter": HexConverter

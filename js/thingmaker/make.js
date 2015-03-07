@@ -59,20 +59,9 @@ define
             return (ret);
         }
 
-        function str2ab (str)
-        {
-            var len = str.length;
-            var ret = new ArrayBuffer (str.length);
-            var view = new Uint8Array (ret);
-            for (var i = 0; i < len; i++)
-                view[i] = (0xff & str.charCodeAt (i));
-
-            return (ret);
-        }
-
         function info_hash (info)
         {
-            return (sha.sha1 (str2ab (bencoder.encode (info))));
+            return (sha.sha1 (bencoder.str2ab (bencoder.encode (info))));
         }
 
         // show the contents of the encoded Thing as a link in the content area

@@ -4,17 +4,6 @@ define
     ["mustache", "../records", "../bencoder", "../login"],
     function (mustache, records, bencoder, login)
     {
-        function str2ab (str)
-        {
-            var len = str.length;
-            var ret = new ArrayBuffer (str.length);
-            var view = new Uint8Array (ret);
-            for (var i = 0; i < len; i++)
-                view[i] = (0xff & str.charCodeAt (i));
-
-            return (ret);
-        }
-
         function upload (event, data)
         {
             if (data.torrent)
@@ -79,7 +68,7 @@ define
                     );
 
                     // add the torrent to a copy of the list of files to be saved
-                    copy.push (new File ([str2ab (bencoder.encode (data.torrent))], primary_key + ".torrent", { type: "application/octet-stream" }));
+                    copy.push (new File ([bencoder.str2ab (bencoder.encode (data.torrent))], primary_key + ".torrent", { type: "application/octet-stream" }));
 
                     function ok (result)
                     {

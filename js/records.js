@@ -207,7 +207,7 @@ define ([ "multipart" ],
             };
 
             var data_deferred = multipart.pack (files, doc, "abc123");
-            ret = data_deferred.then (function (ab)
+            var ret = data_deferred.then (function (ab)
             {
                 // convert here from the list created by the when() call into a single (any one of the) ArrayBuffer arguments
                 if (Array.isArray (ab))

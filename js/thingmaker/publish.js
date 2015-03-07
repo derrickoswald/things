@@ -1,7 +1,7 @@
 define
 (
-    ["mustache", "../deluge"],
-    function (mustache, deluge)
+    ["mustache", "../deluge", "../records", "../bencoder", "../login"],
+    function (mustache, deluge, records, bencoder, login)
     {
         function publish (event, data)
         {
@@ -23,7 +23,33 @@ define
                             deluge.addTorrent (
                                 "http://localhost:5984/things/" + primary_key + "/" + primary_key + ".torrent",
                                 {
-                                    success: function () { alert ("torrent push to deluge succeeded"); },
+                                    success: function ()
+                                    {
+                                        alert ("torrent push to deluge succeeded");
+
+                                        // remove webseed
+                                        delete data.torrent["url-list"];
+
+                                        var attachments = [
+                                            new File ([bencoder.str2ab (bencoder.encode (data.torrent))], primary_key + ".torrent", { type: "application/octet-stream" })
+                                            ];
+
+                                        // push to public_things
+                                        if (login.isLoggedIn ())
+                                        {
+                                            records.saveDocWithAttachments.call // $.couch.db (_Db)
+                                            (
+                                                records,
+                                                "public_things",
+                                                data.torrent,
+                                                {
+                                                    success: function () { alert ("torrent push to public things database suceeded"); },
+                                                    error: function () { alert ("torrent push to public things database failed"); }
+                                                },
+                                                attachments
+                                            );
+                                        }
+                                    },
                                     error: function () { alert ("torrent push to deluge failed"); }
                                 }
                             );
