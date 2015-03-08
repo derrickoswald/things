@@ -182,6 +182,7 @@ define
          * @summary Bencode a torrent object.
          * @description Convert the torrent into bencoded form.
          * @param {Object} torrent - the object to bencode.
+         * @return {String} bencoded torrent content.
          * @memberOf module:torrent
          */
         function Encode (torrent)
@@ -190,8 +191,20 @@ define
         }
 
         /**
+         * @summary Bencode a torrent object and convert to ArrayBuffer.
+         * @description Convert the torrent into bencoded form and output as an unambiguous binary object rather than a String.
+         * @param {Object} torrent - the object to bencode.
+         * @return {ArrayBuffer} bencoded torrent content.
+         * @memberOf module:torrent
+         */
+        function Binarize (torrent)
+        {
+            return (bencoder.str2ab (bencoder.encode (torrent)));
+        }
+
+        /**
          * @summary Compute the hash of the given object.
-         * @description Calculate the info has of the bencoded info object.
+         * @description Calculate the info of the bencoded info object.
          * @param {Object} info - the object to bencode and compute hashes for - normally the info section of a torrent.
          * @memberOf module:torrent
          */
@@ -205,6 +218,7 @@ define
             "ComputeHashes" : ComputeHashes,
             "MakeTorrent": MakeTorrent,
             "Encode": Encode,
+            "Binarize": Binarize,
             "InfoHash": InfoHash
         };
 

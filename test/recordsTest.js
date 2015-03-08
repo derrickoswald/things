@@ -27,7 +27,7 @@
 define
 (
     ["records", "login_credentials"],
-    function (r, l)
+    function (records, login_credentials)
     {
         AsyncTestCase
         (
@@ -38,8 +38,9 @@ define
                 // executed before each test - login, clean up messes, and create a new test database
                 setUp : function (queue)
                 {
-                    _Db = "testdb" + "_" + Math.floor ((Math.random () * 1000) + 1);
-                    var del = null;
+                    this._Db = "testdb" + "_" + Math.floor ((Math.random () * 1000) + 1);
+                    var del = null; // true if database exists
+                    
                     queue.call
                     (
                         "login",
@@ -55,8 +56,8 @@ define
                             $.couch.login
                             (
                                 {
-                                    name: l.get ("username"), // "admin"
-                                    password: l.get ("password"), // "secret"
+                                    name: login_credentials.get ("username"),
+                                    password: login_credentials.get ("password"),
                                     success: list
                                 }
                             );
@@ -73,7 +74,7 @@ define
                                 function (data)
                                 {
                                     console.log (data);
-                                    del = -1 != data.indexOf (_Db);
+                                    del = -1 != data.indexOf (this._Db);
                                 }
                             );
                             $.couch.allDbs
@@ -91,7 +92,7 @@ define
                         function (callbacks)
                         {
                             if (del)
-                                $.couch.db (_Db).drop
+                                $.couch.db (this._Db).drop
                                 (
                                     {
                                         success: callbacks.noop ()
@@ -110,12 +111,12 @@ define
                                 function (data)
                                 {
                                     console.log (data);
-                                    jstestdriver.console.log ("setUp " + _Db);
+                                    jstestdriver.console.log ("setUp " + this._Db);
                                     assertTrue ("create", data.ok);
                                 }
                             );
                             var fail = callbacks.addErrback ("create database");
-                            $.couch.db (_Db).create
+                            $.couch.db (this._Db).create
                             (
                                 {
                                     success: ok,
@@ -124,8 +125,6 @@ define
                             );
                         }
                     );
-                    
-
                 },
 
                 tearDown : function (queue)
@@ -140,12 +139,12 @@ define
                                 function (data)
                                 {
                                     console.log (data);
-                                    jstestdriver.console.log ("tearDown " + _Db);
+                                    jstestdriver.console.log ("tearDown " + this._Db);
                                     assertTrue ("drop", data.ok);
                                 }
                             );
                             var fail = callbacks.addErrback ("drop database");
-                            $.couch.db (_Db).drop
+                            $.couch.db (this._Db).drop
                             (
                                 {
                                     success: ok,
@@ -160,7 +159,7 @@ define
                 {
                     var view =
                     {
-                        "_id":"_design/" + _Db,
+                        "_id":"_design/" + this._Db,
                         "language": "javascript",
                         "views":
                         {
@@ -190,7 +189,7 @@ define
                                 }
                             );
                             var fail = callbacks.addErrback ("create view");
-                            $.couch.db (_Db).saveDoc
+                            $.couch.db (this._Db).saveDoc
                             (
                                 view,
                                 {
@@ -215,7 +214,7 @@ define
                                 }
                             );
                             var fail = callbacks.addErrback ("create document");
-                            $.couch.db (_Db).saveDoc
+                            $.couch.db (this._Db).saveDoc
                             (
                                 doc,
                                 {
@@ -239,7 +238,7 @@ define
                                     assertEquals ([payload], data);
                                 }
                             );
-                            r.read_records (_Db, result);
+                            records.read_records (this._Db, result);
                         }
                     );
                 },
@@ -274,10 +273,10 @@ define
                             var fail = callbacks.addErrback ("create document with attachment");
                             var file = new Blob ([filecontent], { type: "text/html"}); // the blob
                             file.name = filename; // add a name - as if it were a File object
-                            r.saveDocWithAttachments.call
+                            records.saveDocWithAttachments.call
                             (
-                                r, // this variable
-                                _Db,
+                                records, // this variable
+                                this._Db,
                                 doc,
                                 {
                                     success: ok,
@@ -302,7 +301,7 @@ define
 //                                    assertEquals (filecontent, data);
 //                                }
 //                            );
-//                            r.read_attachment (_Db, id, filename, result);
+//                            records.read_attachment (this._Db, id, filename, result);
 //                        }
 //                    );
                 }
