@@ -1,13 +1,17 @@
 /**
  * This function as it is only allows logged in users, or admins to
  * create,update or delete documents
- * 
- * @param newDoc
- * @param oldDoc
- * @param userCtx
- * @param secObj
+ *
+ * @param newDoc the document to be created or used for update
+ * @param oldDoc the current document if document id was specified in the HTTP request
+ * @param userCtx user context object, which contains three properties:
+ * <ul>
+ * <li>db name of database (String)
+ * <li>name user name (String)
+ * <li>roles roles to which user belongs (Array of String). Currently only _admin role is supported.
+ * <ul>
+ * @param secObj the security object of the database
  */
-
 function validate (newDoc, oldDoc, userCtx, secObj)
 {
     secObj.admins = secObj.admins || {};
