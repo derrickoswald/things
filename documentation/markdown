@@ -1,1 +1,1 @@
-pandoc --from=html --to=markdown_github --output=things Architecture.md things Architecture.html
+pandoc --from=html --to=markdown_github --output=things\ Architecture.md things\ Architecture.html

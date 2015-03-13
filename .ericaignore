@@ -9,5 +9,7 @@
 	"run_tests",
 	"start_jstestdriver",
 	"test/*",
-	"resources/*"
+	"resources/*",
+	"credentials*",
+	"setpassword.xml"
 ]

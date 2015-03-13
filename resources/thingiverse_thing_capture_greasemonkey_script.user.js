@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name        thingiverse_test
-// @namespace   thingiverse_test
-// @description Try CORS from thingiverse
+// @name        thingiverse_import
+// @namespace   thingiverse_import
+// @description Import thing from thingiverse
 // @include     http://www.thingiverse.com/*
 // @version     1
 // @grant       none
