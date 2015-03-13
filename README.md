@@ -3,6 +3,9 @@ things
 
 Thing Tracker Network experimentation.
 
+#Architecture
+An architecture document is available in open document format in the documentation directory, or [online](documentation/things%20Architecture.md)
+
 #Developer Instructions
 These instructions are fairly rough and haven't been tried out on a virgin machine, but this is pretty much what you need to do to contribute to or develop code for **_things_**.
 * Install git.
