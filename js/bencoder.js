@@ -470,10 +470,10 @@ define
             }
         };
 
-return ({
-    "str2ab": str2ab,
-    "decode": decode,
-    "encode": encode,
-    "HexConverter": HexConverter
-});
+    return ({
+        "str2ab": str2ab,
+        "decode": decode,
+        "encode": encode,
+        "HexConverter": HexConverter
+    });
 });

@@ -9,8 +9,6 @@ define
         // NOTE: the json name is not optional, since the cookie contains the path /json and hence
         // will only match through the proxy if the trigger path is also json, hence the /json/json
 
-        // ToDo: look up webtorrent and peermaps
-
         var Password = "deluge"; // default
 
         // get the magic cookie

@@ -1,7 +1,7 @@
 define
 (
     ["bencoder", "sha1"],
-    function (bencoder, sha)
+    function (bencoder, sha1)
     {
         /**
          * @summary Creates a function for handling the end of reading a file.
@@ -90,7 +90,7 @@ define
                 var index = 0;
                 for (var j = 0; j < length; j += piece_length)
                 {
-                    var hash = sha.sha1 (blob.slice (j, j + piece_length), true);
+                    var hash = sha1.sha1 (blob.slice (j, j + piece_length), true);
                     var temp = new Uint8Array (hash);
                     for (var k = 0; k < 20; k++)
                         hashview[index++] = temp[k];
@@ -210,7 +210,7 @@ define
          */
         function InfoHash (info)
         {
-            return (sha.sha1 (bencoder.str2ab (Encode (info))));
+            return (sha1.sha1 (bencoder.str2ab (Encode (info))));
         }
 
         var exported =
