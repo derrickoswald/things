@@ -7,8 +7,10 @@
 // @grant       none
 // ==/UserScript==
 
+
+// import 
 // a little help in deciphering the code...
-// code that follows immediatey is imported modules from things https://github.com/derrickoswald/things
+// code that follows immediately is imported modules from things https://github.com/derrickoswald/things
 // at the bottom, starting with createCORSRequest, is the actual GreaseMonkey script.
 
 
@@ -963,27 +965,52 @@ function createCORSRequest(method, url)
 
 function thing ()
 {
+    // $('.thing-header-data h1')[0].innerHTML
+    var title = document.getElementsByClassName ("thing-header-data")[0].getElementsByTagName ("h1")[0].innerHTML;
+
+    // $('.thing-header-data h2 a')[0].innerHTML
+    var author = document.getElementsByClassName ("thing-header-data")[0].getElementsByTagName ("h2")[0].getElementsByTagName ("a")[0].innerHTML
+
+    // $('.thing-license')[0].getAttribute ("title")
+    var license = document.getElementsByClassName ("thing-license")[0].getAttribute ("title");
+
     var tags = [];
-    $(".tags a").each (function (index, tag) { tags.push (tag.innerHTML); });
+    // $(".tags a").each (function (index, tag) { tags.push (tag.innerHTML); });
+    var tagdiv = document.getElementsByClassName ("tags")[0];
+    var as = tagdiv.getElementsByTagName ("a");
+    for (var i = 0; i < as.length; i++)
+        tags.push (as[i].innerHTML);
+
     var images = [];
-    $(".thing-gallery-thumb").each (function (index, image) { images.push (image.getAttribute ("data-large-url")); } );
+    // $(".thing-gallery-thumb").each (function (index, image) { images.push (image.getAttribute ("data-large-url")); } );
+    var thumbs = document.getElementsByClassName ("thing-gallery-thumb");
+    for (var i = 0; i < thumbs.length; i++)
+        images.push (thumbs[i].getAttribute ("data-large-url"));
+
+    // $('#description')[0].innerHTML
+    var description = document.getElementById ("description").innerHTML;
+
     return (
     {
-        "Title": $('.thing-header-data h1')[0].innerHTML,
+        "Title": title,
         "URL": document.URL,
-        "Authors": [$('.thing-header-data h2 a')[0].innerHTML],
-        "Licenses": [$('.thing-license')[0].getAttribute ("title")],
+        "Authors": [author],
+        "Licenses": [license],
         "Tags": tags,
         "Thumbnail URL": images,
-        "Description": $('#description')[0].innerHTML
+        "Description": description
     });
 }
 
 function capture()
 {
-  var title = $('.thing-header-data h1') [0].innerHTML;
+  // var title = $('.thing-header-data h1') [0].innerHTML;
+  var title = document.getElementsByClassName ("thing-header-data")[0].getElementsByTagName ("h1")[0].innerHTML;
   var files = [];
-  $(".thing-file-download-link").each (function (index, a) { files.push ( { name: a.getAttribute ("data-file-name"), url: a.getAttribute ("href") } ); });
+  // $(".thing-file-download-link").each (function (index, a) { files.push ( { name: a.getAttribute ("data-file-name"), url: a.getAttribute ("href") } ); });
+  var links = document.getElementsByClassName ("thing-header-data");
+  for (var i = 0; i < links.length; i++)
+      files.push ({ name: links[i].getAttribute ("data-file-name"), url: links[i].getAttribute ("href") });
   console.log(title + ' ' + JSON.stringify(files, null, 4));
 
   var blob = new Blob (["hello world"]);
@@ -993,7 +1020,11 @@ function capture()
     function (tor)
     {
       // set the time to match the upload date
-      var date = $('.thing-header-data h2 time') [0].getAttribute ("datetime");
+      // var date = $('.thing-header-data h2 time') [0].getAttribute ("datetime");
+      var header = document.getElementsByClassName ("thing-header-data")[0];
+      var subhead = header.getElementsByTagName ("h2")[0];
+      var time = subhead.getElementsByTagName ("time")[0];
+      var date = time.getAttribute ("datetime");
       date = date.replace(" GMT", "Z").replace(" ", "T");
 
       tor["creation date"] = new Date (date).valueOf ();
@@ -1017,20 +1048,30 @@ function capture()
     });
 }
 
-if (!$('.thingiverse_test') [0]) // only run once
+function initialize ()
 {
-  var trigger = 'http://www.thingiverse.com/thing:';
-  if (document.URL.substring(0, trigger.length) == trigger)
-  {
-    console.log('initializing thingiverse_test')
-    var ff = document.createElement('div');
-    ff.setAttribute('style', 'position: relative;');
-    $(ff).addClass('thingiverse_test');
-    var template = '<button id=\'import_thing\' type=\'button class=\'btn btn-default\' style=\'position: absolute; top: 100px; left: 20px;\'>Import to things</button>';
-    ff.innerHTML = template;
-    $('body').append(ff);
-    $('#import_thing').on('click', capture)
-  }
+    //if (!$('.thingiverse_test') [0]) // only run once
+    if (!document.getElementsByClassName ("thingiverse_test")[0])
+    {
+      var trigger = 'http://www.thingiverse.com/thing:';
+      if (document.URL.substring(0, trigger.length) == trigger)
+      {
+        console.log ('initializing thingiverse_test')
+        var ff = document.createElement ('div');
+        ff.setAttribute ('style', 'position: relative;');
+        //$(ff).addClass ('thingiverse_test');
+        var template = '<button id=\'import_thing\' type=\'button class=\'btn btn-default\' style=\'position: absolute; top: 100px; left: 20px;\'>Import to things</button>';
+        ff.innerHTML = template;
+        //$('body').append(ff);
+        var body = document.getElementsByTagName ("body")[0];
+        body.appendChild (ff);
+        // $('#import_thing').on('click', capture)
+        var button = document.getElementById ("import_thing");
+        button.addEventListener ("click", capture);
+      }
+    }
 }
+
+initialize ();
 
 
