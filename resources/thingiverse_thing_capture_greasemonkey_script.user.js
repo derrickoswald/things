@@ -944,134 +944,178 @@ torrent = function ()
 
 // end of modules from things
 
-function createCORSRequest(method, url)
+/**
+ * End of HTTP file fetch function generator.
+ * @param files array of objects with name and URL which is to hold the results
+ * @param index the integer index into the array at which to store the returned data
+ * @param callback the function to call when all files are finished loading - called with files as argument
+ */
+function fileFinishedFunction (files, index, callback)
 {
-  var ret;
-  ret = new XMLHttpRequest();
-  if ('withCredentials' in ret) // "withCredentials" only exists on XMLHTTPRequest2 objects
-      ret.open(method, url, true);
-  else 
-      if (typeof XDomainRequest != 'undefined')
-      {
-          // IE
-          ret = new XDomainRequest();
-          ret.open(method, url);
-      } 
+    return function (event)
+    {
+        var done;
+
+        if (4 == event.target.readyState) // DONE
+            files[index].data = event.target.response;
+        // check if all files are downloaded
+        done = true;
+        for (var i = 0; done && (i < files.length); i++)
+            if (!files[i].data)
+                done = false;
+        if (done)
+            callback (files);
+    };
+}
+
+function downloadAllFiles (files, callback)
+{
+    for (var i = 0; i < files.length; i++)
+    {
+        var xmlHttp = new XMLHttpRequest ();
+        xmlHttp.open ('GET', files[i].url, true);
+        xmlHttp.responseType = "blob";
+        xmlHttp.onreadystatechange = fileFinishedFunction (files, i, callback);
+        xmlHttp.send ();
+    }
+}
+
+function createCORSRequest (method, url)
+{
+    var ret;
+
+    ret = new XMLHttpRequest ();
+    if ('withCredentials' in ret) // "withCredentials" only exists on
+                                    // XMLHTTPRequest2 objects
+        ret.open (method, url, true);
+    else if (typeof XDomainRequest != 'undefined')
+    {
+        // IE
+        ret = new XDomainRequest ();
+        ret.open (method, url);
+    }
     else
-        // Otherwise, CORS is not supported by the browser.
+        // otherwise, CORS is not supported by the browser
         ret = null;
-  return (ret);
+
+    return (ret);
 }
 
 function thing ()
 {
-    // $('.thing-header-data h1')[0].innerHTML
     var title = document.getElementsByClassName ("thing-header-data")[0].getElementsByTagName ("h1")[0].innerHTML;
 
-    // $('.thing-header-data h2 a')[0].innerHTML
     var author = document.getElementsByClassName ("thing-header-data")[0].getElementsByTagName ("h2")[0].getElementsByTagName ("a")[0].innerHTML
 
-    // $('.thing-license')[0].getAttribute ("title")
     var license = document.getElementsByClassName ("thing-license")[0].getAttribute ("title");
 
     var tags = [];
-    // $(".tags a").each (function (index, tag) { tags.push (tag.innerHTML); });
     var tagdiv = document.getElementsByClassName ("tags")[0];
     var as = tagdiv.getElementsByTagName ("a");
     for (var i = 0; i < as.length; i++)
         tags.push (as[i].innerHTML);
 
     var images = [];
-    // $(".thing-gallery-thumb").each (function (index, image) { images.push (image.getAttribute ("data-large-url")); } );
     var thumbs = document.getElementsByClassName ("thing-gallery-thumb");
     for (var i = 0; i < thumbs.length; i++)
         images.push (thumbs[i].getAttribute ("data-large-url"));
 
-    // $('#description')[0].innerHTML
-    var description = document.getElementById ("description").innerHTML;
+    var description = document.getElementById ("description").getElementsByTagName ("p")[0].innerHTML;
 
     return (
     {
-        "Title": title,
-        "URL": document.URL,
-        "Authors": [author],
-        "Licenses": [license],
-        "Tags": tags,
-        "Thumbnail URL": images,
-        "Description": description
+        "Title" : title,
+        "URL" : document.URL,
+        "Authors" : [ author ],
+        "Licenses" : [ license ],
+        "Tags" : tags,
+        "Thumbnail URL" : images,
+        "Description" : description
     });
 }
 
-function capture()
+function capture ()
 {
-  // var title = $('.thing-header-data h1') [0].innerHTML;
-  var title = document.getElementsByClassName ("thing-header-data")[0].getElementsByTagName ("h1")[0].innerHTML;
-  var files = [];
-  // $(".thing-file-download-link").each (function (index, a) { files.push ( { name: a.getAttribute ("data-file-name"), url: a.getAttribute ("href") } ); });
-  var links = document.getElementsByClassName ("thing-header-data");
-  for (var i = 0; i < links.length; i++)
-      files.push ({ name: links[i].getAttribute ("data-file-name"), url: links[i].getAttribute ("href") });
-  console.log(title + ' ' + JSON.stringify(files, null, 4));
+    var title = document.getElementsByClassName ("thing-header-data")[0].getElementsByTagName ("h1")[0].innerHTML;
+    var files = [];
+    var links = document.getElementsByClassName ("thing-file-download-link");
+    for (var i = 0; i < links.length; i++)
+        files.push (
+        {
+            name : links[i].getAttribute ("data-file-name"),
+            url : links[i].getAttribute ("href")
+        });
+    console.log (title + ' ' + JSON.stringify (files, null, 4));
 
-  var blob = new Blob (["hello world"]);
-  var files = [new File ([blob], "test.txt", { type: "text/html", lastModifiedDate: new Date () })];
-
-  torrent.MakeTorrent (files, 16384, "directory", null, 
-    function (tor)
+    downloadAllFiles (files, function (files)
     {
-      // set the time to match the upload date
-      // var date = $('.thing-header-data h2 time') [0].getAttribute ("datetime");
-      var header = document.getElementsByClassName ("thing-header-data")[0];
-      var subhead = header.getElementsByTagName ("h2")[0];
-      var time = subhead.getElementsByTagName ("time")[0];
-      var date = time.getAttribute ("datetime");
-      date = date.replace(" GMT", "Z").replace(" ", "T");
-
-      tor["creation date"] = new Date (date).valueOf ();
-      tor["info"]["thing"] = thing ();
-
-      var xhr = createCORSRequest('POST', 'http://localhost:5984/pending_things');
-      if (xhr)
-      {
-        xhr.onload = function ()
+        thing_metadata = thing ();
+        var uploadfiles = [];
+        files.forEach (
+            function (file)
+            {
+                var f = new File ([ file.data ], file.name
+//                              ,{
+//                              type : "text/html",
+//                              lastModifiedDate : new Date ()
+//                          }
+                                );
+                uploadfiles.push (f);
+            });
+        var directory = thing_metadata.Title.replace (/\s/g, "_"); // ToDo: need to be smarter making directory names
+        torrent.MakeTorrent (uploadfiles, 16384, directory, null, function (tor)
         {
-          var responseText = xhr.responseText;
-          console.log(responseText);
-        };
-        xhr.onerror = function ()
-        {
-          console.log('There was an error!');
-        };
-        xhr.setRequestHeader('Content-type', 'application/json');
-        xhr.send(JSON.stringify(tor, null, 4));
-      }
+            // set the time to match the upload date
+            // var date = $('.thing-header-data h2 time') [0].getAttribute
+            // ("datetime");
+            var header = document.getElementsByClassName ("thing-header-data")[0];
+            var subhead = header.getElementsByTagName ("h2")[0];
+            var time = subhead.getElementsByTagName ("time")[0];
+            var date = time.getAttribute ("datetime");
+            date = date.replace (" GMT", "Z").replace (" ", "T");
+
+            tor["creation date"] = new Date (date).valueOf ();
+            tor["info"]["thing"] = thing_metadata;
+
+            var xhr = createCORSRequest ('POST', 'http://localhost:5984/pending_things');
+            if (xhr)
+            {
+                xhr.onload = function ()
+                {
+                    var responseText = xhr.responseText;
+                    console.log (responseText);
+                };
+                xhr.onerror = function ()
+                {
+                    console.log ('There was an error in sending the CORS request');
+                };
+                xhr.setRequestHeader ('Content-type', 'application/json');
+                xhr.send (JSON.stringify (tor, null, 4));
+            }
+            else
+                alert ("The browser apparently does not support CORS requests (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)");
+        });
     });
 }
 
 function initialize ()
 {
-    //if (!$('.thingiverse_test') [0]) // only run once
     if (!document.getElementsByClassName ("thingiverse_test")[0])
     {
-      var trigger = 'http://www.thingiverse.com/thing:';
-      if (document.URL.substring(0, trigger.length) == trigger)
-      {
-        console.log ('initializing thingiverse_test')
-        var ff = document.createElement ('div');
-        ff.setAttribute ('style', 'position: relative;');
-        //$(ff).addClass ('thingiverse_test');
-        var template = '<button id=\'import_thing\' type=\'button class=\'btn btn-default\' style=\'position: absolute; top: 100px; left: 20px;\'>Import to things</button>';
-        ff.innerHTML = template;
-        //$('body').append(ff);
-        var body = document.getElementsByTagName ("body")[0];
-        body.appendChild (ff);
-        // $('#import_thing').on('click', capture)
-        var button = document.getElementById ("import_thing");
-        button.addEventListener ("click", capture);
-      }
+        var trigger = 'http://www.thingiverse.com/thing:';
+        if (document.URL.substring (0, trigger.length) == trigger)
+        {
+            console.log ('initializing thingiverse_test')
+            var ff = document.createElement ('div');
+            ff.setAttribute ('style', 'position: relative;');
+            var template = '<button id=\'import_thing\' type=\'button class=\'btn btn-default\' style=\'position: absolute; top: 100px; left: 20px;\'>Import to things</button>';
+            ff.innerHTML = template;
+            var body = document.getElementsByTagName ("body")[0];
+            body.appendChild (ff);
+            var button = document.getElementById ("import_thing");
+            button.addEventListener ("click", capture);
+        }
     }
 }
 
 initialize ();
-
-
