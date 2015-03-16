@@ -234,7 +234,7 @@ define ([ "multipart" ],
                             doc._rev = resp.rev;
                             if (versioned)
                             {
-                                db.openDoc (doc._id,
+                                db.openDoc (doc._id, // ToDo: this is not correct, db is a string, need version tests
                                 {
                                     attachPrevRev : true,
                                     success : function (d)

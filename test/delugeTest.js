@@ -5,7 +5,7 @@ define
     {
         AsyncTestCase
         (
-            "TorrentTest",
+            "DelugeTest",
             {
                 _FileName: "test.txt",
                 _File: null,

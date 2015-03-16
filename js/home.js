@@ -1,7 +1,7 @@
 define
 (
-    ["records", "keybase", "deluge"], // , "btsync"
-    function (records, keybase, deluge) // , btsync
+    ["records", "keybase", "deluge"],
+    function (records, keybase, deluge)
     {
         return (
             {
@@ -12,7 +12,6 @@ define
 //                        <div class="col-md-8">
 //                            <div id="keybase"></div>
 //                            <div id="records"></div>
-//                            <div id="btsync"></div>
 //                            <div id="info"></div>
 //                            <div id="dbs"></div>
 //                            <div id="other"></div>
@@ -33,9 +32,6 @@ define
                     item = document.createElement ("div");
                     left.appendChild (item);
                     item.id = "records";
-                    item = document.createElement ("div");
-                    left.appendChild (item);
-                    item.id = "btsync";
                     item = document.createElement ("div");
                     left.appendChild (item);
                     item.id = "info";
@@ -68,7 +64,6 @@ define
                     document.getElementById ("keybase").innerHTML = JSON.stringify (keybase.getsalt ("chris"));
                     if (deluge.login (deluge.Password))
                         document.getElementById ("deluge").innerHTML = JSON.stringify (deluge.getTorrentInfo ("ad2516c50852db638bdcd5d129547585786f639b"));
-                    //document.getElementById ("btsync").innerHTML = JSON.stringify (btsync.getFolders ());
 
                     $.couch.info({
                         success: function(data) {
