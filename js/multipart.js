@@ -56,54 +56,35 @@ define
         };
 
         /**
-         * Create a jQuery Deferred object to put the file contents into the view at index.
-         * The operation on success inserts the file data into the ArrayBuffer slice
-         * from index to index + file[i].length.
-         * @param {File} file - the file object selected by the user
-         * @param {Uint8Array} view - the byte view of the array buffer in which to store the data
-         * @param {number} index - the offset in the view at which to store the data in the view
-         * @returns {Deferred} the deferred object with the file read Promise
+         * @summary Creates a function for handling the end of reading a file.
+         * @description If all blobs have been read in, the function callback is called.
+         * @param {View} view the array to stuff the result into
+         * @param {number} the offset within the view to stuff the data
+         * @param {Array} doneset the array of boolean values to keep track of done status
+         * @param {number} index - the index at which to store the result doneset array
+         * @param callback - the function to call when all blobs have been read in
+         * paramater to callback
+         * @memberOf module:torrent
          */
-        function createDeferredFileGetter (file, view, index)
+        function makeLoadEndFunction (view, offset, doneset, index, callback, array)
         {
-            var reader;
-            var ret;
-
-            ret = $.Deferred ();
-
-            var reader = new FileReader ();
-
-            // this event is triggered each time the reading operation is aborted
-            reader.onabort = function (event)
+            return function (event)
             {
-                ret.reject ();
+                var done;
+
+                if (event.target.readyState == FileReader.DONE)
+                {
+                    view.set (new Uint8Array (event.target.result), offset);
+                    doneset[index] = true;
+                }
+                // check if all files are read in
+                done = true;
+                for (var i = 0; done && (i < doneset.length); i++)
+                    if (!doneset[i])
+                        done = false;
+                if (done)
+                    callback (array);
             };
-
-            // this event is triggered each time the reading operation encounter an error
-            reader.onerror = function (event)
-            {
-                ret.reject (event.target.error);
-            };
-
-            // this event is triggered each time the reading operation is successfully completed
-            reader.onload = function (event)
-            {
-                view.set (new Uint8Array (event.target.result), index);
-                ret.resolveWith (this, [view]);
-            };
-
-            // this event is triggered while reading a Blob content
-            reader.onprogress = function (event)
-            {
-                ret.notify ();
-            };
-
-            // ToDo: onloadstart ?
-
-            // kick it off
-            reader.readAsArrayBuffer (file);
-
-            return (ret);
         }
 
         /**
@@ -123,9 +104,10 @@ define
          * @param {Blob[]} files - an array of file or blob objects to be included
          * @param {object} doc - the couchdb document to which the attachments are added
          * @param {string} boundary - the boundary sentinel to use between content and files
+         * @param {function} callback - the function to call back with the packed multipart mime object
          * @returns a deferred object whose single parameter is an {ArrayBuffer} containing the data from the files as a suitable object for the contents of the HTTP request
          */
-        function pack (files, doc, boundary)
+        function pack (files, doc, boundary, callback)
         {
             var serialized;
             var attachments;
@@ -134,10 +116,11 @@ define
             var spacer;
             var suffix;
             var size;
+            var array;
             var view;
-            var ret;
+            var doneset;
+            var readers;
 
-            ret = new ArrayBuffer ();
             delete (doc._attachments); // remove any existing attachments
             if (0 != files.length)
             {
@@ -178,27 +161,35 @@ define
                 size += (files.length - 1) * spacer.length;
                 size += suffix.length;
 
-                ret = new ArrayBuffer (size);
-                view = new Uint8Array (ret);
+                array = new ArrayBuffer (size);
+                view = new Uint8Array (array);
 
                 for (var i = 0; i < prefix.length; i++)
                     view[i] = (0xff & prefix.charCodeAt (i));
                 index = prefix.length;
-                getters = [];
+
+                // make an array of status flags
+                doneset = [];
+                for (var i = 0; i < files.length; i++)
+                    doneset.push (false);
+
+                var readers = [];
                 for (var i = 0; i < files.length; i++)
                 {   // here we add the file bytes with spacers between files
-                    getter = createDeferredFileGetter (files[i], view, index);
-                    getters.push (getter);
+                    var reader = new FileReader ();
+                    reader.onloadend = makeLoadEndFunction (view, index, doneset, i, callback, array);
+                    readers.push (reader);
                     index += files[i].size;
                     for (var j = 0; j < spacer.length; j++)
                         view[index++] = (0xff & spacer.charCodeAt (j));
                 }
                 for (var i = 0; i < suffix.length; i++)
                     view[size - suffix.length + i] = (0xff & suffix.charCodeAt (i));
-                ret = $.when.apply ($, getters);
-            }
 
-            return (ret);
+                // kick it off
+                for (var i = 0; i < files.length; i++)
+                    readers[i].readAsArrayBuffer (files[i]);
+            }
         };
 
         /**

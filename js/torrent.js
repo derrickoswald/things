@@ -22,12 +22,9 @@ define
                      blobs[index] = event.target.result;
                 // check if all blobs are read in
                 done = true;
-                for (var i = 0; i < blobs.length; i++)
+                for (var i = 0; done && (i < blobs.length); i++)
                     if (!blobs[i])
-                    {
                         done = false;
-                        break;
-                    }
                 if (done)
                     callback ();
             };

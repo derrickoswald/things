@@ -62,6 +62,20 @@ define ([ "multipart" ],
         /**
          * @private
          */
+        function encodeDocId (docID)
+        {
+            var parts = docID.split ("/");
+            if (parts[0] == "_design")
+            {
+                parts.shift ();
+                return "_design/" + encodeURIComponent (parts.join ('/'));
+            }
+            return (encodeURIComponent (docID));
+        }
+
+        /**
+         * @private
+         */
         function fullCommit (options)
         {
             var options = options ||
@@ -87,20 +101,15 @@ define ([ "multipart" ],
         {
             var buf = [];
             if (typeof (options) === "object" && options !== null)
-            {
                 for ( var name in options)
-                {
-                    if ($.inArray (name, [ "error", "success", "beforeSuccess", "ajaxStart" ]) >= 0)
-                        continue;
-                    var value = options[name];
-                    if ($.inArray (name, [ "key", "startkey", "endkey" ]) >= 0)
+                    if (-1 == ([ "error", "success", "beforeSuccess", "ajaxStart" ]).indexOf (name))
                     {
-                        value = toJSON (value);
+                        var value = options[name];
+                        if (0 <= ([ "key", "startkey", "endkey" ]).indexOf (name))
+                            value = toJSON (value);
+                        buf.push (encodeURIComponent (name) + "=" + encodeURIComponent (value));
                     }
-                    buf.push (encodeURIComponent (name) + "=" + encodeURIComponent (value));
-                }
-            }
-            return buf.length ? "?" + buf.join ("&") : "";
+            return (buf.length ? "?" + buf.join ("&") : "");
         };
 
         // see http://jchris.ic.ht/drl/_design/sofa/_list/post/post-page?startkey=[%22Versioning-docs-in-CouchDB%22]
@@ -157,7 +166,7 @@ define ([ "multipart" ],
             else
             {
                 var method = "PUT";
-                var uri = "/" + db + "/" + $.couch.encodeDocId (doc._id);
+                var uri = "/" + db + "/" + encodeDocId (doc._id);
                 delete (doc._id);
             }
             var versioned = maybeApplyVersion (doc);
@@ -206,76 +215,45 @@ define ([ "multipart" ],
                 return result;
             };
 
-            var data_deferred = multipart.pack (files, doc, "abc123");
-            var ret = data_deferred.then (function (ab)
-            {
-                // convert here from the list created by the when() call into a single (any one of the) ArrayBuffer arguments
-                if (Array.isArray (ab))
-                    ab = ab[0];
-                $.ajax (
+            multipart.pack (files, doc, "abc123",
+                function (ab)
                 {
-                    type : method,
-                    url : uri + encodeOptions (options),
-                    contentType : "multipart/related;boundary=\"abc123\"",
-                    dataType : "json",
-                    processData : false, // needed for data as ArrayBuffer
-                    data : ab,
-                    beforeSend : beforeSend,
-                    complete : function (req, outcome)
+                    xmlhttp = new XMLHttpRequest ();
+                    xmlhttp.open (method, uri + encodeOptions (options), false);
+                    xmlhttp.setRequestHeader ("Content-Type", "multipart/related;boundary=\"abc123\"");
+                    xmlhttp.setRequestHeader ("Accept", "application/json");
+                    // beforeSend ?
+                    xmlhttp.onreadystatechange = function ()
                     {
-                        switch (outcome)
-                        {
-                        // ("success", "notmodified", "error", "timeout", "abort", or "parsererror")
-                        }
-                        var resp = $.parseJSON (req.responseText);
-                        if (req.status == 200 || req.status == 201 || req.status == 202)
-                        {
-                            doc._id = resp.id;
-                            doc._rev = resp.rev;
-                            if (versioned)
+                        if (4 == xmlhttp.readyState)
+                            if (200 == xmlhttp.status || 201 == xmlhttp.status || 202 == xmlhttp.status)
                             {
-                                db.openDoc (doc._id, // ToDo: this is not correct, db is a string, need version tests
-                                {
-                                    attachPrevRev : true,
-                                    success : function (d)
-                                    {
-                                        doc._attachments = d._attachments;
-                                        if (options.success)
-                                            options.success (resp);
-                                    }
-                                });
-                            }
-                            else
-                            {
+                                var resp = JSON.parse (xmlhttp.responseText);
+                                doc._id = resp.id;
+                                doc._rev = resp.rev;
                                 if (options.success)
                                     options.success (resp);
                             }
-                        }
-                        else if (options.error)
-                        {
-                            var msg;
-                            var reason;
-                            if (null == resp)
+                            else if (options.error)
                             {
-                                msg = req.responseText;
-                                reason = "unknown reason";
+                                var msg;
+                                var reason;
+                                var resp = JSON.parse (xmlhttp.responseText);
+                                if (null == resp)
+                                {
+                                    msg = xmlhttp.responseText;
+                                    reason = "unknown reason, status = " + req.status;
+                                }
+                                else
+                                {
+                                    msg = resp.error;
+                                    reason = resp.reason;
+                                }
+                                options.error (xmlhttp.status, msg, reason);
                             }
-                            else
-                            {
-                                msg = resp.error;
-                                reason = resp.reason;
-                            }
-                            options.error (req.status, msg, reason);
-                        }
-                        else
-                        {
-                            throw "The document could not be saved: " + resp.reason;
-                        }
                     }
-                })
-            });
-
-            return (ret);
+                    xmlhttp.send (ab);
+                });
         };
 
         /**
