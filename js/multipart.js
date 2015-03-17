@@ -136,8 +136,9 @@ define
                         "            \"follows\": true,\n" +
                         ((files[i].type && ("" != files[i].type)) ? ("            \"content_type\": \"" + files[i].type + "\",\n") : "") +
                         "            \"length\": " + files[i].size + "\n" +
-                        "        }\n";
+                        "        }";
                 }
+                attachments += "\n";
                 attachments = encode_utf8 (attachments);
                 index = serialized.lastIndexOf ("}") - 1; // -1 to also trim off the newline
                 serialized = serialized.substring (0, index) + ",\n    \"_attachments\":\n    {\n" + attachments + "\n    }\n}";

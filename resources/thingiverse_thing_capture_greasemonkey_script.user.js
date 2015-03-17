@@ -1,17 +1,25 @@
 // ==UserScript==
 // @name        thingiverse_import
 // @namespace   thingiverse_import
-// @description Import thing from thingiverse
+// @description Import thing from Thingiverse into CouchDB
 // @include     http://www.thingiverse.com/*
 // @version     1
 // @grant       none
 // ==/UserScript==
 
+// In order for this to work, you need to enable CORS in CouchDB by editing /etc/couchdb/default.ini in the httpd section:
+//     [httpd]
+//     enable_cors = true
+// specify thingiver.com as the source and also add PUT as a legal method, same file as above in the cors section:
+//     [cors]
+//     origins = http://www.thingiverse.com
+//     methods = GET,POST,PUT
+// and create a pending_things database with no authentication needed. It assumes CouchDB is at http://localhost:5984.
 
 // import 
 // a little help in deciphering the code...
 // code that follows immediately is imported modules from things https://github.com/derrickoswald/things
-// at the bottom, starting with createCORSRequest, is the actual GreaseMonkey script.
+// at the bottom, starting with createCORSRequest, is the actual user script.
 
 
 // module sha1
@@ -942,6 +950,445 @@ torrent = function ()
         return (exported);
     }();
 
+
+    /**
+     * @summary Support for packing and unpacking multipart/related (mime) data.
+     * @name multipart
+     * @exports multipart
+     * @version 1.0
+     */
+    multipart = function ()
+    {
+        /**
+         * @summary The newline string.
+         * @description It is very important to use both a line feed (LF) and carriage return (CR)
+         * in terminating the lines within the HTTP request body, because otherwise couchdb
+         * just silently fails to work, with no error message (well the unit tests using JSTestDriver
+         * return 'Bad Gateway' 503 error).
+         * @see {@link https://groups.google.com/forum/#!topic/couchdb-user-archive/3vwpr2mY95c}
+         * <ul>
+         * <li>Make sure the line breaks in the MIME separators/headers are CRLF, not just LF!</li>
+         * <li>(fixed) CouchDB crashes if a multipart body is sent in HTTP ‘chunked’ mode (COUCHDB-1403, filed by me two years ago and still unresolved. My colleague working on the Java port of my replicator just ran into this a few weeks ago.)</li>
+         * <li>(no longer required) I remember there being a bug in CouchDB where it required a CRLF after the closing MIME separator, i.e. the body had to end “--separator--\r\n” not just “--separator--“) but I can’t find a reference to the bug in my source code anymore. It may have been fixed.</li>
+         * <li>(not fixed) CouchDB used to ignore the headers in attachment MIME parts and assumed that the attachments appeared in the same order as in the “_attachments” object in the main JSON body. I believe this has been fixed and that it now looks at the Content-Disposition header to find the attachment’s filename, but I can’t remember for sure.</li>
+         * </ul>
+         * @memberOf module:multipart
+         */
+        var CRLF = "\r\n";
+
+        /**
+         * Pair of hypen marks.
+         * @memberOf module:multipart
+         */
+        var HYPH = "--";
+
+        /**
+         * The content type mime header.
+         * @memberOf module:multipart
+         */
+        var CONT = "Content-Type: application/json";
+
+        /**
+         * Convert a string into UTF-8 encoded (all high order bytes are zero) string.
+         * @see {@link http://monsur.hossa.in/2012/07/20/utf-8-in-javascript.html}
+         * @param {String} str - the string to encode
+         * @returns {String} UTF-8 encoded string
+         * @memberOf module:multipart
+         */
+        function encode_utf8 (str)
+        {
+            return (unescape (encodeURIComponent (str)));
+        };
+
+        /**
+         * @summary Creates a function for handling the end of reading a file.
+         * @description If all blobs have been read in, the function callback is called.
+         * @param {View} view the array to stuff the result into
+         * @param {number} the offset within the view to stuff the data
+         * @param {Array} doneset the array of boolean values to keep track of done status
+         * @param {number} index - the index at which to store the result doneset array
+         * @param callback - the function to call when all blobs have been read in
+         * paramater to callback
+         * @memberOf module:torrent
+         */
+        function makeLoadEndFunction (view, offset, doneset, index, callback, array)
+        {
+            return function (event)
+            {
+                var done;
+
+                if (event.target.readyState == FileReader.DONE)
+                {
+                    view.set (new Uint8Array (event.target.result), offset);
+                    doneset[index] = true;
+                }
+                // check if all files are read in
+                done = true;
+                for (var i = 0; done && (i < doneset.length); i++)
+                    if (!doneset[i])
+                        done = false;
+                if (done)
+                    callback (array);
+            };
+        }
+
+        /**
+         * @summary Creates a single array buffer with the data for a multipart/related document insert.
+         *
+         * @description To force the AJAX request to send binary encoded data,
+         * the data parameter must be an ArrayBuffer, File, or Blob object.
+         * This function creates that data from one or more source objects.
+         * An attachments entry will be created and inserted into the document.
+         * The contents of the files is concatenated as unaltered binary data.
+         * Because the order of the attachment entries in the doc object
+         * (as serialized by JSON.stringify) cannot be guaranteed, the
+         * process is done in string form.
+         *
+         * @function pack
+         * @memberOf module:multipart
+         * @param {Blob[]} files - an array of file or blob objects to be included
+         * @param {object} doc - the couchdb document to which the attachments are added
+         * @param {string} boundary - the boundary sentinel to use between content and files
+         * @param {function} callback - the function to call back with the packed multipart mime object
+         * @returns a deferred object whose single parameter is an {ArrayBuffer} containing the data from the files as a suitable object for the contents of the HTTP request
+         */
+        function pack (files, doc, boundary, callback)
+        {
+            var serialized;
+            var attachments;
+            var index;
+            var prefix;
+            var spacer;
+            var suffix;
+            var size;
+            var array;
+            var view;
+            var doneset;
+            var readers;
+
+            delete (doc._attachments); // remove any existing attachments
+            if (0 != files.length)
+            {
+                serialized = JSON.stringify (doc, null, "    ");
+                attachments = "";
+                for (var i = 0; i < files.length; i++)
+                {
+                    if (0 != i)
+                        attachments += ",\n";
+                    attachments +=
+                        "        \"" + files[i].name + "\":\n" +
+                        "        {\n" +
+                        "            \"follows\": true,\n" +
+                        ((files[i].type && ("" != files[i].type)) ? ("            \"content_type\": \"" + files[i].type + "\",\n") : "") +
+                        "            \"length\": " + files[i].size + "\n" +
+                        "        }";
+                }
+                attachments += "\n";
+                attachments = encode_utf8 (attachments);
+                index = serialized.lastIndexOf ("}") - 1; // -1 to also trim off the newline
+                serialized = serialized.substring (0, index) + ",\n    \"_attachments\":\n    {\n" + attachments + "\n    }\n}";
+
+                prefix = CRLF +
+                    HYPH + boundary + CRLF +
+                    CONT + CRLF + CRLF +
+                    serialized + CRLF + CRLF +
+                    HYPH + boundary + CRLF + CRLF;
+                spacer = CRLF +
+                    HYPH + boundary +
+                    CRLF + CRLF;
+                suffix = CRLF +
+                    HYPH + boundary + HYPH +
+                    CRLF + CRLF + CRLF;
+
+                // compute the array buffer size
+                size = prefix.length;
+                for (var i = 0; i < files.length; i++)
+                    size += files[i].size;
+                size += (files.length - 1) * spacer.length;
+                size += suffix.length;
+
+                array = new ArrayBuffer (size);
+                view = new Uint8Array (array);
+
+                for (var i = 0; i < prefix.length; i++)
+                    view[i] = (0xff & prefix.charCodeAt (i));
+                index = prefix.length;
+
+                // make an array of status flags
+                doneset = [];
+                for (var i = 0; i < files.length; i++)
+                    doneset.push (false);
+
+                var readers = [];
+                for (var i = 0; i < files.length; i++)
+                {   // here we add the file bytes with spacers between files
+                    var reader = new FileReader ();
+                    reader.onloadend = makeLoadEndFunction (view, index, doneset, i, callback, array);
+                    readers.push (reader);
+                    index += files[i].size;
+                    for (var j = 0; j < spacer.length; j++)
+                        view[index++] = (0xff & spacer.charCodeAt (j));
+                }
+                for (var i = 0; i < suffix.length; i++)
+                    view[size - suffix.length + i] = (0xff & suffix.charCodeAt (i));
+
+                // kick it off
+                for (var i = 0; i < files.length; i++)
+                    readers[i].readAsArrayBuffer (files[i]);
+            }
+        };
+
+        /**
+         * @summary Extracts multiple file objects.
+         *
+         * @function unpack
+         * @memberOf module:multipart
+         * @param {HTTPresponse} resp - received value from the server
+         * @returns {ArrayBuffer[]} an array of byte buffers extracted from the response
+         */
+        function unpack (resp)
+        {
+            var ret = [new ArrayBuffer ()];
+
+            return (ret);
+        };
+
+        var functions =
+        {
+            "pack": pack,
+            "unpack": unpack
+        };
+
+        return (functions);
+    }();
+
+    /**
+     * @summary Support for reading and writing things and their attachments.
+     * @name records
+     * @exports records
+     * @version 1.0
+     */
+    records = function ()
+    {
+        /**
+         * @private
+         */
+        function encodeDocId (docID)
+        {
+            var parts = docID.split ("/");
+            if (parts[0] == "_design")
+            {
+                parts.shift ();
+                return "_design/" + encodeURIComponent (parts.join ('/'));
+            }
+            return (encodeURIComponent (docID));
+        }
+
+        /**
+         * @private
+         */
+        function fullCommit (options)
+        {
+            var options = options ||
+            {};
+            if (typeof (options.ensure_full_commit) !== "undefined")
+            {
+                var commit = options.ensure_full_commit;
+                delete options.ensure_full_commit;
+                return function (xhr)
+                {
+                    xhr.setRequestHeader ('Accept', 'application/json');
+                    xhr.setRequestHeader ("X-Couch-Full-Commit", commit.toString ());
+                };
+            }
+        };
+
+        /**
+         * @private
+         */
+        // Convert a options object to an url query string.
+        // ex: {key:'value',key2:'value2'} becomes '?key="value"&key2="value2"'
+        function encodeOptions (options)
+        {
+            var buf = [];
+            if (typeof (options) === "object" && options !== null)
+                for ( var name in options)
+                    if (-1 == ([ "error", "success", "beforeSuccess", "ajaxStart" ]).indexOf (name))
+                    {
+                        var value = options[name];
+                        if (0 <= ([ "key", "startkey", "endkey" ]).indexOf (name))
+                            value = toJSON (value);
+                        buf.push (encodeURIComponent (name) + "=" + encodeURIComponent (value));
+                    }
+            return (buf.length ? "?" + buf.join ("&") : "");
+        };
+
+        // see http://jchris.ic.ht/drl/_design/sofa/_list/post/post-page?startkey=[%22Versioning-docs-in-CouchDB%22]
+        rawDocs =
+        {};
+
+        function maybeApplyVersion (doc)
+        {
+            if (doc._id && doc._rev && rawDocs[doc._id] && rawDocs[doc._id].rev == doc._rev)
+            {
+                // ToDo: can we use commonjs require here?
+                if (typeof Base64 == "undefined")
+                {
+                    throw 'Base64 support not found.';
+                }
+                else
+                {
+                    doc._attachments = doc._attachments ||
+                    {};
+                    doc._attachments["rev-" + doc._rev.split ("-")[0]] =
+                    {
+                        content_type : "application/json",
+                        data : Base64.encode (rawDocs[doc._id].raw)
+                    };
+                    return true;
+                }
+            }
+        };
+
+        /**
+         * Create a new document in the specified database, using the supplied
+         * JSON document structure. If the JSON structure includes the _id
+         * field, then the document will be created with the specified document
+         * ID. If the _id field is not specified, a new unique ID will be
+         * generated.
+         * @param {String} db - the database to save the document in
+         * @param {String} doc - the document to save
+         * @param {ajaxSettings} options - <a href="http://api.jquery.com/jQuery.ajax/#jQuery-ajax-settings">jQuery ajax settings</a>
+         * @param {Blob[]} files - the list of files to attach to the document
+         * @param {callback} fn - not used yet
+         * @returns nothing
+         * @memberOf module:records
+         */
+        function saveDocWithAttachments (db, doc, options, files, fn)
+        {
+            options = options ||
+            {};
+            var beforeSend = fullCommit (options);
+            if (doc._id === undefined)
+            {
+                var method = "POST";
+                var uri = "/" + db + "/";
+            }
+            else
+            {
+                var method = "PUT";
+                var uri = "/" + db + "/" + encodeDocId (doc._id);
+                delete (doc._id);
+            }
+            if (options.CORS)
+                uri = options.CORS + uri;
+            var versioned = maybeApplyVersion (doc);
+            function decodeUtf8 (arrayBuffer)
+            {
+                var result = "";
+                var i = 0;
+                var c = 0;
+                var c1 = 0;
+                var c2 = 0;
+                var c3 = 0;
+
+                var data = new Uint8Array (arrayBuffer);
+
+                // If we have a BOM skip it
+                if (data.length >= 3 && data[0] === 0xef && data[1] === 0xbb && data[2] === 0xbf)
+                    i = 3;
+
+                while (i < data.length)
+                {
+                    c = data[i];
+
+                    if (c < 128)
+                    {
+                        result += String.fromCharCode (c);
+                        i++;
+                    }
+                    else if (c > 191 && c < 224)
+                    {
+                        if (i + 1 >= data.length)
+                            throw "UTF-8 Decode failed. Two byte character was truncated.";
+                        c2 = data[i + 1];
+                        result += String.fromCharCode (((c & 31) << 6) | (c2 & 63));
+                        i += 2;
+                    }
+                    else
+                    {
+                        if (i + 2 >= data.length)
+                            throw "UTF-8 Decode failed. Multi byte character was truncated.";
+                        c2 = data[i + 1];
+                        c3 = data[i + 2];
+                        result += String.fromCharCode (((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
+                        i += 3;
+                    }
+                }
+                return result;
+            };
+
+            multipart.pack (files, doc, "abc123",
+                function (ab)
+                {
+                    var xmlhttp;
+                    if (options.CORS)
+                    {
+                        delete options.CORS;
+                        var use_put = options.USE_PUT;
+                        delete options.USE_PUT;
+                        xmlhttp = createCORSRequest ((use_put ? 'PUT' : 'POST'), uri + encodeOptions (options));
+                    }
+                    else
+                    {
+                        xmlhttp = new XMLHttpRequest ();
+                        xmlhttp.open (method, uri + encodeOptions (options), false);
+                    }
+                    xmlhttp.setRequestHeader ("Content-Type", "multipart/related;boundary=\"abc123\"");
+                    xmlhttp.setRequestHeader ("Accept", "application/json");
+                    // beforeSend ?
+                    xmlhttp.onreadystatechange = function ()
+                    {
+                        if (4 == xmlhttp.readyState)
+                            if (200 == xmlhttp.status || 201 == xmlhttp.status || 202 == xmlhttp.status)
+                            {
+                                var resp = JSON.parse (xmlhttp.responseText);
+                                doc._id = resp.id;
+                                doc._rev = resp.rev;
+                                if (options.success)
+                                    options.success (resp);
+                            }
+                            else if (options.error)
+                            {
+                                var msg;
+                                var reason;
+                                var resp = JSON.parse (xmlhttp.responseText);
+                                if (null == resp)
+                                {
+                                    msg = xmlhttp.responseText;
+                                    reason = "unknown reason, status = " + req.status;
+                                }
+                                else
+                                {
+                                    msg = resp.error;
+                                    reason = resp.reason;
+                                }
+                                options.error (xmlhttp.status, msg, reason);
+                            }
+                    }
+                    xmlhttp.send (ab);
+                });
+        };
+
+        var functions =
+        {
+            "saveDocWithAttachments" : saveDocWithAttachments,
+        };
+
+        return (functions);
+
+    }();
+
 // end of modules from things
 
 /**
@@ -985,18 +1432,15 @@ function createCORSRequest (method, url)
     var ret;
 
     ret = new XMLHttpRequest ();
-    if ('withCredentials' in ret) // "withCredentials" only exists on
-                                    // XMLHTTPRequest2 objects
+    if ('withCredentials' in ret) // "withCredentials" only exists on XMLHTTPRequest2 objects
         ret.open (method, url, true);
-    else if (typeof XDomainRequest != 'undefined')
+    else if (typeof XDomainRequest != 'undefined') // IE
     {
-        // IE
         ret = new XDomainRequest ();
         ret.open (method, url);
     }
     else
-        // otherwise, CORS is not supported by the browser
-        ret = null;
+        ret = null; // CORS is not supported by the browser
 
     return (ret);
 }
@@ -1049,25 +1493,17 @@ function capture ()
 
     downloadAllFiles (files, function (files)
     {
-        thing_metadata = thing ();
+        var thing_metadata = thing ();
         var uploadfiles = [];
         files.forEach (
             function (file)
             {
-                var f = new File ([ file.data ], file.name
-//                              ,{
-//                              type : "text/html",
-//                              lastModifiedDate : new Date ()
-//                          }
-                                );
-                uploadfiles.push (f);
+                uploadfiles.push (new File ([ file.data ], file.name));
             });
         var directory = thing_metadata.Title.replace (/\s/g, "_"); // ToDo: need to be smarter making directory names
         torrent.MakeTorrent (uploadfiles, 16384, directory, null, function (tor)
         {
             // set the time to match the upload date
-            // var date = $('.thing-header-data h2 time') [0].getAttribute
-            // ("datetime");
             var header = document.getElementsByClassName ("thing-header-data")[0];
             var subhead = header.getElementsByTagName ("h2")[0];
             var time = subhead.getElementsByTagName ("time")[0];
@@ -1076,39 +1512,31 @@ function capture ()
 
             tor["creation date"] = new Date (date).valueOf ();
             tor["info"]["thing"] = thing_metadata;
+            tor["_id"] = torrent.InfoHash (tor["info"]); // triggers PUT method
 
-            var xhr = createCORSRequest ('POST', 'http://localhost:5984/pending_things');
-            if (xhr)
+            var options =
             {
-                xhr.onload = function ()
-                {
-                    var responseText = xhr.responseText;
-                    console.log (responseText);
-                };
-                xhr.onerror = function ()
-                {
-                    console.log ('There was an error in sending the CORS request');
-                };
-                xhr.setRequestHeader ('Content-type', 'application/json');
-                xhr.send (JSON.stringify (tor, null, 4));
+                success: function () { alert ("thing imported"); },
+                error: function () { alert ("thing import failed"); },
+                CORS: 'http://localhost:5984',
+                USE_PUT: true
             }
-            else
-                alert ("The browser apparently does not support CORS requests (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)");
+            records.saveDocWithAttachments ("pending_things", tor, options, uploadfiles);
         });
     });
 }
 
-function initialize ()
+(function initialize ()
 {
     if (!document.getElementsByClassName ("thingiverse_test")[0])
     {
-        var trigger = 'http://www.thingiverse.com/thing:';
+        var trigger = "http://www.thingiverse.com/thing:";
         if (document.URL.substring (0, trigger.length) == trigger)
         {
-            console.log ('initializing thingiverse_test')
-            var ff = document.createElement ('div');
-            ff.setAttribute ('style', 'position: relative;');
-            var template = '<button id=\'import_thing\' type=\'button class=\'btn btn-default\' style=\'position: absolute; top: 100px; left: 20px;\'>Import to things</button>';
+            console.log ("initializing thingiverse_test")
+            var ff = document.createElement ("div");
+            ff.setAttribute ("style", "position: relative;");
+            var template = "<button id='import_thing' type='button class='btn btn-default' style='position: absolute; top: 100px; left: 20px;'>Import to things</button>";
             ff.innerHTML = template;
             var body = document.getElementsByTagName ("body")[0];
             body.appendChild (ff);
@@ -1116,6 +1544,4 @@ function initialize ()
             button.addEventListener ("click", capture);
         }
     }
-}
-
-initialize ();
+})();
