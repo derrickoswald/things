@@ -6,18 +6,18 @@
  */
 define
 (
-    ["mustache", "thingmaker/files"],
+    ["mustache"],
     /**
      * @summary A wizard based on jQuery Bootstrap Wizard.
      * @see http://github.com/VinceG/twitter-bootstrap-wizard
      * @exports wizard
      * @version 1.0
      */
-    function (mustache, files)
+    function (mustache)
     {
         /**
          * @summary Removes item from array.
-         * @description Brain dead Javascript has no remove() function, so this plugs that gap.
+         * @description Brain dead JavasScript has no remove() function, so this plugs that gap.
          * @param {Array} array - the array to remove the item from
          * @param {*} item - the item to remove
          * @returns true if it did, false otherwise
@@ -51,7 +51,7 @@ define
             ret = -1;
 
             for (var i = 0; (i < steps.length) && (0 > ret); i++)
-                if (-1 != document.getElementById (steps[i].id + "_nav").className.split (" ").indexOf ("active")) // $("#" + steps[i].id + "_nav").hasClass ("active"))
+                if (-1 != document.getElementById (steps[i].id + "_nav").className.split (" ").indexOf ("active"))
                     ret = i;
 
             return (ret);
@@ -78,27 +78,29 @@ define
         };
 
         /**
-         * Handle button visibility based on XXX_lnk clicked.
-         * @param {string} target - the click event target
+         * Transition between steps and handle button visibility based on XXX_lnk clicked.
+         * @param {string} event - the click event
          * @param {Step[]} steps - the list of steps provided to the wizard
          * @param {*} data - the data used as context for the action
          * @memberOf module:wizard
          */
-        function jump (target, steps, data)
+        function jump (event, steps, data)
         {
-            var target;
+            var from;
             var id;
-            var current;
+            var to;
+            var transitions;
 
-            id = target.substring (0, target.length - 4);
-            current = indexOf (id, steps);
-            if (-1 != current)
+            from = currentIndex (steps);
+            id = event.target.id.substring (0, event.target.id.length - 4);
+            to = indexOf (id, steps);
+            if (-1 != to)
             {
-                if (0 != current)
+                if (0 != to)
                     $(data.prev_button).removeClass ("hide");
                 else
                     $(data.prev_button).addClass ("hide");
-                if (current != steps.length - 1)
+                if (to != steps.length - 1)
                     $(data.next_button).removeClass ("hide");
                 else
                     $(data.next_button).addClass ("hide");
@@ -143,12 +145,14 @@ define
             var template;
             var active;
             var hooks;
+            var transitions;
 
             id = steps[index].id;
             title = steps[index].title;
             template = steps[index].template;
             active = (0 == index);
             hooks = steps[index].hooks;
+            transitions = steps[index].transitions;
 
             // make the left nav item
             item = document.createElement ("li");
@@ -164,7 +168,7 @@ define
             link.setAttribute ("role", "tab");
             link.setAttribute ("data-toggle", "tab");
             link.appendChild (document.createTextNode (title));
-            link.addEventListener ("click", function (event) { jump (event.target.id, steps, data); });
+            link.addEventListener ("click", function (event) { jump (event, steps, data); });
 
             // get mustache to make the page
             item = document.createElement ("div");
@@ -176,7 +180,8 @@ define
                 template,
                 function (template)
                 {
-                    document.getElementById (id).innerHTML = mustache.render (template, data); // $("#" + id).html (mustache.render (template, view));
+                    var content = document.getElementById (id);
+                    content.innerHTML = mustache.render (template, data);
                     if (hooks)
                         for (var i = 0; i < hooks.length; i++)
                         {
@@ -188,6 +193,31 @@ define
                             })();
                             element.addEventListener (hooks[i].event, handler.bind (hooks[i].obj));
                         }
+                    if (transitions)
+                    {
+                        if (transitions.leave)
+                            /*
+                             * hide.bs.tab
+                             * This event fires when a new tab is to be shown
+                             * (and thus the previous active tab is to be hidden).
+                             * Use event.target and event.relatedTarget to target the
+                             * current active tab and the new soon-to-be-active tab, respectively.
+                             */
+                            $(link).on (
+                                'hide.bs.tab',
+                                transitions.leave.bind (transitions.obj));
+                        if (transitions.enter)
+                            /*
+                             * show.bs.tab
+                             * This event fires on tab show, but before the
+                             * new tab has been shown.
+                             * Use event.target and event.relatedTarget to target the
+                             * active tab and the previous active tab (if available) respectively.
+                             */
+                            $(link).on (
+                                'show.bs.tab',
+                                transitions.enter.bind (transitions.obj));
+                    }
                 }
             );
         };
@@ -248,6 +278,11 @@ define
 
             for (var i = 0; i < steps.length; i++)
                 addStep (nav, content, steps, data, i);
+
+            transitions = steps[0].transitions;
+
+            if (transitions && transitions.enter)
+                transitions.enter.call (transitions.obj);
 
         };
 

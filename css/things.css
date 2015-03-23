@@ -154,12 +154,42 @@ table.file_list tr:nth-child(even)
     width: auto;
 }
 
+.thing_form_left
+{
+    display: inline-block;
+    min-width: 25%;
+    padding-right: 8px;
+    padding-bottom: 5px;
+    text-align: right;
+    width: auto;
+}
+
+.thing_form_right
+{
+    display: inline-block;
+    width: 75%;
+    float: right;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
 .loginform
 {
 	 padding: 10px;
 	 background: #ddd;
 }
 
+.ok
+{
+    color: green;
+    font-size: 1.5em;
+    padding: 10px;
+}
+
+.punch_list
+{
+	float: right;
+}
 #remember
 {
 	float: right;

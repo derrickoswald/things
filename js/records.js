@@ -78,8 +78,7 @@ define ([ "multipart" ],
          */
         function fullCommit (options)
         {
-            var options = options ||
-            {};
+            var options = options || {};
             if (typeof (options.ensure_full_commit) !== "undefined")
             {
                 var commit = options.ensure_full_commit;
@@ -113,8 +112,7 @@ define ([ "multipart" ],
         };
 
         // see http://jchris.ic.ht/drl/_design/sofa/_list/post/post-page?startkey=[%22Versioning-docs-in-CouchDB%22]
-        rawDocs =
-        {};
+        rawDocs = {};
 
         function maybeApplyVersion (doc)
         {
@@ -127,8 +125,7 @@ define ([ "multipart" ],
                 }
                 else
                 {
-                    doc._attachments = doc._attachments ||
-                    {};
+                    doc._attachments = doc._attachments || {};
                     doc._attachments["rev-" + doc._rev.split ("-")[0]] =
                     {
                         content_type : "application/json",
@@ -155,8 +152,7 @@ define ([ "multipart" ],
          */
         function saveDocWithAttachments (db, doc, options, files, fn)
         {
-            options = options ||
-            {};
+            options = options || {};
             var beforeSend = fullCommit (options);
             if (doc._id === undefined)
             {

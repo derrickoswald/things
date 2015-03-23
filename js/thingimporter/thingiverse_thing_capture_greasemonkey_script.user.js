@@ -1266,8 +1266,7 @@ torrent = function ()
          */
         function saveDocWithAttachments (db, doc, options, files, fn)
         {
-            options = options ||
-            {};
+            options = options || {};
             var beforeSend = fullCommit (options);
             if (doc._id === undefined)
             {
@@ -1445,9 +1444,14 @@ function createCORSRequest (method, url)
     return (ret);
 }
 
+function get_title ()
+{
+    return (document.getElementsByClassName ("thing-header-data")[0].getElementsByTagName ("h1")[0].innerHTML);
+}
+
 function thing ()
 {
-    var title = document.getElementsByClassName ("thing-header-data")[0].getElementsByTagName ("h1")[0].innerHTML;
+    var title = get_title ();
 
     var author = document.getElementsByClassName ("thing-header-data")[0].getElementsByTagName ("h2")[0].getElementsByTagName ("a")[0].innerHTML
 
@@ -1478,9 +1482,46 @@ function thing ()
     });
 }
 
+// Change string to be a valid filename without needing quotes.
+// Avoid using the following characters from appearing in file names:
+//
+//    /
+//    >
+//    <
+//    |
+//    :
+//    &
+//
+// Linux and UNIX allows white spaces, <, >, |, \, :, (, ), &, ;, as well as
+// wildcards such as ? and *, to be quoted or escaped using \ symbol.
+//
+function make_file_name (string)
+{
+    var ret;
+
+    // replace whitespace with underscore
+    ret = string.replace (/\s/g, "_");
+    // encode special characters
+    ret = ret.replace (/\%/g, "%25"); // also convert % so decodeURIComponent should work
+    ret = ret.replace (/\//g, "%2f");
+    ret = ret.replace (/\>/g, "%3e");
+    ret = ret.replace (/\</g, "%3c");
+    ret = ret.replace (/\|/g, "%7c");
+    ret = ret.replace (/\:/g, "%3a");
+    ret = ret.replace (/\&/g, "%26");
+    ret = ret.replace (/\\/g, "%5c");
+    ret = ret.replace (/\(/g, "%28");
+    ret = ret.replace (/\)/g, "%29");
+    ret = ret.replace (/\;/g, "%3b");
+    ret = ret.replace (/\?/g, "%3f");
+    ret = ret.replace (/\*/g, "%2a");
+    
+    return (ret);
+}
+
 function capture ()
 {
-    var title = document.getElementsByClassName ("thing-header-data")[0].getElementsByTagName ("h1")[0].innerHTML;
+    var title = get_title ();
     var files = [];
     var links = document.getElementsByClassName ("thing-file-download-link");
     for (var i = 0; i < links.length; i++)
@@ -1500,7 +1541,7 @@ function capture ()
             {
                 uploadfiles.push (new File ([ file.data ], file.name));
             });
-        var directory = thing_metadata.Title.replace (/\s/g, "_"); // ToDo: need to be smarter making directory names
+        var directory = make_file_name (get_title ());
         torrent.MakeTorrent (uploadfiles, 16384, directory, null, function (tor)
         {
             // set the time to match the upload date
@@ -1526,6 +1567,40 @@ function capture ()
     });
 }
 
+function ping ()
+{
+    var xmlhttp;
+    var payload;
+
+    xmlhttp = createCORSRequest ('GET', 'http://localhost:5984/pending_things/ping');
+    xmlhttp.setRequestHeader ("Accept", "application/json");
+    xmlhttp.onreadystatechange = function ()
+    {
+        if (4 == xmlhttp.readyState)
+        {
+            payload = { _id: "ping", time: (new Date ()).valueOf ()};
+            if (200 == xmlhttp.status || 201 == xmlhttp.status || 202 == xmlhttp.status)
+            {
+                var resp = JSON.parse (xmlhttp.responseText);
+                payload._rev = resp._rev;
+            }
+            xmlhttp = createCORSRequest ('PUT', 'http://localhost:5984/pending_things/ping');
+            xmlhttp.setRequestHeader ("Accept", "application/json");
+            xmlhttp.onreadystatechange = function ()
+            {
+                if (4 == xmlhttp.readyState)
+                {
+                    var button = document.getElementById ("import_thing_button");
+                    var pinged = (200 == xmlhttp.status || 201 == xmlhttp.status || 202 == xmlhttp.status);
+                    button.disabled = !pinged;
+                }
+            }
+            xmlhttp.send (JSON.stringify (payload, null, 4));
+        }
+    }
+    xmlhttp.send ();
+}
+
 (function initialize ()
 {
     if (!document.getElementsByClassName ("thingiverse_test")[0])
@@ -1533,15 +1608,18 @@ function capture ()
         var trigger = "http://www.thingiverse.com/thing:";
         if (document.URL.substring (0, trigger.length) == trigger)
         {
-            console.log ("initializing thingiverse_test")
+            console.log ("initializing thingiverse_import")
             var ff = document.createElement ("div");
             ff.setAttribute ("style", "position: relative;");
-            var template = "<button id='import_thing' type='button class='btn btn-default' style='position: absolute; top: 100px; left: 20px;'>Import to things</button>";
+            var template = "<div style='position: absolute; top: 100px; left: 20px;'>" +
+            "<button id='import_thing_button' type='button' class='btn btn-lg btn-primary' disabled>Import to things</button>" +
+            "</div>";
             ff.innerHTML = template;
             var body = document.getElementsByTagName ("body")[0];
             body.appendChild (ff);
-            var button = document.getElementById ("import_thing");
+            var button = document.getElementById ("import_thing_button");
             button.addEventListener ("click", capture);
+            ping ();
         }
     }
 })();

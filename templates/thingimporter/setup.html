@@ -1,0 +1,74 @@
+
+                <h2>Set up for Importing</h2>
+                To import a thing requires a number of configuration steps in the <em>things</em> system prior to
+                visiting the page on Thingiverse and performing the actual import.
+                The preconfiguration required is:
+                <ul>
+                    <li>Create the pending_things database, with unencumbered write access.</li>
+                    <li>Enable CORS support in the local CouchDB, with the PUT accept method and Thingiverse as an allowed site.</li>
+                    <li>Install a user script in your browser (either Chrome or Firefox) that performs the import.</li>
+                </ul>
+                <!-- form id="setup_import_database_form" class="thing_form"> -->
+                    <div class="container">
+                        <div class="row">
+                            <div id="import_database_name" class="thing_form_item">
+                                <label class="thing_form_label" for="database">Name of import database:</label>
+                                <input id="database_name" class="thing_form_input" type="text" name="database" value="pending_things" disabled/>
+                                <div class="thing_form_right">(currently fixed, because it is hard-coded in the user script)</div>
+                            </div>
+                            <div class="thing_form_right">
+                                <button id="import_database_button" class="btn btn-primary start" type = "submit">
+                                    <span class="glyphicon glyphicon-oil" aria-hidden="true"></span>
+                                    <span>Create database</span>
+                                </button>
+                                <details id="import_database_created" class="punch_list hidden">
+                                    <summary>Database exists<span class="glyphicon glyphicon-ok ok" aria-hidden="true"></span></summary>
+                                    <p>The automatic check indicates the database already exists.</p>
+                                </details>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div id="cors_enable">
+                                <label class="thing_form_label" for="cors_enabled">CORS enabled:</label>
+                                <span id="cors_enabled"></span>
+                            </div>
+                            <div id="cors_method">
+                                <label class="thing_form_label" for="cors_methods">CORS methods:</label>
+                                <span id="cors_methods"></span>
+                            </div>
+                            <div id="cors_origin">
+                                <label class="thing_form_label" for="cors_origins">CORS origins:</label>
+                                <span id="cors_origins"></span>
+                            </div>
+                            <div class="thing_form_right">
+                                <button id="configure_cors_button" class="btn btn-primary start" type = "submit">
+                                    <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                                    <span>Configure CORS</span>
+                                </button>
+                                <details id="cors_configured" class="punch_list hidden">
+                                    <summary>CORS is set up<span class="glyphicon glyphicon-ok ok" aria-hidden="true"></span></summary>
+                                    <p>The automatic check indicates that CORS is set up correctly.</p>
+                                </details>
+                            </div>
+                        </div>
+                        <div id="thingiverse_section" class="row">
+                            <div id="thingiverse_user_script">
+                                <label class="thing_form_label" for="thingiverse_user_scripted">User script installed:</label>
+                                <span id="thingiverse_user_scripted"></span>
+                                <div class="thing_form_right">Download file and drag and drop into Settings-Extensions (Chrome) or AddOns-Greasemonkey-User Scripts (FireFox)</div>
+                            </div>
+                            <div class="thing_form_right">
+                                <form method="get" action="js/thingimporter/thingiverse_thing_capture_greasemonkey_script.user.js">
+                                    <button id="download_user_script_button" class="btn btn-primary start" type = "submit">
+                                        <span class="glyphicon glyphicon-download" aria-hidden="true"></span>
+                                        <span>Download user script</span>
+                                    </button>
+                                </form>
+                                <details id="scripted" class="punch_list hidden">
+                                    <summary>User script is installed<span class="glyphicon glyphicon-ok ok" aria-hidden="true"></span></summary>
+                                    <p>The automatic check indicates that the user script for http://thingiverse.com is installed correctly.</p>
+                                </details>
+                            </div>
+                        </div>
+                    </div>
+                <!-- /form> -->
