@@ -6,13 +6,13 @@
  */
 define
 (
-    ["wizard", "mustache", "thingimporter/setup"],
+    ["wizard", "mustache", "thingimporter/setup", "thingimporter/transfer"],
     /**
      * @summary Import things by setting up the database, setting CouchDb configuration, loading a user script and transferring.
      * @exports thingimporter/importwizard
      * @version 1.0
      */
-    function (wiz, mustache, setup)
+    function (wiz, mustache, setup, transfer)
     {
         /**
          * @summary Create the wizard.
@@ -28,6 +28,7 @@ define
                 [
                  { id: "overview", title: "Overview", template: "templates/thingimporter/overview.html"},
                  setup.getStep (), // { id: "setup", title: "Setup", template: "templates/thingimporter/setup.html"},
+                 transfer.getStep (),
                 ];
 
             /**

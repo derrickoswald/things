@@ -16,7 +16,7 @@
 //     methods = GET,POST,PUT
 // and create a pending_things database with no authentication needed. It assumes CouchDB is at http://localhost:5984.
 
-// import 
+// import
 // a little help in deciphering the code...
 // code that follows immediately is imported modules from things https://github.com/derrickoswald/things
 // at the bottom, starting with createCORSRequest, is the actual user script.
@@ -1390,6 +1390,44 @@ torrent = function ()
 
 // end of modules from things
 
+ // Change string to be a valid filename without needing quotes.
+ // Avoid using the following characters from appearing in file names:
+ //
+//     /
+//     >
+//     <
+//     |
+//     :
+//     &
+ //
+ // Linux and UNIX allows white spaces, <, >, |, \, :, (, ), &, ;, as well as
+ // wildcards such as ? and *, to be quoted or escaped using \ symbol.
+ //
+ function make_file_name (string)
+ {
+     var ret;
+
+     // replace whitespace with underscore
+     ret = string.replace (/\s/g, "_");
+     // encode special characters
+     ret = ret.replace (/\%/g, "%25"); // also convert % so decodeURIComponent should work
+     ret = ret.replace (/\//g, "%2f");
+     ret = ret.replace (/\>/g, "%3e");
+     ret = ret.replace (/\</g, "%3c");
+     ret = ret.replace (/\|/g, "%7c");
+     ret = ret.replace (/\:/g, "%3a");
+     ret = ret.replace (/\&/g, "%26");
+     ret = ret.replace (/\\/g, "%5c");
+     ret = ret.replace (/\(/g, "%28");
+     ret = ret.replace (/\)/g, "%29");
+     ret = ret.replace (/\;/g, "%3b");
+     ret = ret.replace (/\?/g, "%3f");
+     ret = ret.replace (/\*/g, "%2a");
+
+     return (ret);
+ }
+
+
 /**
  * End of HTTP file fetch function generator.
  * @param files array of objects with name and URL which is to hold the results
@@ -1449,6 +1487,77 @@ function get_title ()
     return (document.getElementsByClassName ("thing-header-data")[0].getElementsByTagName ("h1")[0].innerHTML);
 }
 
+function downloadAllImages (images, done_fn)
+{
+    var count = images.length;
+    var blobs = [];
+    for (var i = 0; i < images.length; i++)
+    {
+        var xmlhttp = createCORSRequest ("GET", images[i]);
+        if (xmlhttp)
+        {
+            xmlhttp.setRequestHeader ("Accept", "*/*");
+            xmlhttp.responseType = "blob";
+            xmlhttp.onreadystatechange = function (index)
+            {
+                return (function (event)
+                {
+                    if (4 == event.target.readyState)
+                    {
+                        blobs[index] = event.target.response;
+                        count--;
+                        if (0 == count)
+                            done_fn (blobs);
+                    }
+                });
+            }(i);
+            xmlhttp.send ();
+        }
+    }
+}
+
+function convertImagesToDataURLs (blobs, width, height, fn)
+{
+    var img;
+    var canvas;
+    var context;
+    var ret;
+
+    var urls = [];
+    var count = blobs.length;
+    for (var i = 0; i < blobs.length; i++)
+    {
+        img = document.createElement ("img");
+        img.id = "image_workspace_" + i;
+        img.style.display = "none";
+        document.body.appendChild (img);
+        img.onload = function (index, img_element)
+        {
+            return (function (image)
+            {
+                if (!image)
+                    image = this;
+                canvas = document.createElement ("canvas");
+                canvas.id = "canvas_workspace_" + i;
+                canvas.style.display = "none";
+                document.body.appendChild (canvas);
+                canvas.width = img_element.width;
+                canvas.height = img_element.height;
+                context = canvas.getContext ("2d");
+                context.drawImage (img_element, 0, 0);
+                urls[index] = canvas.toDataURL ();
+                document.body.removeChild (canvas);
+                window.URL.revokeObjectURL (img_element.src);
+                document.body.removeChild (img_element);
+                count--;
+                if (0 == count)
+                    fn (urls);
+            });
+        }(i, img);
+        img.src = window.URL.createObjectURL (blobs[i]);
+    }
+}
+
 function thing ()
 {
     var title = get_title ();
@@ -1482,43 +1591,6 @@ function thing ()
     });
 }
 
-// Change string to be a valid filename without needing quotes.
-// Avoid using the following characters from appearing in file names:
-//
-//    /
-//    >
-//    <
-//    |
-//    :
-//    &
-//
-// Linux and UNIX allows white spaces, <, >, |, \, :, (, ), &, ;, as well as
-// wildcards such as ? and *, to be quoted or escaped using \ symbol.
-//
-function make_file_name (string)
-{
-    var ret;
-
-    // replace whitespace with underscore
-    ret = string.replace (/\s/g, "_");
-    // encode special characters
-    ret = ret.replace (/\%/g, "%25"); // also convert % so decodeURIComponent should work
-    ret = ret.replace (/\//g, "%2f");
-    ret = ret.replace (/\>/g, "%3e");
-    ret = ret.replace (/\</g, "%3c");
-    ret = ret.replace (/\|/g, "%7c");
-    ret = ret.replace (/\:/g, "%3a");
-    ret = ret.replace (/\&/g, "%26");
-    ret = ret.replace (/\\/g, "%5c");
-    ret = ret.replace (/\(/g, "%28");
-    ret = ret.replace (/\)/g, "%29");
-    ret = ret.replace (/\;/g, "%3b");
-    ret = ret.replace (/\?/g, "%3f");
-    ret = ret.replace (/\*/g, "%2a");
-    
-    return (ret);
-}
-
 function capture ()
 {
     var title = get_title ();
@@ -1534,6 +1606,8 @@ function capture ()
 
     downloadAllFiles (files, function (files)
     {
+        console.log ("files downloaded: " + files.length);
+
         var thing_metadata = thing ();
         var uploadfiles = [];
         files.forEach (
@@ -1541,28 +1615,41 @@ function capture ()
             {
                 uploadfiles.push (new File ([ file.data ], file.name));
             });
-        var directory = make_file_name (get_title ());
-        torrent.MakeTorrent (uploadfiles, 16384, directory, null, function (tor)
+
+        var blobs = [];
+        downloadAllImages (thing_metadata["Thumbnail URL"], function (blobs)
         {
-            // set the time to match the upload date
-            var header = document.getElementsByClassName ("thing-header-data")[0];
-            var subhead = header.getElementsByTagName ("h2")[0];
-            var time = subhead.getElementsByTagName ("time")[0];
-            var date = time.getAttribute ("datetime");
-            date = date.replace (" GMT", "Z").replace (" ", "T");
+            console.log ("images downloaded: " + blobs.length);
 
-            tor["creation date"] = new Date (date).valueOf ();
-            tor["info"]["thing"] = thing_metadata;
-            tor["_id"] = torrent.InfoHash (tor["info"]); // triggers PUT method
-
-            var options =
+            convertImagesToDataURLs (blobs, 512, 512, function (urls)
             {
-                success: function () { alert ("thing imported"); },
-                error: function () { alert ("thing import failed"); },
-                CORS: 'http://localhost:5984',
-                USE_PUT: true
-            }
-            records.saveDocWithAttachments ("pending_things", tor, options, uploadfiles);
+                console.log ("images converted: " + urls.length);
+
+                thing_metadata["Thumbnails"] = urls;
+                var directory = make_file_name (get_title ());
+                torrent.MakeTorrent (uploadfiles, 16384, directory, null, function (tor)
+                {
+                    // set the time to match the upload date
+                    var header = document.getElementsByClassName ("thing-header-data")[0];
+                    var subhead = header.getElementsByTagName ("h2")[0];
+                    var time = subhead.getElementsByTagName ("time")[0];
+                    var date = time.getAttribute ("datetime");
+                    date = date.replace (" GMT", "Z").replace (" ", "T");
+
+                    tor["creation date"] = new Date (date).valueOf ();
+                    tor["info"]["thing"] = thing_metadata;
+                    tor["_id"] = torrent.InfoHash (tor["info"]); // setting _id triggers the PUT method instead of POST
+
+                    var options =
+                    {
+                        success: function () { alert ("thing imported"); },
+                        error: function () { alert ("thing import failed"); },
+                        CORS: 'http://localhost:5984',
+                        USE_PUT: true
+                    }
+                    records.saveDocWithAttachments ("pending_things", tor, options, uploadfiles);
+                });
+            });
         });
     });
 }

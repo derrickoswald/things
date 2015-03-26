@@ -1,0 +1,9 @@
+
+                <h1>Pending Things</h1>
+                <p>
+                    <strong>List of <em>Things</em> in pending state.</strong>
+                </p>
+<button id="make_view">Make View</button>
+<button id="render">Render</button>
+<button id="dataurl">Make data URL</button>
+<div id="listing"></div>
