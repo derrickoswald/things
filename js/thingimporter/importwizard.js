@@ -6,13 +6,13 @@
  */
 define
 (
-    ["wizard", "mustache", "thingimporter/setup", "thingimporter/transfer"],
+    ["wizard", "../home", "thingimporter/setup", "thingimporter/transfer"],
     /**
      * @summary Import things by setting up the database, setting CouchDb configuration, loading a user script and transferring.
      * @exports thingimporter/importwizard
      * @version 1.0
      */
-    function (wiz, mustache, setup, transfer)
+    function (wiz, home, setup, transfer)
     {
         /**
          * @summary Create the wizard.
@@ -42,34 +42,8 @@ define
                 database: "pending_things",
             };
 
-            var wrapper;
-            var nav;
-            var content;
-            var stream;
-            var main;
-
-            var template =
-                "<div id='main_area' class='row'>" +
-                    "<ul class='col-md-3 nav nav-tabs nav-stacked' role='tablist' id='sidebar'>" +
-                       /* li */
-                    "</ul>" +
-                    "<div class='col-md-6 tab-content' id='panes'>" +
-                       /* div */
-                    "</div>" +
-                    "<div class='col-md-3' id='stream'></div>" +
-                "</div>";
-
-            wrapper = document.createElement ("div");
-            wrapper.innerHTML = mustache.render (template);
-            main = document.getElementById ("main");
-            while (main.firstChild)
-                main.removeChild (main.firstChild);
-            main.appendChild (wrapper.firstChild);
-
-            nav = document.getElementById ("sidebar");
-            content = document.getElementById ("panes")
-
-            wiz.wizard (nav, content, steps, data);
+            var areas = home.layout ();
+            wiz.wizard (areas.left, areas.content, steps, data);
         };
 
         var functions =

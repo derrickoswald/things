@@ -1,82 +1,147 @@
 define
 (
-    ["records", "keybase", "deluge"],
-    function (records, keybase, deluge)
+    ["mustache"],
+    function (mustache)
     {
+        var template =
+            "<ul class='thing_property_list'>" +
+                "{{#.}}" +
+                    "{{#value}}" +
+                        "<li class='thing_list_item'>" +
+                            "<div class='container-fluid'>" +
+                                "<div class='row'>" +
+                                    "<div class='col-xs-12 col-sm-6 col-md-8'>" +
+                                        "<h2><a href='{{info.thing.URL}}'>{{info.thing.Title}}</a></h2>" +
+                                    "</div>" +
+                                    "<div class='col-xs-6 col-md-4'>" +
+                                        "<span class='fineprint'>{{_id}}</span>" +
+                                        "<input class='select_id pull-right' type='checkbox' data-id='{{_id}}' checked>" +
+                                    "</div>" +
+                                "</div>" +
+                                "<div>" +
+                                    "{{info.thing.Description}}" +
+                                "</div>" +
+                                "<div class='row'>" +
+                                    "<div class='col-md-6'>" +
+                                        "<h5>Authors</h5>" +
+                                        "<ul class='thing_property_list'>" +
+                                            "{{#info.thing.Authors}}<li>{{.}}</li>{{/info.thing.Authors}}" +
+                                        "</ul>" +
+                                    "</div>" +
+                                    "<div class='col-md-6'>" +
+                                        "<h5>Licenses</h5>" +
+                                        "<ul class='thing_property_list'>" +
+                                            "{{#info.thing.Licenses}}<li>{{.}}</li>{{/info.thing.Licenses}}" +
+                                        "</ul>" +
+                                    "</div>" +
+                                "</div>" +
+                                "<div class='row'>" +
+                                    "<div class='col-md-6'>" +
+                                        "<h5>Tags</h5>" +
+                                        "<ul class='thing_property_list'>" +
+                                            "{{#info.thing.Tags}}<li>{{.}}</li>{{/info.thing.Tags}}" +
+                                        "</ul>" +
+                                    "</div>" +
+                                    "<div class='col-md-6'>" +
+                                        "<h5>Attachments</h5>" +
+                                        "<ul class='thing_property_list'>" +
+                                            "{{#filelist}}<li>{{.}}</li>{{/filelist}}" +
+                                        "</ul>" +
+                                    "</div>" +
+                                "</div>" +
+                                "<div class='row'>" +
+                                    "{{#info.thing.Thumbnails}}" +
+                                    "<div class='col-xs-6 col-md-3'>" +
+                                        "<a href='#' class='thumbnail'>" +
+                                            "<img src='{{.}}'></img>" +
+                                        "</a>" +
+                                    "</div>" +
+                                    "{{/info.thing.Thumbnails}}" +
+                                "</div>" +
+                            "</div>" +
+                        "</li>" +
+                    "{{/value}}" +
+                "{{/.}}" +
+            "</ul>";
+
+        /**
+         * @summary Read the database:view and render the data into html_id.
+         * @description Uses mustache to display the contents of the database of <em>things</em>.
+         * @function render
+         * @memberOf module:home
+         */
+        function build (database, view, html_id)
+        {
+            $.couch.db (database).view (database + "/" + view,
+            {
+                success : function (result)
+                {
+                    result.rows.forEach (function (item)
+                    {
+                        var list = [];
+                        for (var property in item.value._attachments)
+                        {
+                            if (item.value._attachments.hasOwnProperty (property))
+                            {
+                                list.push (property);
+                            }
+                        }
+                        item.value.filelist = list;
+                    });
+                    var text = mustache.render (template, result.rows);
+                    document.getElementById (html_id).innerHTML = text;
+                },
+                error : function (status)
+                {
+                    console.log (status);
+                },
+                reduce : false
+            });
+        };
+
+        /**
+         * Return the standard layout for the main page.
+         * @return An object containing { left, middle, right } elements for
+         * the left quarter, middle half and right quarter respectively.
+         * @memberOf module:home
+         */
+        function layout ()
+        {
+            var main;
+            var left;
+            var content;
+            var right;
+
+            var template =
+                "<div id='main_area' class='row'>" +
+                    "<div class='col-md-3' id='left'>" +
+                    "</div>" +
+                    "<div class='col-md-6 tab-content' id='content'>" +
+                       /* div */
+                    "</div>" +
+                    "<div class='col-md-3' id='right'>" +
+                    "</div>" +
+                "</div>";
+
+            main = document.getElementById ("main");
+            main.innerHTML = mustache.render (template);
+
+            left = document.getElementById ("left");
+            content = document.getElementById ("content");
+            right = document.getElementById ("right");
+
+            return ({ left: left, content: content, right: right });
+        }
+
         return (
             {
                 initialize: function ()
                 {
-
-//                    <div class="row" id="main_area">
-//                        <div class="col-md-8">
-//                            <div id="keybase"></div>
-//                            <div id="records"></div>
-//                            <div id="info"></div>
-//                            <div id="dbs"></div>
-//                            <div id="other"></div>
-//                        </div>
-//                        <div class="col-md-4" id="sidebar">
-//                            <div id="deluge"></div>
-//                        </div>
-//                    </div>
-                    var row = document.createElement ("div");
-                    row.id = "main_area";
-                    row.className = "row";
-                    var left = document.createElement ("div");
-                    row.appendChild (left);
-                    left.className = "col-md-8";
-                    var item = document.createElement ("div");
-                    left.appendChild (item);
-                    item.id = "keybase";
-                    item = document.createElement ("div");
-                    left.appendChild (item);
-                    item.id = "records";
-                    item = document.createElement ("div");
-                    left.appendChild (item);
-                    item.id = "info";
-                    item = document.createElement ("div");
-                    left.appendChild (item);
-                    item.id = "dbs";
-                    item = document.createElement ("div");
-                    left.appendChild (item);
-                    item.id = "other";
-                    var right = document.createElement ("div");
-                    row.appendChild (right);
-                    right.className = "col-md-4";
-                    right.id = "sidebar";
-                    item = document.createElement ("div");
-                    right.appendChild (item);
-                    item.id = "deluge";
-                    var main = document.getElementById ("main");
-                    while (main.firstChild)
-                        main.removeChild (main.firstChild);
-                    main.appendChild (row);
-
-                    records.read_records
-                    (
-                        "things",
-                        function (data)
-                        {
-                            document.getElementById ("records").innerHTML = JSON.stringify (data);
-                        }
-                    );
-                    document.getElementById ("keybase").innerHTML = JSON.stringify (keybase.getsalt ("chris"));
-                    if (deluge.login (deluge.Password))
-                        document.getElementById ("deluge").innerHTML = JSON.stringify (deluge.getTorrentInfo ("ad2516c50852db638bdcd5d129547585786f639b"));
-
-                    $.couch.info({
-                        success: function(data) {
-                            document.getElementById ("info").innerHTML = JSON.stringify (data);
-                        }
-                    });
-                    $.couch.allDbs({
-                        success: function(data) {
-                            document.getElementById ("dbs").innerHTML = JSON.stringify (data);
-                        }
-                    });
-
-                }
+                    var areas = layout ();
+                    build ("things", "Things", areas.content.id);
+                },
+                layout: layout,
+                build: build
             }
         );
     }

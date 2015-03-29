@@ -223,56 +223,46 @@ define
         /**
          * @summary Create and handle a wizard user interface.
          * @description Builds the HTML elements and attaches event handlers.
-         * The wizard is composed of two parts, a nav bar and a (tabbed) page area.
+         * The wizard is composed of two parts, a nav bar and a tabbed pane page area.
          * The only affordances provided by this basic wizard are Previous and Next buttons.
-         * @todo i18n
-         * @param {element} nav - the DOM element to add nav link items to
+         * @ToDo i18n
+         * @param {element} left - the DOM element to add nav link items to
          * @param {element} content - the DOM element to add the wizard page to
          * @param {Step[]} steps - the list of steps provided to the wizard
          * @param {*} data - the data used as context for each action
          * @memberOf module:wizard
          */
-        function wizard (nav, content, steps, data)
+        function wizard (left, content, steps, data)
         {
-            var outer;
-            var input;
-            var button;
-            var image;
+            var nav_template =
+                "<ul id='navigator' class='nav nav-tabs nav-stacked' role='tablist'>" +
+                    /* li */
+                "</ul>";
 
-            outer = document.createElement ("div");
-            outer.className = "row";
+            var content_template =
+                "<div class='row'>" +
+                    "<div class='wizard_button_next'>" +
+                        "<button id='next' class='btn btn-primary btn-large button-next' type='submit'>" +
+                            "Next" +
+                            "<span class='glyphicon glyphicon-arrow-right wizard_image_next'></span>" +
+                        "</button>" +
+                    "</div>" +
+                    "<div class='wizard_button_prev'>" +
+                        "<button id='previous' class='btn btn-primary btn-large button-previous hide' type='submit'>" +
+                            "<span class='glyphicon glyphicon-arrow-left wizard_image_prev'></span>" +
+                            "Previous" +
+                        "</button>" +
+                    "</div>" +
+                "</div>";
 
-            input = document.createElement ("div");
-            outer.appendChild (input);
-            input.className = "wizard_button_next";
-            button = document.createElement ("button");
-            input.appendChild (button);
-            button.className = "btn btn-primary btn-large button-next";
-            button.setAttribute ("type", "submit");
-            button.setAttribute ("id", "next");
-            button.appendChild (document.createTextNode ("Next"));
-            image = document.createElement ("span");
-            button.appendChild (image);
-            image.className = "glyphicon glyphicon-arrow-right wizard_image_next";
-            data.next_button = button;
-            button.onclick = function () { step (steps, data, 1); };
+            left.innerHTML = mustache.render (nav_template);
+            var nav = document.getElementById ("navigator");
 
-            input = document.createElement ("div");
-            outer.appendChild (input);
-            input.className = "wizard_button_prev";
-            button = document.createElement ("button");
-            input.appendChild (button);
-            button.className = "btn btn-primary btn-large button-previous hide";
-            button.setAttribute ("type", "submit");
-            button.setAttribute ("id", "previous");
-            image = document.createElement ("span");
-            button.appendChild (image);
-            image.className = "glyphicon glyphicon-arrow-left wizard_image_prev";
-            button.appendChild (document.createTextNode ("Previous"));
-            data.prev_button = button;
-            button.onclick = function () { step (steps, data, -1); };
-
-            content.appendChild (outer);
+            content.innerHTML = mustache.render (content_template);
+            data.next_button = document.getElementById ("next");
+            data.prev_button = document.getElementById ("previous");
+            data.prev_button.onclick = function () { step (steps, data, -1); };
+            data.next_button.onclick = function () { step (steps, data, 1); };
 
             for (var i = 0; i < steps.length; i++)
                 addStep (nav, content, steps, data, i);
@@ -281,7 +271,6 @@ define
 
             if (transitions && transitions.enter)
                 transitions.enter.call (transitions.obj);
-
         };
 
         var functions =

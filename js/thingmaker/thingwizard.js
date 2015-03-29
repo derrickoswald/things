@@ -6,13 +6,13 @@
  */
 define
 (
-    ["wizard", "thingmaker/files", "thingmaker/make", "thingmaker/upload", "thingmaker/publish"],
+    ["wizard", "../home", "thingmaker/files", "thingmaker/make", "thingmaker/upload", "thingmaker/publish"],
     /**
      * @summary Create a new thing by specifying the files, template and metadata.
      * @exports thingmaker/thingwizard
      * @version 1.0
      */
-    function (wiz, files, make, upload, publish)
+    function (wiz, home, files, make, upload, publish)
     {
         /**
          * @summary Create the wizard.
@@ -47,49 +47,9 @@ define
                 piece_length: 16384,
             };
 
-            var row;
-            var nav;
-            var content;
-            var stream;
-            var main;
+            var areas = home.layout ();
 
-//            var template =
-//                "<div id='main_area' class='row'>" +
-//                    "<ul class='col-md-3 nav nav-tabs nav-stacked' role='tablist' id='sidebar'>" +
-//                       /* li */
-//                    "</ul>" +
-//                    "<div class='col-md-6 tab-content' id='panes'>" +
-//                       /* div */
-//                    "</div>" +
-//                    "<div class='col-md-3' id='stream'></div>" +
-//                "</div>";
-
-            row = document.createElement ("div");
-            row.id = "main_area";
-            row.className = "row";
-
-            nav = document.createElement ("ul");
-            row.appendChild (nav);
-            nav.className = "col-md-3 nav nav-tabs nav-stacked";
-            nav.setAttribute ("role", "tablist");
-            nav.id = "sidebar";
-
-            content = document.createElement ("div");
-            row.appendChild (content);
-            content.className = "col-md-6 tab-content";
-            content.id = "panes";
-
-            wiz.wizard (nav, content, steps, data);
-
-            stream = document.createElement ("div");
-            row.appendChild (stream);
-            stream.className = "col-md-3";
-            stream.id = "stream";
-
-            main = document.getElementById ("main");
-            while (main.firstChild)
-                main.removeChild (main.firstChild);
-            main.appendChild (row);
+            wiz.wizard (areas.left, areas.content, steps, data);
         };
 
         var functions =

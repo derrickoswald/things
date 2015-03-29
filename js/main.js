@@ -37,7 +37,6 @@ requirejs
         document.getElementById ("home").onclick = activate ("home", home.initialize);
         document.getElementById ("import_thing").onclick = activate ("import_thing", importwizard.initialize);
         document.getElementById ("new_thing").onclick = activate ("new_thing", thingwizard.initialize);
-        //activate ("home", home.initialize) ();
-        activate ("import_thing", importwizard.initialize) ();
+        activate ("home", home.initialize) ();
     }
 );
