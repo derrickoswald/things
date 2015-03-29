@@ -3,6 +3,7 @@
 // @namespace   thingiverse_import
 // @description Import thing from Thingiverse into CouchDB
 // @include     http://www.thingiverse.com/*
+// @include     https://www.thingiverse.com/*
 // @version     1
 // @grant       none
 // ==/UserScript==
@@ -1692,8 +1693,9 @@ function ping ()
 {
     if (!document.getElementsByClassName ("thingiverse_test")[0])
     {
-        var trigger = "http://www.thingiverse.com/thing:";
-        if (document.URL.substring (0, trigger.length) == trigger)
+        var trigger1 = "http://www.thingiverse.com/thing:";
+        var trigger2 = "https://www.thingiverse.com/thing:";
+        if ((document.URL.substring (0, trigger1.length) == trigger1) || (document.URL.substring (0, trigger2.length) == trigger2))
         {
             console.log ("initializing thingiverse_import")
             var ff = document.createElement ("div");
