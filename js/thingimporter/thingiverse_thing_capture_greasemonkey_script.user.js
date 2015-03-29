@@ -4,7 +4,7 @@
 // @description Import thing from Thingiverse into CouchDB
 // @include     http://www.thingiverse.com/*
 // @include     https://www.thingiverse.com/*
-// @version     1
+// @version     1.0
 // @grant       none
 // ==/UserScript==
 
@@ -1582,13 +1582,13 @@ function thing ()
 
     return (
     {
-        "Title" : title,
-        "URL" : document.URL,
-        "Authors" : [ author ],
-        "Licenses" : [ license ],
-        "Tags" : tags,
-        "Thumbnail URL" : images,
-        "Description" : description
+        "title" : title,
+        "url" : document.URL,
+        "authors" : [ author ],
+        "licenses" : [ license ],
+        "tags" : tags,
+        "thumbnailURL" : images,
+        "description" : description
     });
 }
 
@@ -1610,15 +1610,9 @@ function capture ()
         console.log ("files downloaded: " + files.length);
 
         var thing_metadata = thing ();
-        var uploadfiles = [];
-        files.forEach (
-            function (file)
-            {
-                uploadfiles.push (new File ([ file.data ], file.name));
-            });
 
         var blobs = [];
-        downloadAllImages (thing_metadata["Thumbnail URL"], function (blobs)
+        downloadAllImages (thing_metadata["thumbnailURL"], function (blobs)
         {
             console.log ("images downloaded: " + blobs.length);
 
@@ -1626,9 +1620,11 @@ function capture ()
             {
                 console.log ("images converted: " + urls.length);
 
-                thing_metadata["Thumbnails"] = urls;
+                thing_metadata["thumbnails"] = urls;
                 var directory = make_file_name (get_title ());
-                torrent.MakeTorrent (uploadfiles, 16384, directory, null, function (tor)
+                var filelist = [];
+                files.forEach (function (file) { file.data.name = file.name; filelist.push (file.data); });
+                torrent.MakeTorrent (filelist, 16384, directory, null, function (tor)
                 {
                     // set the time to match the upload date
                     var header = document.getElementsByClassName ("thing-header-data")[0];
@@ -1640,6 +1636,26 @@ function capture ()
                     tor["creation date"] = new Date (date).valueOf ();
                     tor["info"]["thing"] = thing_metadata;
                     tor["_id"] = torrent.InfoHash (tor["info"]); // setting _id triggers the PUT method instead of POST
+
+                    // add the webseed
+                    // ToDo: use pending_things, then in the publish phase change the database to things
+                    tor["url-list"] = "http://localhost:5984/things/" + tor["_id"] + "/";
+                    if (1 == files.length)
+                        tor["url-list"] += files[0].name;
+
+                    // make the list of files for attachment with names adjusted for directory
+                    var uploadfiles = [];
+                    files.forEach (
+                        function (file)
+                        {
+                            if (1 < files.length)
+                                uploadfiles.push (new File ([file.data], directory + "/" + file.name, { type: file.data.type, lastModifiedDate: file.data.lastModifiedDate }));
+                            else
+                                uploadfiles.push (file);
+                        });
+
+                    // add the torrent to a copy of the list of files to be saved
+                    uploadfiles.push (new File ([bencoder.str2ab (bencoder.encode (tor))], tor["_id"] + ".torrent", { type: "application/octet-stream" }));
 
                     var options =
                     {
@@ -1666,7 +1682,7 @@ function ping ()
     {
         if (4 == xmlhttp.readyState)
         {
-            payload = { _id: "ping", time: (new Date ()).valueOf ()};
+            payload = { _id: "ping", time: (new Date ()).valueOf (), version: "1.0" }; // ToDo: keep this version string matched to script version
             if (200 == xmlhttp.status || 201 == xmlhttp.status || 202 == xmlhttp.status)
             {
                 var resp = JSON.parse (xmlhttp.responseText);

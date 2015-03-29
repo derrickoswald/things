@@ -1,7 +1,7 @@
 define
 (
-    ["mustache"],
-    function (mustache)
+    ["mustache", "thingmaker/publish"],
+    function (mustache, publish)
     {
         var template =
             "<ul class='thing_property_list'>" +
@@ -11,7 +11,7 @@ define
                             "<div class='container-fluid'>" +
                                 "<div class='row'>" +
                                     "<div class='col-xs-12 col-sm-6 col-md-8'>" +
-                                        "<h2><a href='{{info.thing.URL}}'>{{info.thing.Title}}</a></h2>" +
+                                        "<h2><a href='{{info.thing.url}}'>{{info.thing.title}}</a></h2>" +
                                     "</div>" +
                                     "<div class='col-xs-6 col-md-4'>" +
                                         "<span class='fineprint'>{{_id}}</span>" +
@@ -19,19 +19,19 @@ define
                                     "</div>" +
                                 "</div>" +
                                 "<div>" +
-                                    "{{info.thing.Description}}" +
+                                    "{{info.thing.description}}" +
                                 "</div>" +
                                 "<div class='row'>" +
                                     "<div class='col-md-6'>" +
                                         "<h5>Authors</h5>" +
                                         "<ul class='thing_property_list'>" +
-                                            "{{#info.thing.Authors}}<li>{{.}}</li>{{/info.thing.Authors}}" +
+                                            "{{#info.thing.authors}}<li>{{.}}</li>{{/info.thing.authors}}" +
                                         "</ul>" +
                                     "</div>" +
                                     "<div class='col-md-6'>" +
                                         "<h5>Licenses</h5>" +
                                         "<ul class='thing_property_list'>" +
-                                            "{{#info.thing.Licenses}}<li>{{.}}</li>{{/info.thing.Licenses}}" +
+                                            "{{#info.thing.licenses}}<li>{{.}}</li>{{/info.thing.licenses}}" +
                                         "</ul>" +
                                     "</div>" +
                                 "</div>" +
@@ -39,7 +39,7 @@ define
                                     "<div class='col-md-6'>" +
                                         "<h5>Tags</h5>" +
                                         "<ul class='thing_property_list'>" +
-                                            "{{#info.thing.Tags}}<li>{{.}}</li>{{/info.thing.Tags}}" +
+                                            "{{#info.thing.tags}}<li>{{.}}</li>{{/info.thing.tags}}" +
                                         "</ul>" +
                                     "</div>" +
                                     "<div class='col-md-6'>" +
@@ -50,13 +50,13 @@ define
                                     "</div>" +
                                 "</div>" +
                                 "<div class='row'>" +
-                                    "{{#info.thing.Thumbnails}}" +
+                                    "{{#info.thing.thumbnails}}" +
                                     "<div class='col-xs-6 col-md-3'>" +
                                         "<a href='#' class='thumbnail'>" +
                                             "<img src='{{.}}'></img>" +
                                         "</a>" +
                                     "</div>" +
-                                    "{{/info.thing.Thumbnails}}" +
+                                    "{{/info.thing.thumbnails}}" +
                                 "</div>" +
                             "</div>" +
                         "</li>" +
@@ -88,8 +88,7 @@ define
                         }
                         item.value.filelist = list;
                     });
-                    var text = mustache.render (template, result.rows);
-                    document.getElementById (html_id).innerHTML = text;
+                    document.getElementById (html_id).innerHTML = mustache.render (template, result.rows);
                 },
                 error : function (status)
                 {
@@ -117,7 +116,6 @@ define
                     "<div class='col-md-3' id='left'>" +
                     "</div>" +
                     "<div class='col-md-6 tab-content' id='content'>" +
-                       /* div */
                     "</div>" +
                     "<div class='col-md-3' id='right'>" +
                     "</div>" +
@@ -133,12 +131,26 @@ define
             return ({ left: left, content: content, right: right });
         }
 
+        function make_public ()
+        {
+            var list = [];
+            $ (".select_id").each (function (n, item) { if (item.checked) list.push (item.getAttribute ("data-id")) });
+            console.log ("publishing " + JSON.stringify (list));
+            for (var i = 0; i < list.length; i++)
+                publish.push (list[i]);
+        }
+
         return (
             {
                 initialize: function ()
                 {
+                    var template =
+                        "<button id='publish'>Publish</button>" +
+                        "<div id='list_of_things'></div>";
                     var areas = layout ();
-                    build ("things", "Things", areas.content.id);
+                    areas.content.innerHTML = mustache.render (template);
+                    document.getElementById ("publish").onclick = make_public;
+                    build ("things", "Things", "list_of_things");
                 },
                 layout: layout,
                 build: build

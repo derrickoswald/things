@@ -20,7 +20,7 @@ define
 
             url = URL;
             xmlhttp = new XMLHttpRequest ();
-            xmlhttp.open ("POST", url, false);
+            xmlhttp.open ("POST", url, true);
             xmlhttp.setRequestHeader ("Content-Type", "application/json");
             xmlhttp.setRequestHeader ("Accept", "application/json");
             xmlhttp.onreadystatechange = function ()
@@ -68,7 +68,7 @@ define
 
             url = URL;
             xmlhttp = new XMLHttpRequest ();
-            xmlhttp.open ("POST", url, false);
+            xmlhttp.open ("POST", url, true);
             xmlhttp.setRequestHeader ("Content-Type", "application/json");
             xmlhttp.setRequestHeader ("Accept", "application/json");
             xmlhttp.onreadystatechange = function ()
@@ -108,7 +108,7 @@ define
 //    }])
             url = URL;
             xmlhttp = new XMLHttpRequest ();
-            xmlhttp.open ("POST", url, false);
+            xmlhttp.open ("POST", url, true);
             xmlhttp.setRequestHeader ("Content-Type", "application/json");
             xmlhttp.setRequestHeader ("Accept", "application/json");
             xmlhttp.onreadystatechange = function ()
@@ -148,7 +148,7 @@ define
 
             url = URL;
             xmlhttp = new XMLHttpRequest ();
-            xmlhttp.open ("POST", url, false);
+            xmlhttp.open ("POST", url, true);
             xmlhttp.setRequestHeader ("Content-Type", "application/json");
             xmlhttp.setRequestHeader ("Accept", "application/json");
             xmlhttp.onreadystatechange = function ()
