@@ -89,7 +89,6 @@ define
             var from;
             var id;
             var to;
-            var transitions;
 
             from = currentIndex (steps);
             id = event.target.id.substring (0, event.target.id.length - 4);
@@ -193,31 +192,30 @@ define
                             })();
                             element.addEventListener (hooks[i].event, handler.bind (hooks[i].obj));
                         }
-                    if (transitions)
-                    {
-                        if (transitions.leave)
-                            /*
-                             * hide.bs.tab
-                             * This event fires when a new tab is to be shown
-                             * (and thus the previous active tab is to be hidden).
-                             * Use event.target and event.relatedTarget to target the
-                             * current active tab and the new soon-to-be-active tab, respectively.
-                             */
-                            $(link).on (
-                                'hide.bs.tab',
-                                transitions.leave.bind (transitions.obj));
-                        if (transitions.enter)
-                            /*
-                             * show.bs.tab
-                             * This event fires on tab show, but before the
-                             * new tab has been shown.
-                             * Use event.target and event.relatedTarget to target the
-                             * active tab and the previous active tab (if available) respectively.
-                             */
-                            $(link).on (
-                                'show.bs.tab',
-                                transitions.enter.bind (transitions.obj));
-                    }
+
+                    if (transitions && transitions.leave)
+                        /*
+                         * hide.bs.tab
+                         * This event fires when a new tab is to be shown
+                         * (and thus the previous active tab is to be hidden).
+                         * Use event.target and event.relatedTarget to target the
+                         * current active tab and the new soon-to-be-active tab, respectively.
+                         */
+                        $(link).on (
+                            'hide.bs.tab',
+                            transitions.leave.bind (transitions.obj));
+
+                    if (transitions && transitions.enter)
+                        /*
+                         * show.bs.tab
+                         * This event fires on tab show, but before the
+                         * new tab has been shown.
+                         * Use event.target and event.relatedTarget to target the
+                         * active tab and the previous active tab (if available) respectively.
+                         */
+                        $(link).on (
+                            'show.bs.tab',
+                            transitions.enter.bind (transitions.obj));
                 }
             );
         };

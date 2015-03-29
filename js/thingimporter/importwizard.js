@@ -26,9 +26,9 @@ define
         {
             var steps =
                 [
-                 { id: "overview", title: "Overview", template: "templates/thingimporter/overview.html"},
-                 setup.getStep (), // { id: "setup", title: "Setup", template: "templates/thingimporter/setup.html"},
-                 transfer.getStep (),
+                    { id: "overview", title: "Overview", template: "templates/thingimporter/overview.html"},
+                    setup.getStep (), // { id: "setup", title: "Setup", template: "templates/thingimporter/setup.html"},
+                    transfer.getStep (),
                 ];
 
             /**

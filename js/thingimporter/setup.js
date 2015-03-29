@@ -3,6 +3,8 @@ define
     ["../login"],
     function (login)
     {
+        var view_name = "GeneralView";
+
         // check for the existence of the database
         function check_db ()
         {
@@ -26,6 +28,30 @@ define
             );
         }
 
+        // make the view
+        function make_view ()
+        {
+            // todo: get "pending" database name from configuration
+            var dbname = $ ("#database_name").val ();
+
+            var view =
+            {
+                "_id": "_design/" + dbname,
+                "language": "javascript",
+                "views": {}
+            };
+            // view of only "things" (that have an info section) in the database
+            view["views"][view_name] = { "map": "function(doc) { if (doc.info) emit (doc._id, doc); }" };
+            $.couch.db (dbname).saveDoc
+            (
+                view,
+                {
+                    success: check_db,
+                    error: function () { alert ("make view failed"); }
+                }
+            );
+        }
+
         function make_db ()
         {
             var dbname;
@@ -34,7 +60,7 @@ define
             $.couch.db (dbname).create
             (
                 {
-                    success: check_db,
+                    success: make_view,
                     error: function () { alert ("Database creation failed"); }
                 }
             );
@@ -218,10 +244,10 @@ define
                 getStep: function ()
                 {
                     var setup_hooks =
-                        [
-                         { id: "import_database_button", event: "click", code: make_db, obj: this },
-                         { id: "configure_cors_button", event: "click", code: setup_cors, obj: this },
-                        ];
+                    [
+                        { id: "import_database_button", event: "click", code: make_db, obj: this },
+                        { id: "configure_cors_button", event: "click", code: setup_cors, obj: this }
+                    ];
                     return ({ id: "setup", title: "Set up", template: "templates/thingimporter/setup.html", hooks: setup_hooks, transitions: { enter: init, obj: this } });
                 }
             }

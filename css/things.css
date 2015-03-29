@@ -199,3 +199,29 @@ table.file_list tr:nth-child(even)
 {
 	display: inline;
 }
+
+.thing_property_list
+{
+	list-style: none;
+	padding: 0;
+	margin: .5em;
+}
+
+.thing_list_item
+{
+    border: 5px solid #e3edf9;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    padding: 20px;
+}
+
+.thing_list_item h5
+{
+	text-decoration: underline;
+	font-weight: bold;
+}
+
+.fineprint
+{
+	font-size: x-small;
+}

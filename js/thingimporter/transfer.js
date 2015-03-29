@@ -6,47 +6,60 @@ define
         var db = "pending_things";
         var view_name = "GeneralView";
         var template =
-            "<ul class='thing_form_list'>" +
+            "<ul class='thing_property_list'>" +
                 "{{#.}}" +
                     "{{#value}}" +
-                        "<li>" +
-                            "<div class='.container-fluid'>" +
+                        "<li class='thing_list_item'>" +
+                            "<div class='container-fluid'>" +
                                 "<div class='row'>" +
-                                    "<h4><a href='{{info.thing.URL}}'>{{info.thing.Title}}</a></h4><div class='pull-right'>{{_id}}</div>" +
+                                    "<div class='col-xs-12 col-sm-6 col-md-8'>" +
+                                        "<h2><a href='{{info.thing.URL}}'>{{info.thing.Title}}</a></h2>" +
+                                    "</div>" +
+                                    "<div class='col-xs-6 col-md-4'>" +
+                                        "<span class='fineprint'>{{_id}}</span>" +
+                                        "<input class='select_id pull-right' type='checkbox' data-id='{{_id}}' checked>" +
+                                    "</div>" +
                                 "</div>" +
-                                "<div class='row'>" +
+                                "<div>" +
                                     "{{info.thing.Description}}" +
                                 "</div>" +
                                 "<div class='row'>" +
-                                    "<h5>Attachments</h5>" +
-                                    "<ul class='thing_form_list'>" +
-                                        "{{#filelist}}<li>{{.}}</li>{{/filelist}}" +
-                                    "</ul>" +
+                                    "<div class='col-md-6'>" +
+                                        "<h5>Authors</h5>" +
+                                        "<ul class='thing_property_list'>" +
+                                            "{{#info.thing.Authors}}<li>{{.}}</li>{{/info.thing.Authors}}" +
+                                        "</ul>" +
+                                    "</div>" +
+                                    "<div class='col-md-6'>" +
+                                        "<h5>Licenses</h5>" +
+                                        "<ul class='thing_property_list'>" +
+                                            "{{#info.thing.Licenses}}<li>{{.}}</li>{{/info.thing.Licenses}}" +
+                                        "</ul>" +
+                                    "</div>" +
                                 "</div>" +
                                 "<div class='row'>" +
-                                    "<h5>Authors</h5>" +
-                                    "<ul class='thing_form_list'>" +
-                                        "{{#info.thing.Authors}}<li>{{.}}</li>{{/info.thing.Authors}}" +
-                                    "</ul>" +
+                                    "<div class='col-md-6'>" +
+                                        "<h5>Tags</h5>" +
+                                        "<ul class='thing_property_list'>" +
+                                            "{{#info.thing.Tags}}<li>{{.}}</li>{{/info.thing.Tags}}" +
+                                        "</ul>" +
+                                    "</div>" +
+                                    "<div class='col-md-6'>" +
+                                        "<h5>Attachments</h5>" +
+                                        "<ul class='thing_property_list'>" +
+                                            "{{#filelist}}<li>{{.}}</li>{{/filelist}}" +
+                                        "</ul>" +
+                                    "</div>" +
                                 "</div>" +
                                 "<div class='row'>" +
-                                    "<h5>Licenses</h5>" +
-                                    "<ul class='thing_form_list'>" +
-                                        "{{#info.thing.Licenses}}<li>{{.}}</li>{{/info.thing.Licenses}}" +
-                                    "</ul>" +
+                                    "{{#info.thing.Thumbnails}}" +
+                                    "<div class='col-xs-6 col-md-3'>" +
+                                        "<a href='#' class='thumbnail'>" +
+                                            "<img src='{{.}}'></img>" +
+                                        "</a>" +
+                                    "</div>" +
+                                    "{{/info.thing.Thumbnails}}" +
                                 "</div>" +
-                                "<div class='row'>" +
-                                    "<h5>Tags</h5>" +
-                                    "<ul class='thing_form_list'>" +
-                                        "{{#info.thing.Tags}}<li>{{.}}</li>{{/info.thing.Tags}}" +
-                                    "</ul>" +
-                                "</div>" +
-//                                "<div class='row'>" +
-//                                    "{{#info.thing.Thumbnail URL}}<img src='{{.}}'></img>{{/info.thing.Thumbnail URL}}" +
-//                                "</div>" +
-                                  "<div class='row'>" +
-                                      "{{#info.thing.Thumbnails}}<img src='{{.}}'></img>{{/info.thing.Thumbnails}}" +
-                                  "</div>" +
                             "</div>" +
                         "</li>" +
                     "{{/value}}" +
@@ -63,9 +76,9 @@ define
         {
             $.couch.db (db).view (db + "/" + view_name,
             {
-                success : function (data)
+                success : function (result)
                 {
-                    data.rows.forEach (function (item)
+                    result.rows.forEach (function (item)
                     {
                         var list = [];
                         for (var property in item.value._attachments)
@@ -77,7 +90,7 @@ define
                         }
                         item.value.filelist = list;
                     });
-                    var text = mustache.render (template, data.rows);
+                    var text = mustache.render (template, result.rows);
                     document.getElementById ("listing").innerHTML = text;
                 },
                 error : function (status)
@@ -88,47 +101,42 @@ define
             });
         };
 
-
-        // make the view
-        function make_view ()
+        function transfer ()
         {
-            var view =
-            {
-                "_id": "_design/" + db,
-                "language": "javascript",
-                "views":
-                {
-                    "GeneralView": // ToDo: make this a parameter somehow
-                    {
-                        "map": "function(doc) { if (doc.info) emit (doc._id, doc); }"
-                    }
-                }
-            };
-            $.couch.db (db).saveDoc
+            var list = [];
+            $ (".select_id").each (function (n, item) { if (item.checked) list.push (item.getAttribute ("data-id")) });
+            // ToDo: delete pending_things
+            $.couch.replicate
             (
-                view,
+                "pending_things",
+                "things",
                 {
-                    success: build,
-                    error: function () { alert ("make view failed"); }
+                    success: function (data) { console.log (data); },
+                    error: function (status) { console.log (status); }
+                },
+                {
+                    create_target: false,
+                    doc_ids: list
                 }
             );
         }
 
-        var setup_hooks =
-        [
-         { id: "make_view", event: "click", code: make_view, obj: this },
-         { id: "render", event: "click", code: build, obj: this },
-        ];
         return (
         {
+
             getStep : function ()
             {
+                var setup_hooks =
+                    [
+                        { id: "transfer", event: "click", code: transfer, obj: this }
+                    ];
                return (
                 {
                     id : "transfer",
                     title : "Transfer Things",
                     template : "templates/thingimporter/transfer.mst",
-                    hooks: setup_hooks
+                    hooks: setup_hooks,
+                    transitions: { enter: build, obj: this }
                 });
             }
         });
