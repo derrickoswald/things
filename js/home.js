@@ -3,6 +3,8 @@ define
     ["mustache", "thingmaker/publish"],
     function (mustache, publish)
     {
+        var current = "things"; // current database
+
         var template =
             "<ul class='thing_property_list'>" +
                 "{{#.}}" +
@@ -65,9 +67,31 @@ define
             "</ul>";
 
         /**
+         * @summary Read the database:view of count information and render the data into html_id.
+         * @description Uses mustache to display the number of documents in the database of <em>things</em>.
+         * @function count
+         * @memberOf module:home
+         */
+        function count (database, view, html_id)
+        {
+            $.couch.db (database).view (database + "/" + view,
+            {
+                success : function (result)
+                {
+                    var message = (0 != result.rows.length) ? "" + result.rows[0].value + " documents" : "no documents";
+                    document.getElementById (html_id).innerHTML = message;
+                },
+                error : function (status)
+                {
+                    console.log (status);
+                }
+            });
+        };
+
+        /**
          * @summary Read the database:view and render the data into html_id.
          * @description Uses mustache to display the contents of the database of <em>things</em>.
-         * @function render
+         * @function build
          * @memberOf module:home
          */
         function build (database, view, html_id)
@@ -102,6 +126,7 @@ define
          * Return the standard layout for the main page.
          * @return An object containing { left, middle, right } elements for
          * the left quarter, middle half and right quarter respectively.
+         * @function layout
          * @memberOf module:home
          */
         function layout ()
@@ -131,7 +156,80 @@ define
             return ({ left: left, content: content, right: right });
         }
 
+        function switch_database (event)
+        {
+            event.stopPropagation ();
+            event.preventDefault ();
+            var li = event.target.parentElement;
+            current = li.getAttribute ("data-target");
+            draw ();
+        }
+
+        function draw ()
+        {
+            var middle_template =
+                "<button id='create'>Create public_things</button>" +
+                "<button id='publish'>Publish</button>" +
+                "<div id='count_of_things'></div>" +
+                "<div id='list_of_things'></div>";
+            var right_template =
+                "<div id='databases'>" +
+                    "<ul class='database_list'>" +
+                        "{{#.}}" +
+                            "<li class='database_item{{#current}} current{{/current}}' data-target={{database}}>" +
+                                "<a href={{database}}>{{database}}</a>" +
+                            "</li>" +
+                        "{{/.}}" +
+                    "</ul>" +
+                "</div>" +
+                "<div id='info'></div>";
+            var areas = layout ();
+            areas.content.innerHTML = mustache.render (middle_template);
+            document.getElementById ("create").onclick = make_public;
+            document.getElementById ("publish").onclick = push_to_public;
+            count (current, "Count", "count_of_things");
+            build (current, "Things", "list_of_things");
+            $.couch.allDbs
+            (
+                {
+                    success: function (data)
+                    {
+                        var dbs = [];
+                        data.forEach
+                        (
+                            function (item)
+                            {
+                                if (!("_" == item.charAt (0)))
+                                {
+                                    var link = {database: item};
+                                    if (item == current)
+                                        link.current = true;
+                                    dbs.push (link);
+                                }
+                            }
+                        );
+                        areas.right.innerHTML = mustache.render (right_template, dbs);
+                        // hook up database switch actions
+                        $ (".database_item a").on ("click", switch_database);
+                    }
+                }
+            );
+        }
+
+        // make the view
+        function make_view ()
+        {
+            // todo: get "public_things" database name from configuration
+            make_views ("public_things", { success: function () { alert ("public_things database created"); }, error: function () { alert ("make view failed"); } });
+        }
+
         function make_public ()
+        {
+            // todo: get "public_things" database name from configuration
+            make_database ("public_things", { success: make_view, error: function () { alert ("database creation failed"); } })
+        }
+
+        function push_to_public ()
         {
             var list = [];
             $ (".select_id").each (function (n, item) { if (item.checked) list.push (item.getAttribute ("data-id")) });
@@ -140,20 +238,45 @@ define
                 publish.push (list[i]);
         }
 
+        function make_views (dbname, options)
+        {
+            var view =
+            {
+                _id: "_design/" + dbname,
+                language: "javascript",
+                views: {
+                    // view to count "things" (that have an info section) in the database
+                    Count:
+                    {
+                        map: "function(doc) { emit (doc._id, 1); }",
+                        reduce: "function (keys, values) { return (sum (values)); }"
+                    },
+                    // view of only "things" (that have an info section) in the database
+                    Things:
+                    {
+                        map: "function(doc) { if (doc.info) emit (doc._id, doc); }"
+                    }
+                }
+            };
+            $.couch.db (dbname).saveDoc
+            (
+                view,
+                options
+            );
+        }
+
+        function make_database (dbname, options)
+        {
+            $.couch.db (dbname).create (options);
+        }
+
         return (
             {
-                initialize: function ()
-                {
-                    var template =
-                        "<button id='publish'>Publish</button>" +
-                        "<div id='list_of_things'></div>";
-                    var areas = layout ();
-                    areas.content.innerHTML = mustache.render (template);
-                    document.getElementById ("publish").onclick = make_public;
-                    build ("things", "Things", "list_of_things");
-                },
+                initialize: draw,
                 layout: layout,
-                build: build
+                build: build,
+                make_views: make_views,
+                make_database: make_database
             }
         );
     }

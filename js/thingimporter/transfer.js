@@ -4,7 +4,7 @@ define
     function (login, home)
     {
         var db = "pending_things";
-        var view_name = "GeneralView";
+        var view_name = "Things";
         function init ()
         {
             home.build (db, view_name, "listing");

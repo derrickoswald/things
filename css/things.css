@@ -225,3 +225,21 @@ table.file_list tr:nth-child(even)
 {
 	font-size: x-small;
 }
+
+.database_list
+{
+	list-style: none;
+}
+
+.database_item
+{
+    position: relative;
+    display: block;
+    padding: 10px 15px;
+    text-align: right;
+}
+
+.database_list .current
+{
+    background: white;
+}

@@ -1,10 +1,8 @@
 define
 (
-    ["../login"],
-    function (login)
+    ["../login", "../home"],
+    function (login, home)
     {
-        var view_name = "GeneralView";
-
         // check for the existence of the database
         function check_db ()
         {
@@ -32,38 +30,13 @@ define
         function make_view ()
         {
             // todo: get "pending" database name from configuration
-            var dbname = $ ("#database_name").val ();
-
-            var view =
-            {
-                "_id": "_design/" + dbname,
-                "language": "javascript",
-                "views": {}
-            };
-            // view of only "things" (that have an info section) in the database
-            view["views"][view_name] = { "map": "function(doc) { if (doc.info) emit (doc._id, doc); }" };
-            $.couch.db (dbname).saveDoc
-            (
-                view,
-                {
-                    success: check_db,
-                    error: function () { alert ("make view failed"); }
-                }
-            );
+            home.make_views ($ ("#database_name").val (), { success: check_db, error: function () { alert ("make view failed"); } });
         }
 
         function make_db ()
         {
-            var dbname;
-
-            dbname = $ ("#database_name").val ();
-            $.couch.db (dbname).create
-            (
-                {
-                    success: make_view,
-                    error: function () { alert ("Database creation failed"); }
-                }
-            );
+            // todo: get "pending" database name from configuration
+            home.make_database ($ ("#database_name").val (), { success: make_view, error: function () { alert ("database creation failed"); } })
         }
 
         function check_CORS ()
