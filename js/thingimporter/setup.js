@@ -30,7 +30,7 @@ define
         function make_view ()
         {
             // todo: get "pending" database name from configuration
-            home.make_views ($ ("#database_name").val (), { success: check_db, error: function () { alert ("make view failed"); } });
+            home.make_designdoc ($ ("#database_name").val (), { success: check_db, error: function () { alert ("make view failed"); } });
         }
 
         function make_db ()
