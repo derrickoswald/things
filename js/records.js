@@ -78,11 +78,11 @@ define ([ "multipart" ],
          */
         function fullCommit (options)
         {
-            var options = options || {};
-            if (typeof (options.ensure_full_commit) !== "undefined")
+            var opt = options || {};
+            if (typeof (opt.ensure_full_commit) !== "undefined")
             {
-                var commit = options.ensure_full_commit;
-                delete options.ensure_full_commit;
+                var commit = opt.ensure_full_commit;
+                delete opt.ensure_full_commit;
                 return function (xhr)
                 {
                     xhr.setRequestHeader ('Accept', 'application/json');
@@ -112,7 +112,7 @@ define ([ "multipart" ],
         };
 
         // see http://jchris.ic.ht/drl/_design/sofa/_list/post/post-page?startkey=[%22Versioning-docs-in-CouchDB%22]
-        rawDocs = {};
+        var rawDocs = {};
 
         function maybeApplyVersion (doc)
         {
@@ -214,7 +214,7 @@ define ([ "multipart" ],
             multipart.pack (files, doc, "abc123",
                 function (ab)
                 {
-                    xmlhttp = new XMLHttpRequest ();
+                    var xmlhttp = new XMLHttpRequest ();
                     xmlhttp.open (method, uri + encodeOptions (options), true);
                     xmlhttp.setRequestHeader ("Content-Type", "multipart/related;boundary=\"abc123\"");
                     xmlhttp.setRequestHeader ("Accept", "application/json");

@@ -6,6 +6,21 @@ define
     {
         function upload (event, data)
         {
+            function ok (result)
+            {
+                console.log (result);
+                alert ("upload succeeded");
+                // remove added _rev field for now
+                delete data.torrent["_rev"];
+
+            };
+
+            function fail (result)
+            {
+                console.log (result);
+                alert ("upload failed");
+            };
+
             if (data.torrent)
             {
                 if (login.isLoggedIn ())
@@ -69,21 +84,6 @@ define
 
                     // add the torrent to a copy of the list of files to be saved
                     copy.push (new File ([bencoder.str2ab (bencoder.encode (data.torrent))], primary_key + ".torrent", { type: "application/octet-stream" }));
-
-                    function ok (result)
-                    {
-                        console.log (result);
-                        alert ("upload succeeded");
-                        // remove added _rev field for now
-                        delete data.torrent["_rev"];
-
-                    };
-
-                    function fail (result)
-                    {
-                        console.log (result);
-                        alert ("upload failed");
-                    };
 
                     if (login.isLoggedIn ())
                         records.saveDocWithAttachments.call // $.couch.db (_Db)

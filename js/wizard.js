@@ -267,7 +267,7 @@ define
             for (var i = 0; i < steps.length; i++)
                 addStep (nav, content, steps, data, i);
 
-            transitions = steps[0].transitions;
+            var transitions = steps[0].transitions;
 
             if (transitions && transitions.enter)
                 transitions.enter.call (transitions.obj);
