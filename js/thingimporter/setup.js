@@ -1,7 +1,7 @@
 define
 (
-    ["../login", "../home"],
-    function (login, home)
+    ["../login", "../configuration"],
+    function (login, configuration)
     {
         // check for the existence of the database
         function check_db ()
@@ -30,13 +30,13 @@ define
         function make_view ()
         {
             // todo: get "pending" database name from configuration
-            home.make_designdoc ($ ("#database_name").val (), { success: check_db, error: function () { alert ("make view failed"); } });
+            configuration.make_designdoc ($ ("#database_name").val (), { success: check_db, error: function () { alert ("make view failed"); } });
         }
 
         function make_db ()
         {
             // todo: get "pending" database name from configuration
-            home.make_database ($ ("#database_name").val (), { success: make_view, error: function () { alert ("database creation failed"); } })
+            configuration.make_database ($ ("#database_name").val (), { success: make_view, error: function () { alert ("database creation failed"); } })
         }
 
         function check_CORS ()
