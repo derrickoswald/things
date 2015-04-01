@@ -5,15 +5,11 @@ define
     {
         var db = "pending_things";
         var view_name = "Things";
-        function init ()
-        {
-            home.build (db, view_name, "listing");
-        }
 
-        function transfer ()
+        function transfer (docs)
         {
             var list = [];
-            $ (".select_id").each (function (n, item) { if (item.checked) list.push (item.getAttribute ("data-id")) });
+            docs.forEach (function (item) { list.push (item._id); });
             // ToDo: delete pending_things
             $.couch.replicate
             (
@@ -30,21 +26,21 @@ define
             );
         }
 
+        function init ()
+        {
+            home.build (db, view_name, "listing", { transfer: transfer });
+        }
+
         return (
         {
 
             getStep : function ()
             {
-                var setup_hooks =
-                    [
-                        { id: "transfer", event: "click", code: transfer, obj: this }
-                    ];
                return (
                 {
                     id : "transfer",
                     title : "Transfer Things",
                     template : "templates/thingimporter/transfer.mst",
-                    hooks: setup_hooks,
                     transitions: { enter: init, obj: this }
                 });
             }

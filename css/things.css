@@ -243,3 +243,30 @@ table.file_list tr:nth-child(even)
 {
     background: white;
 }
+
+.marginleft
+{
+	margin-left: 10px !important;
+}
+
+.edit_id
+{
+	color: orange;
+}
+
+.delete_id
+{
+	color: red;
+}
+
+.publish_id
+{
+	color: purple;
+}
+
+.transfer_id
+{
+	color: blue;
+}
+
+

@@ -6,18 +6,25 @@ define
         var current = "things"; // current database
 
         var things_template =
+            "<div id='count_of_things'>{{#total_rows}}{{total_rows}} documents{{/total_rows}}{{^total_rows}}no documents{{/total_rows}}</div>" +
             "<ul class='thing_property_list'>" +
-                "{{#.}}" +
+                "{{#rows}}" +
                     "{{#value}}" +
                         "<li class='thing_list_item'>" +
                             "<div class='container-fluid'>" +
                                 "<div class='row'>" +
-                                    "<div class='col-xs-12 col-sm-6 col-md-8'>" +
+                                    "<div class='col-xs-12 col-sm-6 col-md-6'>" +
                                         "<h2><a href='{{info.thing.url}}'>{{info.thing.title}}</a></h2>" +
                                     "</div>" +
-                                    "<div class='col-xs-6 col-md-4'>" +
-                                        "<span class='fineprint'>{{_id}}</span>" +
-                                        "<input class='select_id pull-right' type='checkbox' data-id='{{_id}}' checked>" +
+                                    "<div class='col-xs-6 col-md-6'>" +
+                                        "<div class='pull-right'>" +
+                                            "<span class='fineprint'><a href='/_utils/document.html?{{database}}/{{_id}}'>{{_id}}</a></span>" +
+                                            "{{#options.edit}}<span class='edit_id glyphicon glyphicon-pencil marginleft' data-database={{database}} data-id='{{_id}}' data-rev={{_rev}}></span>{{/options.edit}}" +
+                                            "{{#options.del}}<span class='delete_id glyphicon glyphicon-trash marginleft' data-database={{database}} data-id='{{_id}}' data-rev={{_rev}}></span>{{/options.del}}" +
+                                            "{{#options.publish}}<span class='publish_id glyphicon glyphicon-book marginleft' data-database={{database}} data-id='{{_id}}' data-rev={{_rev}}></span>{{/options.publish}}" +
+                                            "{{#options.transfer}}<span class='transfer_id glyphicon glyphicon-share-alt marginleft' data-database={{database}} data-id='{{_id}}' data-rev={{_rev}}></span>{{/options.transfer}}" +
+                                            "{{#options.select}}<input class='select_id marginleft' type='checkbox' data-database={{database}} data-id='{{_id}}' data-rev={{_rev}} checked>{{/options.select}}" +
+                                        "</div>" +
                                     "</div>" +
                                 "</div>" +
                                 "<div>" +
@@ -47,7 +54,7 @@ define
                                     "<div class='col-md-6'>" +
                                         "<h5>Attachments</h5>" +
                                         "<ul class='thing_property_list'>" +
-                                            "{{#filelist}}<li>{{.}}</li>{{/filelist}}" +
+                                            "{{#filelist}}<li><a href='{{url}}'>{{name}}</a></li>{{/filelist}}" +
                                         "</ul>" +
                                     "</div>" +
                                 "</div>" +
@@ -63,7 +70,7 @@ define
                             "</div>" +
                         "</li>" +
                     "{{/value}}" +
-                "{{/.}}" +
+                "{{/rows}}" +
             "</ul>";
 
         /**
@@ -78,6 +85,7 @@ define
             {
                 success : function (result)
                 {
+
                     var message = (0 != result.rows.length) ? "" + result.rows[0].value + " documents" : "no documents";
                     document.getElementById (html_id).innerHTML = message;
                 },
@@ -91,28 +99,55 @@ define
         /**
          * @summary Read the database:view and render the data into html_id.
          * @description Uses mustache to display the contents of the database of <em>things</em>.
+         * @param {String} database name of the database to display
+         * @param {String} view name of the view to fetch
+         * @param {String} html_id the id of the element that should be filled with the view
+         * @param {Object} options options to apply to the view (doc={_id: xxx, _rev: yyy}):
+         *   select: function (array_of_doc) function to handle selection of the documents
+         *   edit: function (array_of_doc) function to edit the documents
+         *   del: function (array_of_doc) function to delete the documents
+         *   publish: function (array_of_doc) function to publish the documents
+         *   transfer: function (array_of_doc) function to transfer the documents
          * @function build
          * @memberOf module:home
          */
-        function build (database, view, html_id)
+        function build (database, view, html_id, options)
         {
             $.couch.db (database).view (database + "/" + view,
             {
                 success : function (result)
                 {
+                    options = options || {};
+                    var prefix = "/" + database + "/";
                     result.rows.forEach (function (item)
                     {
                         var list = [];
                         for (var property in item.value._attachments)
-                        {
                             if (item.value._attachments.hasOwnProperty (property))
-                            {
-                                list.push (property);
-                            }
-                        }
+                                list.push ({name: property, url: (prefix + item.id + "/" + property)});
                         item.value.filelist = list;
                     });
-                    document.getElementById (html_id).innerHTML = mustache.render (things_template, result.rows);
+                    result.database = database;
+                    result.options =
+                    {
+                        edit: options.edit ? true : false,
+                        del: options.del ? true : false,
+                        publish: options.publish ? true : false,
+                        transfer: options.transfer ? true : false,
+                        select: options.select ? true : false,
+                    };
+                    document.getElementById (html_id).innerHTML = mustache.render (things_template, result);
+                    // attach actions
+                    if (options.edit)
+                        $ (".edit_id").on ("click", function (event) { options.edit ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
+                    if (options.del)
+                        $ (".delete_id").on ("click", function (event) { options.del ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
+                    if (options.publish)
+                        $ (".publish_id").on ("click", function (event) { options.publish ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
+                    if (options.transfer)
+                        $ (".transfer_id").on ("click", function (event) { options.transfer ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
+                    if (options.select)
+                        $ (".select_id").on ("click", function (event) { options.select ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
                 },
                 error : function (status)
                 {
@@ -165,12 +200,32 @@ define
             draw ();
         }
 
+        function delete_document (ids)
+        {
+            ids.forEach
+            (
+                function (doc)
+                {
+                    $.couch.db (doc.database).removeDoc ({ _id: doc._id, _rev: doc._rev },
+                    {
+                        success: function (data)
+                        {
+                             console.log (data);
+                             draw ();
+                        },
+                        error: function (status)
+                        {
+                            console.log (status);
+                        }
+                    });
+                }
+            );
+        }
+
         function draw ()
         {
             var middle_template =
                 "<button id='create'>Create public_things</button>" +
-                "<button id='publish'>Publish</button>" +
-                "<div id='count_of_things'></div>" +
                 "<div id='list_of_things'></div>";
             var right_template =
                 "<div id='databases'>" +
@@ -184,11 +239,6 @@ define
                 "</div>" +
                 "<div id='info'></div>";
             var areas = layout ();
-            areas.content.innerHTML = mustache.render (middle_template);
-            document.getElementById ("create").onclick = make_public;
-            document.getElementById ("publish").onclick = push_to_public;
-            count (current, "Count", "count_of_things");
-            build (current, "Things", "list_of_things");
             $.couch.allDbs
             (
                 {
@@ -214,6 +264,9 @@ define
                     }
                 }
             );
+            areas.content.innerHTML = mustache.render (middle_template);
+            document.getElementById ("create").onclick = make_public;
+            build (current, "Things", "list_of_things", { del: delete_document, publish: push_to_public } );
         }
 
         // make the design document
@@ -229,13 +282,15 @@ define
             make_database ("public_things", { success: make_design_doc, error: function () { alert ("database creation failed"); } });
         }
 
-        function push_to_public ()
+        function push_to_public (docs)
         {
-            var list = [];
-            $ (".select_id").each (function (n, item) { if (item.checked) list.push (item.getAttribute ("data-id")) });
-            console.log ("publishing " + JSON.stringify (list));
+            var list = [docs._id];
+
             for (var i = 0; i < list.length; i++)
-                publish.push (list[i]);
+            {
+                console.log ("publishing " + docs[i]._id);
+                publish.push (docs[i]._id);
+            }
         }
 
         function make_designdoc (dbname, options, secure)

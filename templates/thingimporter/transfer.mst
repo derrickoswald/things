@@ -3,5 +3,4 @@
                 <p>
                     <strong>List of <em>Things</em> in pending state.</strong>
                 </p>
-                <button id="transfer">Transfer</button>
                 <div id="listing"></div>
