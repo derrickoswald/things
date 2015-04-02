@@ -200,16 +200,22 @@ define
 
         function init ()
         {
-            if (login.isLoggedIn ())
+            var parameters;
+
+            parameters =
             {
-                check_db ();
-                check_CORS ();
-                check_thingiverse ();
-            }
-            else
-            {
-                alert ("You must login as an admin user");
-            }
+                success: function ()
+                {
+                    check_db ();
+                    check_CORS ();
+                    check_thingiverse ();
+                },
+                error: function ()
+                {
+                    alert ("You must login as an admin user");
+                }
+            };
+            login.isLoggedIn (parameters);
         }
 
         return (

@@ -190,7 +190,13 @@ table.file_list tr:nth-child(even)
 {
 	float: right;
 }
-#remember
+
+#remember_me, #automatic_login
+{
+	display: inherit;
+}
+
+#remember,#autologin
 {
 	float: right;
 }

@@ -43,20 +43,17 @@ define
                                                 var attachments = [new File ([bencoder.str2ab (bencoder.encode (tor))], primary_key + ".torrent", { type: "application/octet-stream" })];
 
                                                 // push to public_things
-                                                if (login.isLoggedIn ())
-                                                {
-                                                    records.saveDocWithAttachments.call
-                                                    (
-                                                        records,
-                                                        "public_things",
-                                                        tor,
-                                                        {
-                                                            success: function () { alert ("torrent push to public things database suceeded"); },
-                                                            error: function () { alert ("torrent push to public things database failed"); }
-                                                        },
-                                                        attachments
-                                                    );
-                                                }
+                                                records.saveDocWithAttachments.call
+                                                (
+                                                    records,
+                                                    "public_things",
+                                                    tor,
+                                                    {
+                                                        success: function () { alert ("torrent push to public things database suceeded"); },
+                                                        error: function () { alert ("torrent push to public things database failed"); }
+                                                    },
+                                                    attachments
+                                                );
                                             },
                                             error: function(status)
                                             {
@@ -75,7 +72,20 @@ define
 
         function publish_handler (event, data)
         {
-            push (data.torrent["_id"]);
+            var parameters;
+
+            parameters =
+            {
+                success: function ()
+                {
+                    push (data.torrent._id);
+                },
+                error: function ()
+                {
+                    alert ("You must login as an admin user");
+                }
+            };
+            login.isLoggedIn (parameters);
         }
 
         return (

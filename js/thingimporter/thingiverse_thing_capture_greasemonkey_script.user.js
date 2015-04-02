@@ -1651,7 +1651,7 @@ function capture ()
                             if (1 < files.length)
                                 uploadfiles.push (new File ([file.data], directory + "/" + file.name, { type: file.data.type, lastModifiedDate: file.data.lastModifiedDate }));
                             else
-                                uploadfiles.push (file);
+                                uploadfiles.push (file.data);
                         });
 
                     // add the torrent to a copy of the list of files to be saved

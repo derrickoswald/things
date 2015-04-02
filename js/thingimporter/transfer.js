@@ -10,18 +10,30 @@ define
         {
             var list = [];
             docs.forEach (function (item) { list.push (item._id); });
-            // ToDo: delete pending_things
-            $.couch.replicate
+            login.isLoggedIn
             (
-                "pending_things",
-                "things",
                 {
-                    success: function (data) { console.log (data); },
-                    error: function (status) { console.log (status); }
-                },
-                {
-                    create_target: false,
-                    doc_ids: list
+                    success: function (userCtx)
+                    {
+                        // ToDo: delete pending_things
+                        $.couch.replicate
+                        (
+                            "pending_things",
+                            "things",
+                            {
+                                success: function (data) { console.log (data); },
+                                error: function (status) { console.log (status); }
+                            },
+                            {
+                                create_target: false,
+                                doc_ids: list
+                            }
+                        );
+                    },
+                    error: function (userCtx)
+                    {
+                        alert ("You must be logged in to transfer a thing");
+                    }
                 }
             );
         }

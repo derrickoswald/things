@@ -11,9 +11,16 @@
                                         <label for="password">Password</label>
                                         <input id="password" type="password" class="form-control" placeholder="Password" />
                                     </div>
-                                    <div class="input-group input-group-sm">
-                                        <label id="remember_label" for="remember">Remember me (insecure)</label>
+                                </div>
+                                <div class="form-group">
+                                    <div>Insecure options</div>
+                                    <div id='remember_me' class="input-group input-group-sm">
+                                        <label id="remember_label" for="remember">Remember me</label>
                                         <input id="remember" type="checkbox" />
+                                    </div>
+                                    <div id='automatic_login' class="input-group input-group-sm">
+                                        <label id="autologin_label" for="autologin">Automatic login</label>
+                                        <input id="autologin" type="checkbox" />
                                     </div>
                                 </div>
                                 <button type="submit" class="btn btn-default">Sign in</button>
