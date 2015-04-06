@@ -3,6 +3,93 @@ define
     ["mustache", "home"],
     function (mustache, home)
     {
+        function make_secure ()
+        {
+            var doc =
+            {
+                _id: "_security",
+                "admins":
+                {
+                    "names":
+                    [
+                        "admin"
+                    ],
+                    "roles":
+                    [
+                        "_admin"
+                    ]
+                },
+                "members":
+                {
+                    "names":
+                    [
+                        "admin"
+                    ],
+                    "roles":
+                    [
+                        "_admin"
+                    ]
+                }
+            };
+            $.couch.db ("things").saveDoc
+            (
+                doc,
+                {
+                    success: function ()
+                    {
+                        alert ("things _security created");
+                    },
+                    error: function ()
+                    {
+                        alert ("things _security creation failed");
+                    }
+                }
+            );
+        }
+
+        function make_insecure ()
+        {
+            $.couch.db ("things").openDoc
+            (
+                "_security",
+                {
+                    success: function (doc)
+                    {
+                        doc.admins =
+                        {
+                            names: [],
+                            roles: []
+                        };
+                        doc. members =
+                        {
+                            names: [],
+                            roles: []
+                        }
+
+                        $.couch.db ("things").saveDoc
+                        (
+                            doc,
+                            {
+                                success: function ()
+                                {
+                                    alert ("things _security deleted");
+                                },
+                                error: function (status)
+                                {
+                                    alert ("things _security deletion failed " + JSON.stringify (status, null, 4));
+                                }
+                            }
+                        );
+                    },
+                    error: function (status)
+                    {
+                        alert ("things _security fetch failed " + JSON.stringify (status, null, 4));
+                    }
+                }
+            );
+
+        }
+
         function make_designdoc (dbname, options, secure)
         {
             var doc =
@@ -57,9 +144,19 @@ define
 
         function make_database (dbname, options, secure)
         {
-            var original_fn = options.success;
+            var original_fn;
+
+            options = options || {};
+            original_fn = options.success;
             if (secure)
-                options.success = function () { options.success = original_fn; secure_database (dbname, options); };
+                options.success = function ()
+                {
+                    if (original_fn)
+                        options.success = original_fn;
+                    else
+                        delete options.success;
+                    secure_database (dbname, options);
+                };
             $.couch.db (dbname).create (options);
         }
 
@@ -67,21 +164,48 @@ define
         function make_design_doc ()
         {
             // todo: get "public_things" database name from configuration
-            make_designdoc ("public_things", { success: function () { alert ("public_things database created"); }, error: function () { alert ("make design doc failed"); } }, true);
+            make_designdoc
+            (
+                "public_things",
+                {
+                    success: function ()
+                    {
+                        alert ("public_things database created");
+                    },
+                    error: function ()
+                    {
+                        alert ("make design doc failed");
+                    }
+                },
+                true);
         }
 
         function make_public ()
         {
             // todo: get "public_things" database name from configuration
-            make_database ("public_things", { success: make_design_doc, error: function () { alert ("database creation failed"); } });
+            make_database
+            (
+                "public_things",
+                {
+                    success: make_design_doc,
+                    error: function ()
+                    {
+                        alert ("database creation failed");
+                    }
+                }
+            );
         }
 
         function init ()
         {
             var middle_template =
-                "<button id='create'>Create public_things</button>";
+                "<div><button id='secure'>Add security to things</button></div>" +
+                "<div><button id='insecure'>Remove security form things</button></div>" +
+                "<div><button id='create'>Create public_things</button></div>";
             var areas = home.layout ();
             areas.content.innerHTML = mustache.render (middle_template);
+            document.getElementById ("secure").onclick = make_secure;
+            document.getElementById ("insecure").onclick = make_insecure;
             document.getElementById ("create").onclick = make_public;
         }
         return (
