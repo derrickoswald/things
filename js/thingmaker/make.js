@@ -64,7 +64,7 @@ define
                         [
                             { id: "make_thing_button", event: "click", code: make, obj: this }
                         ];
-                    return ({ id: "enter_metadata", title: "Enter metadata", template: "templates/metadata.mst", hooks: make_hooks });
+                    return ({ id: "enter_metadata", title: "Enter metadata", template: "templates/thingmaker/metadata.mst", hooks: make_hooks });
                 }
             }
         );

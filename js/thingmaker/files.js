@@ -123,7 +123,7 @@ define
                             { id: "drop_zone", event: "dragover", code: file_drag, obj: this },
                             { id: "drop_zone", event: "drop", code: file_drop, obj: this }
                         ];
-                    return ({ id: "select_files", title: "Select files", template: "templates/files.mst", hooks: select_files_hooks });
+                    return ({ id: "select_files", title: "Select files", template: "templates/thingmaker/files.mst", hooks: select_files_hooks });
                 }
             }
         );

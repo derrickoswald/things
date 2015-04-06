@@ -26,11 +26,11 @@ define
         {
             var steps =
                 [
-                    { id: "overview", title: "Overview", template: "templates/overview.html"},
+                    { id: "overview", title: "Overview", template: "templates/thingmaker/overview.html"},
                     files.getStep (), // { id: "select_files", title: "Select files", template: "templates/files.mst", hooks: select_files_hooks },
-                    { id: "use_template", title: "Use a template", template: "templates/template.mst"},
+                    { id: "use_template", title: "Use a template", template: "templates/thingmaker/template.mst"},
                     make.getStep (), // { id: "enter_metadata", title: "Enter metadata", template: "templates/metadata.mst"},
-                    { id: "sign", title: "Sign the thing", template: "templates/sign.mst"},
+                    { id: "sign", title: "Sign the thing", template: "templates/thingmaker/sign.mst"},
                     upload.getStep (), // { id: "upload", title: "Upload the thing", template: "templates/upload.mst", hooks: upload_hooks}
                     publish.getStep (), // { id: "publish", title: "Publish the thing", template: "templates/publish.mst", hooks: publish_hooks}
                 ];

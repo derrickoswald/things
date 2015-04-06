@@ -96,7 +96,7 @@ define
                         [
                             { id: "publish_button", event: "click", code: publish_handler, obj: this }
                         ];
-                    return ({ id: "publish", title: "Publish the thing", template: "templates/publish.mst", hooks: publish_hooks });
+                    return ({ id: "publish", title: "Publish the thing", template: "templates/thingmaker/publish.mst", hooks: publish_hooks });
                 },
                 push: push
             }

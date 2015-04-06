@@ -121,7 +121,7 @@ define
                     [
                         { id: "upload_button", event: "click", code: upload, obj: this }
                     ];
-                    return ({ id: "upload", title: "Upload the thing", template: "templates/upload.mst", hooks: upload_hooks });
+                    return ({ id: "upload", title: "Upload the thing", template: "templates/thingmaker/upload.mst", hooks: upload_hooks });
                 }
             }
         );
