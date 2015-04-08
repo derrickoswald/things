@@ -275,4 +275,7 @@ table.file_list tr:nth-child(even)
 	color: blue;
 }
 
-
+.edit_id,.delete_id,.publish_id,.transfer_id
+{
+	cursor: pointer;
+}

@@ -44,7 +44,7 @@ define (
                             {
                                 // not logged in... see if autologin is enabled
                                 credentials = getCredentials ();
-                                if (credentials.autologin)
+                                if (credentials && credentials.autologin)
                                     $.couch.login
                                     (
                                         {

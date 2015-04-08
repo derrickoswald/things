@@ -38,6 +38,13 @@ requirejs
         document.getElementById ("import_thing").onclick = activate ("import_thing", importwizard.initialize);
         document.getElementById ("new_thing").onclick = activate ("new_thing", thingwizard.initialize);
         document.getElementById ("configuration").onclick = activate ("configuration", configuration.initialize);
-        activate ("home", home.initialize) ();
+        configuration.configuration_setup
+        (
+            {
+                success: function () { document.getElementById ("home").onclick (); },
+                error: function () { document.getElementById ("configuration").onclick (); }
+            }
+        );
+
     }
 );

@@ -1,0 +1,28 @@
+                <div><button id="secure">Add security to things</button></div>
+                <div><button id="insecure">Remove security form things</button></div>
+                <div><button id="create">Create public_things</button></div>
+                <form id = "thing_form" class = "thing_form">
+                    <ul class = "thing_form_list">
+                        <li class = "thing_form_item">
+                            <label class = "thing_form_label" for = "pending_database">Pending database</label>
+                            <input class = "thing_form_input" id = "pending_database" form = "thing_form" type = "text" name = "pending_database">
+                           </li>
+                        <li class = "thing_form_item">
+                            <label class = "thing_form_label" for = "local_database">Local database</label>
+                            <input class = "thing_form_input" id = "local_database" form = "thing_form" type = "text" name = "local_database">
+                           </li>
+                        <li class = "thing_form_item">
+                            <label class = "thing_form_label" for = "public_database">Public database</label>
+                            <input class = "thing_form_input" id = "public_database" form = "thing_form" type = "text" name = "public_database">
+                           </li>
+                        <li class = "thing_form_item">
+                            <label class = "thing_form_label" for = "localhost">Localhost</label>
+                               <input class = "thing_form_input" id = "localhost" form = "thing_form" type = "text" name = "localhost">
+                           </li>
+                    </ul>
+                    <button id = "save_configuration" class = "btn btn-primary start" type = "submit">
+                        <i class = "glyphicon glyphicon-hdd"></i>
+                        <span>Save</span>
+                    </button>
+                </form>
+                
