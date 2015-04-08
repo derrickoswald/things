@@ -159,7 +159,7 @@ define
 
         /**
          * Return the standard layout for the main page.
-         * @return An object containing { left, middle, right } elements for
+         * @return {object} containing { left, middle, right } elements for
          * the left quarter, middle half and right quarter respectively.
          * @function layout
          * @memberOf module:home
@@ -246,7 +246,7 @@ define
                         (
                             function (item)
                             {
-                                if (!("_" == item.charAt (0)))
+                                if (!("_" == item.charAt (0)) && ("configuration" != item))
                                 {
                                     var link = {database: item};
                                     if (item == current)
