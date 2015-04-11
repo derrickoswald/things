@@ -1,6 +1,6 @@
                 <div><button id="secure">Add security to things</button></div>
                 <div><button id="insecure">Remove security form things</button></div>
-                <div><button id="create">Create public_things</button></div>
+                <div><button id="create">Create public database</button></div>
                 <form id = "thing_form" class = "thing_form">
                     <ul class = "thing_form_list">
                         <li class = "thing_form_item">
@@ -16,8 +16,8 @@
                             <input class = "thing_form_input" id = "public_database" form = "thing_form" type = "text" name = "public_database">
                            </li>
                         <li class = "thing_form_item">
-                            <label class = "thing_form_label" for = "localhost">Localhost</label>
-                               <input class = "thing_form_input" id = "localhost" form = "thing_form" type = "text" name = "localhost">
+                            <label class = "thing_form_label" for = "local_couchdb">Local CouchDB</label>
+                               <input class = "thing_form_input" id = "local_couchdb" form = "thing_form" type = "text" name = "local_couchdb">
                            </li>
                     </ul>
                     <button id = "save_configuration" class = "btn btn-primary start" type = "submit">

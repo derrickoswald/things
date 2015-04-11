@@ -6,13 +6,13 @@
  */
 define
 (
-    ["wizard", "../home", "thingmaker/files", "thingmaker/make", "thingmaker/upload", "thingmaker/publish"],
+    ["page", "wizard", "thingmaker/files", "thingmaker/template", "thingmaker/make", "thingmaker/upload", "thingmaker/publish"],
     /**
      * @summary Create a new thing by specifying the files, template and metadata.
      * @exports thingmaker/thingwizard
      * @version 1.0
      */
-    function (wiz, home, files, make, upload, publish)
+    function (page, wiz, files, template, make, upload, publish)
     {
         /**
          * @summary Create the wizard.
@@ -28,7 +28,7 @@ define
                 [
                     { id: "overview", title: "Overview", template: "templates/thingmaker/overview.html"},
                     files.getStep (), // { id: "select_files", title: "Select files", template: "templates/files.mst", hooks: select_files_hooks },
-                    { id: "use_template", title: "Use a template", template: "templates/thingmaker/template.mst"},
+                    template.getStep (), // { id: "use_template", title: "Use a template", template: "templates/thingmaker/template.mst"},
                     make.getStep (), // { id: "enter_metadata", title: "Enter metadata", template: "templates/metadata.mst"},
                     { id: "sign", title: "Sign the thing", template: "templates/thingmaker/sign.mst"},
                     upload.getStep (), // { id: "upload", title: "Upload the thing", template: "templates/upload.mst", hooks: upload_hooks}
@@ -43,11 +43,11 @@ define
              */
             var data =
             {
-                database: "things",
+                database: configuration.getConfigurationItem ("local_database"),
                 piece_length: 16384,
             };
 
-            var areas = home.layout ();
+            var areas = page.layout ();
 
             wiz.wizard (areas.left, areas.content, steps, data);
         };

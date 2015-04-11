@@ -39,8 +39,8 @@
 define
 (
     // ToDo: check for conflicting object already uploaded
-    ["mustache", "../records", "../bencoder", "../login"],
-    function (mustache, records, bencoder, login)
+    ["mustache", "../records", "../bencoder", "../login", "../configuration"],
+    function (mustache, records, bencoder, login, configuration)
     {
         function upload (event, data)
         {
@@ -71,7 +71,7 @@ define
                                 data.files = [];
 
                             // add the webseed
-                            data.torrent["url-list"] = "http://localhost:5984/things/" + primary_key + "/";
+                            data.torrent["url-list"] = configuration.getConfigurationItem ("local_couchdb") + "things/" + primary_key + "/";
                             if (1 == data.files.length)
                                 data.torrent["url-list"] += data.files[0].name;
 

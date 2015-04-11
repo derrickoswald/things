@@ -1,9 +1,9 @@
 define
 (
-    ["../login", "../home"],
-    function (login, home)
+    ["../login", "../home", "../configuration"],
+    function (login, home, configuration)
     {
-        var db = "pending_things";
+        var db = configuration.getConfigurationItem ("pending_database");
         var view_name = "Things";
 
         function transfer (docs)
@@ -15,11 +15,11 @@ define
                 {
                     success: function (userCtx)
                     {
-                        // ToDo: delete pending_things
+                        // ToDo: delete  from pending database
                         $.couch.replicate
                         (
-                            "pending_things",
-                            "things",
+                            db,
+                            configuration.getConfigurationItem ("local_database"),
                             {
                                 success: function (data) { console.log (data); },
                                 error: function (status) { console.log (status); }

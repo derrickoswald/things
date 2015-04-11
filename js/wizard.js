@@ -194,6 +194,7 @@ define
                         }
 
                     if (transitions && transitions.leave)
+                    {
                         /*
                          * hide.bs.tab
                          * This event fires when a new tab is to be shown
@@ -201,11 +202,16 @@ define
                          * Use event.target and event.relatedTarget to target the
                          * current active tab and the new soon-to-be-active tab, respectively.
                          */
-                        $(link).on (
+                        var fn = transitions.leave.bind (transitions.obj);
+                        $(link).on
+                        (
                             'hide.bs.tab',
-                            transitions.leave.bind (transitions.obj));
+                            function (event) { fn (event, data); }
+                        );
+                    }
 
                     if (transitions && transitions.enter)
+                    {
                         /*
                          * show.bs.tab
                          * This event fires on tab show, but before the
@@ -213,9 +219,13 @@ define
                          * Use event.target and event.relatedTarget to target the
                          * active tab and the previous active tab (if available) respectively.
                          */
-                        $(link).on (
+                        var fn = transitions.enter.bind (transitions.obj);
+                        $(link).on
+                        (
                             'show.bs.tab',
-                            transitions.enter.bind (transitions.obj));
+                            function (event) { fn (event, data); }
+                        );
+                    }
                 }
             );
         };

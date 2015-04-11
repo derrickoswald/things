@@ -142,6 +142,7 @@ define
 
         function check_thingiverse ()
         {
+            var ping;
             var xmlhttp;
             var last;
             var iframe;
@@ -150,8 +151,11 @@ define
             var details;
 
             // get the current value of ping time
+            ping = configuration.getConfigurationItem ("local_couchdb") +
+                configuration.getConfigurationItem ("pending_database") +
+                "/ping";
             xmlhttp = new XMLHttpRequest ();
-            xmlhttp.open ("GET", "http://localhost:5984/pending_things/ping", true);
+            xmlhttp.open ("GET", ping, true);
             xmlhttp.setRequestHeader ("Accept", "application/json");
             xmlhttp.onreadystatechange = function ()
             {
@@ -172,7 +176,7 @@ define
                             function (event)
                             {
                                 xmlhttp = new XMLHttpRequest ();
-                                xmlhttp.open ("GET", "http://localhost:5984/pending_things/ping", true);
+                                xmlhttp.open ("GET", ping, true);
                                 xmlhttp.setRequestHeader ("Accept", "application/json");
                                 xmlhttp.onreadystatechange = function ()
                                 {
@@ -206,7 +210,7 @@ define
             xmlhttp.send ();
         }
 
-        function init ()
+        function init (event, data)
         {
             var parameters;
 

@@ -8,7 +8,7 @@
                     <div id="choose_thing_directory" class="directoryinput-field">
                         Directory: <input id="thing_directory" type="text" name="directory" />
                     </div>
-					<div id="drop_zone">
+					<div id="files_drop_zone">
 					Drop files here...
                     </div>
                     <span id="choose_thing_form" class="btn btn-success fileinput-button">

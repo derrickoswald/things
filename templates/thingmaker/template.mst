@@ -3,7 +3,14 @@
                     Choose a torrent file that will be used as a basis for the <em>Thing</em> you create.<br>
                     This can be a torrent file from a previous version of your <em>Thing</em>, or just a template torrent file
                     that has mostly the same metadata as you will be filling in in Step 3.
-                    <div id="choose_torrent_basis_form">
-                        Choose a base torrent file: <input id="torrent_files" type="file" name="file" disabled="disabled" />
+                    <div id="template_drop_zone">
+                    Drop template here...
                     </div>
-                    <div id="byte_content"></div>
+                    <span id="choose_template_form" class="btn btn-success fileinput-button">
+                        <i class="glyphicon glyphicon-plus"></i>
+                        <span>Select template...</span>
+                        <input id="thing_template" type="file" name="files[]" multiple>
+                    </span>
+                    <pre>
+                        <div id="byte_content"></div>
+                    </pre>

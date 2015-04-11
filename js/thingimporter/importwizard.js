@@ -6,13 +6,13 @@
  */
 define
 (
-    ["wizard", "../home", "thingimporter/setup", "thingimporter/transfer"],
+    ["../page", "wizard", "thingimporter/setup", "thingimporter/transfer", "configuration"],
     /**
      * @summary Import things by setting up the database, setting CouchDb configuration, loading a user script and transferring.
      * @exports thingimporter/importwizard
      * @version 1.0
      */
-    function (wiz, home, setup, transfer)
+    function (page, wiz, setup, transfer, configuration)
     {
         /**
          * @summary Create the wizard.
@@ -39,10 +39,10 @@ define
              */
             var data =
             {
-                database: "pending_things",
+                database: configuration.getConfigurationItem ("pending_database"),
             };
 
-            var areas = home.layout ();
+            var areas = page.layout ();
             wiz.wizard (areas.left, areas.content, steps, data);
         };
 

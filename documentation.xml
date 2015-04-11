@@ -21,7 +21,7 @@
 
     <target name="md">
         <mkdir dir="tutorials${file.separator}"/>
-    </target>q
+    </target>
 
     <target name="phase2" depends="phase1,md">
         <apply executable="${pandoc-path}" dir="documentation" verbose="true" relative="true">

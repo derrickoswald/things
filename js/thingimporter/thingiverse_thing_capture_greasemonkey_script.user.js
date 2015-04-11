@@ -1571,7 +1571,7 @@ function thing ()
     var tagdiv = document.getElementsByClassName ("tags")[0];
     var as = tagdiv.getElementsByTagName ("a");
     for (var i = 0; i < as.length; i++)
-        tags.push (as[i].innerHTML);
+        tags.push (as[i].innerHTML.trim ());
 
     var images = [];
     var thumbs = document.getElementsByClassName ("thing-gallery-thumb");

@@ -120,8 +120,8 @@ define
                             { id: "thing_files", event: "change", code: file_change, obj: this },
                             { id: "thing_directory", event: "keyup", code: directory_change, obj: this },
                             // drag and drop listeners
-                            { id: "drop_zone", event: "dragover", code: file_drag, obj: this },
-                            { id: "drop_zone", event: "drop", code: file_drop, obj: this }
+                            { id: "files_drop_zone", event: "dragover", code: file_drag, obj: this },
+                            { id: "files_drop_zone", event: "drop", code: file_drop, obj: this }
                         ];
                     return ({ id: "select_files", title: "Select files", template: "templates/thingmaker/files.mst", hooks: select_files_hooks });
                 }

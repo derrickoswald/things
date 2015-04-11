@@ -107,7 +107,7 @@ table.file_list tr:nth-child(even)
     margin-top: 1em;
 }
 
-#drop_zone
+#files_drop_zone,#template_drop_zone
 {
     margin-top: 1em;
     border: 2px dashed #bbb;

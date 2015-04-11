@@ -1,17 +1,18 @@
 define
 (
-    ["mustache", "home", "login"],
-    function (mustache, home, login)
+    ["page", "mustache", "login"],
+    function (page, mustache, login)
     {
         var configuration_database = "configuration";
         var primary_key = "current_configuration";
         var template = "templates/configuration.mst";
+        // default configuration
         var configuration =
         {
             pending_database: "pending_things",
             local_database: "my_things",
             public_database: "public_things",
-            localhost: "http://localhost:5984/"
+            local_couchdb: "http://localhost:5984/"
         };
 
 //        /**
@@ -125,7 +126,7 @@ define
                     success: function (data)
                     {
                         // copy the configuration
-                        copy = JSON.parse (JSON.stringify (data));
+                        var copy = JSON.parse (JSON.stringify (data));
                         delete copy._id;
                         delete copy._rev;
                         configuration = copy;
@@ -192,7 +193,7 @@ define
                     ]
                 }
             };
-            $.couch.db ("things").saveDoc
+            $.couch.db (configuration.getConfigurationItem ("local_database")).saveDoc
             (
                 doc,
                 {
@@ -215,7 +216,7 @@ define
          */
         function make_insecure ()
         {
-            $.couch.db ("things").openDoc
+            $.couch.db (configuration.getConfigurationItem ("local_database")).openDoc
             (
                 "_security",
                 {
@@ -232,7 +233,7 @@ define
                             roles: []
                         }
 
-                        $.couch.db ("things").saveDoc
+                        $.couch.db (configuration.getConfigurationItem ("local_database")).saveDoc
                         (
                             doc,
                             {
@@ -332,14 +333,13 @@ define
         // make the design document
         function make_design_doc ()
         {
-            // todo: get "public_things" database name from configuration
             make_designdoc
             (
-                "public_things",
+                getConfigurationItem ("public_database"),
                 {
                     success: function ()
                     {
-                        alert ("public_things database created");
+                        alert (getConfigurationItem ("public_database") + " database created");
                     },
                     error: function ()
                     {
@@ -352,10 +352,9 @@ define
 
         function make_public ()
         {
-            // todo: get "public_things" database name from configuration
             make_database
             (
-                "public_things",
+                getConfigurationItem ("public_database"),
                 {
                     success: make_design_doc,
                     error: function ()
@@ -410,7 +409,7 @@ define
             configuration_exists
             (
                 {
-                    success: function (data) { loadConfiguration (options); options.success (); },
+                    success: function () { loadConfiguration (options); },
                     error: options.error
                 }
             );
@@ -421,13 +420,18 @@ define
             event.preventDefault ();
 
             var cb = {};
-            cb.success = function (data) { console.log (data); alert ("Configuration saved."); };
+            cb.success = function (data)
+            {
+                console.log (data);
+                alert ("Configuration saved.");
+                window.location.reload (true);
+            };
             cb.error = function (status) { console.log (status); alert ("Configuration save failed."); };
 
             setConfigurationItem ("pending_database", document.getElementById ("pending_database").value);
             setConfigurationItem ("local_database", document.getElementById ("local_database").value);
             setConfigurationItem ("public_database", document.getElementById ("public_database").value);
-            setConfigurationItem ("localhost", document.getElementById ("localhost").value);
+            setConfigurationItem ("local_couchdb", document.getElementById ("local_couchdb").value);
 
             login.isLoggedIn
             (
@@ -471,8 +475,7 @@ define
                 template,
                 function (template)
                 {
-                    var areas = home.layout ();
-                    areas.content.innerHTML = mustache.render (template);
+                    page.layout ().content.innerHTML = mustache.render (template);
                     document.getElementById ("secure").onclick = make_secure;
                     document.getElementById ("insecure").onclick = make_insecure;
                     document.getElementById ("create").onclick = make_public;
@@ -480,16 +483,21 @@ define
                     document.getElementById ("pending_database").value = getConfigurationItem ("pending_database");
                     document.getElementById ("local_database").value = getConfigurationItem ("local_database");
                     document.getElementById ("public_database").value = getConfigurationItem ("public_database");
-                    document.getElementById ("localhost").value = getConfigurationItem ("localhost");
+                    document.getElementById ("local_couchdb").value = getConfigurationItem ("local_couchdb");
                     document.getElementById ("save_configuration").onclick = save;
                 }
             );
         }
+
+        // initialize if possible
+        configuration_setup ();
+
         return (
             {
                 initialize: init,
                 make_designdoc: make_designdoc,
                 make_database: make_database,
+                configuration_exists: configuration_exists,
                 configuration_setup: configuration_setup,
                 getConfigurationItem: getConfigurationItem,
                 setConfigurationItem: setConfigurationItem

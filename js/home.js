@@ -1,9 +1,9 @@
 define
 (
-    ["mustache", "thingmaker/publish"],
-    function (mustache, publish)
+    ["configuration", "page", "mustache", "thingmaker/publish"],
+    function (configuration, page, mustache, publish)
     {
-        var current = "things"; // current database
+        var current = configuration.getConfigurationItem ("local_database"); // current database
 
         var things_template =
             "<div id='count_of_things'>{{#total_rows}}{{total_rows}} documents{{/total_rows}}{{^total_rows}}no documents{{/total_rows}}</div>" +
@@ -157,40 +157,6 @@ define
             });
         };
 
-        /**
-         * Return the standard layout for the main page.
-         * @return {object} containing { left, middle, right } elements for
-         * the left quarter, middle half and right quarter respectively.
-         * @function layout
-         * @memberOf module:home
-         */
-        function layout ()
-        {
-            var main;
-            var left;
-            var content;
-            var right;
-
-            var template =
-                "<div id='main_area' class='row'>" +
-                    "<div class='col-md-3' id='left'>" +
-                    "</div>" +
-                    "<div class='col-md-6 tab-content' id='content'>" +
-                    "</div>" +
-                    "<div class='col-md-3' id='right'>" +
-                    "</div>" +
-                "</div>";
-
-            main = document.getElementById ("main");
-            main.innerHTML = mustache.render (template);
-
-            left = document.getElementById ("left");
-            content = document.getElementById ("content");
-            right = document.getElementById ("right");
-
-            return ({ left: left, content: content, right: right });
-        }
-
         function switch_database (event)
         {
             event.stopPropagation ();
@@ -235,7 +201,7 @@ define
                     "</ul>" +
                 "</div>" +
                 "<div id='info'></div>";
-            var areas = layout ();
+            var areas = page.layout ();
             $.couch.allDbs
             (
                 {
@@ -278,7 +244,6 @@ define
         return (
             {
                 initialize: draw,
-                layout: layout,
                 build: build
             }
         );
