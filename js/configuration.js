@@ -12,7 +12,6 @@ define
             pending_database: "pending_things",
             local_database: "my_things",
             public_database: "public_things",
-            local_couchdb: "http://localhost:5984/"
         };
 
 //        /**
@@ -431,7 +430,6 @@ define
             setConfigurationItem ("pending_database", document.getElementById ("pending_database").value);
             setConfigurationItem ("local_database", document.getElementById ("local_database").value);
             setConfigurationItem ("public_database", document.getElementById ("public_database").value);
-            setConfigurationItem ("local_couchdb", document.getElementById ("local_couchdb").value);
 
             login.isLoggedIn
             (
@@ -483,7 +481,6 @@ define
                     document.getElementById ("pending_database").value = getConfigurationItem ("pending_database");
                     document.getElementById ("local_database").value = getConfigurationItem ("local_database");
                     document.getElementById ("public_database").value = getConfigurationItem ("public_database");
-                    document.getElementById ("local_couchdb").value = getConfigurationItem ("local_couchdb");
                     document.getElementById ("save_configuration").onclick = save;
                 }
             );

@@ -184,7 +184,7 @@ define
                                 }
                             );
                             var fail = callbacks.addErrback ("create document with attachment");
-                            _Torrent["url-list"] = configuration.getConfigurationItem ("local_couchdb") + this._Db + "/" + this._DocId + "/" + this._FileName;
+                            _Torrent["url-list"] = document.location.origin + "/" + this._Db + "/" + this._DocId + "/" + this._FileName;
                             var torrentfilename = this._DocId + ".torrent";
                             var torrent_attachment = new File ([torrent.Binarize (_Torrent)], torrentfilename, { type: "application/octet-stream" });
                             var doc =
@@ -220,7 +220,7 @@ define
                             );
                             var fail = callbacks.addErrback ("create document with attachment");
                             deluge.addTorrent (
-                                configuration.getConfigurationItem ("local_couchdb") + this._Db + "/" + this._DocId + "/" + this._DocId + ".torrent",
+                                document.location.origin + "/" + this._Db + "/" + this._DocId + "/" + this._DocId + ".torrent",
                                 {
                                     success: ok,
                                     error: fail

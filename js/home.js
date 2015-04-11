@@ -102,7 +102,7 @@ define
          * @param {String} database name of the database to display
          * @param {String} view name of the view to fetch
          * @param {String} html_id the id of the element that should be filled with the view
-         * @param {Object} options options to apply to the view (doc={_id: xxx, _rev: yyy}):
+         * @param {Object} options options to apply to the view (doc={_id: something, _rev: whatever}):
          *   select: function (array_of_doc) function to handle selection of the documents
          *   edit: function (array_of_doc) function to edit the documents
          *   del: function (array_of_doc) function to delete the documents

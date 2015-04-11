@@ -6,13 +6,13 @@
  */
 define
 (
-    ["page", "wizard", "thingmaker/files", "thingmaker/template", "thingmaker/make", "thingmaker/upload", "thingmaker/publish"],
+    ["configuration", "page", "wizard", "thingmaker/files", "thingmaker/template", "thingmaker/make", "thingmaker/upload", "thingmaker/publish"],
     /**
      * @summary Create a new thing by specifying the files, template and metadata.
      * @exports thingmaker/thingwizard
      * @version 1.0
      */
-    function (page, wiz, files, template, make, upload, publish)
+    function (configuration, page, wiz, files, template, make, upload, publish)
     {
         /**
          * @summary Create the wizard.

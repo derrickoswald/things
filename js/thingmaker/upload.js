@@ -71,7 +71,10 @@ define
                                 data.files = [];
 
                             // add the webseed
-                            data.torrent["url-list"] = configuration.getConfigurationItem ("local_couchdb") + "things/" + primary_key + "/";
+                            data.torrent["url-list"] =
+                                document.location.origin + "/" +
+                                configuration.getConfigurationItem ("local_database") +
+                                "/" + primary_key + "/";
                             if (1 == data.files.length)
                                 data.torrent["url-list"] += data.files[0].name;
 

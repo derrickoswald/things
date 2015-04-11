@@ -151,7 +151,7 @@ define
             var details;
 
             // get the current value of ping time
-            ping = configuration.getConfigurationItem ("local_couchdb") +
+            ping = document.location.origin + "/" +
                 configuration.getConfigurationItem ("pending_database") +
                 "/ping";
             xmlhttp = new XMLHttpRequest ();

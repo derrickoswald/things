@@ -24,7 +24,9 @@ define
                         function ()
                         {
                             deluge.addTorrent (
-                                configuration.getConfigurationItem ("local_couchdb") + primary_key + "/" + primary_key + ".torrent",
+                                document.location.origin + "/" +
+                                configuration.getConfigurationItem ("local_database") +
+                                "/" + primary_key + "/" + primary_key + ".torrent",
                                 {
                                     success: function ()
                                     {
