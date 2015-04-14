@@ -1,6 +1,21 @@
+/**
+ * @fileOverview Configuration with backing store in a database.
+ * @name configuration
+ * @author Derrick Oswald
+ * @version: 1.0
+ */
 define
 (
     ["page", "mustache", "login"],
+    /**
+     * @summary Database setup page and functions for loading and saving configuration data.
+     * @description Database setup page, functions for loading and saving
+     * configuration data to the configuration database and programatic
+     * access to the configuration settings.
+     * @name configuration
+     * @exports configuration
+     * @version 1.0
+     */
     function (page, mustache, login)
     {
         var configuration_database = "configuration";
@@ -9,10 +24,89 @@ define
         // default configuration
         var configuration =
         {
-            pending_database: "pending_things",
             local_database: "my_things",
+            pending_database: "pending_things",
             public_database: "public_things",
+            tracker_database: "thing_tracker"
         };
+
+        var standard_views =
+            {
+                // view to count "things" (that have an info section) in the database
+                Count:
+                {
+                    map: "function(doc) { if (doc.info)  emit (doc._id, 1); }",
+                    reduce: "function (keys, values) { return (sum (values)); }"
+                },
+                // view of only "things" (that have an info section) in the database
+                Things:
+                {
+                    map: "function(doc) { if (doc.info) emit (doc._id, doc); }"
+                }
+            };
+
+        var standard_validation =
+            // validation function limiting create, update and delete to logged in users
+            "function (newDoc, oldDoc, userCtx, secObj)" +
+            "{" +
+                "secObj.admins = secObj.admins || {};" +
+                "secObj.admins.names = secObj.admins.names || [];" +
+                "secObj.admins.roles = secObj.admins.roles || [];" +
+
+                "var IS_DB_ADMIN = false;" +
+                "if (~userCtx.roles.indexOf ('_admin'))" +
+                    "IS_DB_ADMIN = true;" +
+                "if (~secObj.admins.names.indexOf (userCtx.name))" +
+                    "IS_DB_ADMIN = true;" +
+                "for (var i = 0; i < userCtx.roles; i++)" +
+                    "if (~secObj.admins.roles.indexOf (userCtx.roles[i]))" +
+                        "IS_DB_ADMIN = true;" +
+
+                "var IS_LOGGED_IN_USER = false;" +
+                "if (null != userCtx.name)" +
+                    "IS_LOGGED_IN_USER = true;" +
+
+                "if (IS_DB_ADMIN || IS_LOGGED_IN_USER)" +
+                    "log ('User : ' + userCtx.name + ' changing document: ' + newDoc._id);" +
+                "else " +
+                    "throw { 'forbidden': 'Only admins and users can alter documents' };" +
+            "}";
+
+            var tracker_views =
+            {
+                // view of only "trackers"
+                Trackers:
+                {
+                    map: "function(doc) { if (doc.tracker) emit (doc._id, doc); }"
+                }
+            };
+
+            var read_restricted =
+            // security document limiting CRUD to the admin user
+            {
+                "admins":
+                {
+                    "names":
+                    [
+                        "admin"
+                    ],
+                    "roles":
+                    [
+                        "_admin"
+                    ]
+                },
+                "members":
+                {
+                    "names":
+                    [
+                        "admin"
+                    ],
+                    "roles":
+                    [
+                        "_admin"
+                    ]
+                }
+            };
 
 //        /**
 //         * Check if local storage is supported.
@@ -62,10 +156,12 @@ define
 //        }
 
         /**
-         * Saves the configuration to a document.
-         * @param {object} Handlers (success and error) for response.
+         * @summary Saves the configuration to a document.
+         * @description Creates or updates the current configuration document in
+         * the configuration database
          * @function saveConfiguration
-         * @memberOf module:Configuration
+         * @memberOf module:configuration
+         * @param {object} options Handlers (success and error) for the response.
          */
         function saveConfiguration (options)
         {
@@ -106,10 +202,11 @@ define
         }
 
         /**
-         * Loads the configuration from a document.
+         * @summary Loads the configuration from a document.
+         * @description Read the configuration from the configuration database
          * @function loadConfiguration
-         * @param {object} Handlers (success and error) for response.
-         * @memberOf module:Configuration
+         * @memberOf module:configuration
+         * @param {object} options Handlers (success and error) for the response.
          */
         function loadConfiguration (options)
         {
@@ -126,8 +223,17 @@ define
                     {
                         // copy the configuration
                         var copy = JSON.parse (JSON.stringify (data));
+                        // remove the couchdb specific properties
                         delete copy._id;
                         delete copy._rev;
+                        // transfer any items from in-memory configuration that are not in db configuration
+                        for (property in configuration)
+                            if (configuration.hasOwnProperty (property) && !(copy[property]))
+                                copy[property] = configuration[property];
+                        // delete any items present in db configuration that are not in in-memory configuration
+                        for (property in copy)
+                            if (copy.hasOwnProperty (property) && !(configuration[property]))
+                                delete copy[property];
                         configuration = copy;
                         options.success (configuration);
                     },
@@ -137,10 +243,11 @@ define
         }
 
         /**
-         * Get a configuration item from the in-memory current configuration.
-         * @param {string} key the name of the configuration property to get
+         * @summary Get a configuration item from the in-memory current configuration.
+         * @description Get the configuration string for the key.
          * @function getConfigurationItem
-         * @memberOf module:Configuration
+         * @memberOf module:configuration
+         * @param {string} key the name of the configuration property to get
          */
         function getConfigurationItem (key)
         {
@@ -148,11 +255,12 @@ define
         }
 
         /**
-         * Set the current value of a configuration item.
+         * @summary Set the current value of a configuration item.
+         * @description Set the configuration string for the key.
+         * @function setConfigurationItem
+         * @memberOf module:configuration
          * @param {string} key the name of the configuration property to set
          * @param {string} value the value of the configuration property
-         * @function setConfigurationItem
-         * @memberOf module:Configuration
          */
         function setConfigurationItem (key, value)
         {
@@ -160,62 +268,43 @@ define
         }
 
         /**
-         * Make the database secure by adding the _security document.
+         * @summary Make the local database secure by adding the _security document.
+         * @description Stores a security policy that only allows an admin to
+         * read and write the database.
          * @function make_secure
-         * @memberOf module:Configuration
+         * @memberOf module:configuration
+         * @param {string} name - the name of the database to secure
+         * @param {object} security - the security document
          */
-        function make_secure ()
+        function make_secure (name, security)
         {
-            var doc =
-            {
-                _id: "_security",
-                "admins":
-                {
-                    "names":
-                    [
-                        "admin"
-                    ],
-                    "roles":
-                    [
-                        "_admin"
-                    ]
-                },
-                "members":
-                {
-                    "names":
-                    [
-                        "admin"
-                    ],
-                    "roles":
-                    [
-                        "_admin"
-                    ]
-                }
-            };
-            $.couch.db (configuration.getConfigurationItem ("local_database")).saveDoc
+            security._id = "_security";
+            $.couch.db (name).saveDoc
             (
-                doc,
+                security,
                 {
                     success: function ()
                     {
-                        alert ("things _security created");
+                        alert (name + " _security created");
                     },
                     error: function ()
                     {
-                        alert ("things _security creation failed");
+                        alert (name + " _security creation failed");
                     }
                 }
             );
         }
 
         /**
-         * Remove the contents of the _security document, makeing the database again insecure.
+         * @summary Remove the contents of the _security document from the local database.
+         * @description Sets the security policy back to empty arrays
+         *  - making the database insecure.
          * @function make_insecure
-         * @memberOf module:Configuration
+         * @memberOf module:configuration
          */
-        function make_insecure ()
+        function make_insecure (name)
         {
-            $.couch.db (configuration.getConfigurationItem ("local_database")).openDoc
+            $.couch.db (name).openDoc
             (
                 "_security",
                 {
@@ -232,78 +321,52 @@ define
                             roles: []
                         }
 
-                        $.couch.db (configuration.getConfigurationItem ("local_database")).saveDoc
+                        $.couch.db (name).saveDoc
                         (
                             doc,
                             {
                                 success: function ()
                                 {
-                                    alert ("things _security deleted");
+                                    alert (name + " _security deleted");
                                 },
                                 error: function (status)
                                 {
-                                    alert ("things _security deletion failed " + JSON.stringify (status, null, 4));
+                                    alert (name + " _security deletion failed " + JSON.stringify (status, null, 4));
                                 }
                             }
                         );
                     },
                     error: function (status)
                     {
-                        alert ("things _security fetch failed " + JSON.stringify (status, null, 4));
+                        alert (name + " _security fetch failed " + JSON.stringify (status, null, 4));
                     }
                 }
             );
 
         }
 
-        function make_designdoc (dbname, options, views, secure)
+        /**
+         * @summary Creates the design document.
+         * @description Creates the design document in the given database
+         * with standard views and logged-in security.
+         * @function make_designdoc
+         * @memberOf module:configuration
+         * @param {string} dbname - the name of the database to create the design document in
+         * @param {object} options - handlers (success and error) for response
+         * @param {object} views - the views to add to the design document
+         * @param {string} validation - the validate_doc_update function
+         */
+        function make_designdoc (dbname, options, views, validation)
         {
             var doc =
             {
                 _id: "_design/" + dbname,
             };
             if (views)
-               doc.views =
-               {
-                    // view to count "things" (that have an info section) in the database
-                    Count:
-                    {
-                        map: "function(doc) { if (doc.info)  emit (doc._id, 1); }",
-                        reduce: "function (keys, values) { return (sum (values)); }"
-                    },
-                    // view of only "things" (that have an info section) in the database
-                    Things:
-                    {
-                        map: "function(doc) { if (doc.info) emit (doc._id, doc); }"
-                    }
-                }
+               doc.views = views;
 
-            if (secure)
-                doc.validate_doc_update =
-                    "function (newDoc, oldDoc, userCtx, secObj)" +
-                    "{" +
-                        "secObj.admins = secObj.admins || {};" +
-                        "secObj.admins.names = secObj.admins.names || [];" +
-                        "secObj.admins.roles = secObj.admins.roles || [];" +
-
-                        "var IS_DB_ADMIN = false;" +
-                        "if (~userCtx.roles.indexOf ('_admin'))" +
-                            "IS_DB_ADMIN = true;" +
-                        "if (~secObj.admins.names.indexOf (userCtx.name))" +
-                            "IS_DB_ADMIN = true;" +
-                        "for (var i = 0; i < userCtx.roles; i++)" +
-                            "if (~secObj.admins.roles.indexOf (userCtx.roles[i]))" +
-                                "IS_DB_ADMIN = true;" +
-
-                        "var IS_LOGGED_IN_USER = false;" +
-                        "if (null != userCtx.name)" +
-                            "IS_LOGGED_IN_USER = true;" +
-
-                        "if (IS_DB_ADMIN || IS_LOGGED_IN_USER)" +
-                            "log ('User : ' + userCtx.name + ' changing document: ' + newDoc._id);" +
-                        "else " +
-                            "throw { 'forbidden': 'Only admins and users can alter documents' };" +
-                    "}";
+            if (validation)
+                doc.validate_doc_update = validation;
             $.couch.db (dbname).saveDoc
             (
                 doc,
@@ -311,64 +374,75 @@ define
             );
         }
 
-        function make_database (dbname, options, secure)
+        /**
+         * @summary Creates a database.
+         * @description Creates the given database and optionally
+         * adds atandard views and logged-in security.
+         * @function make_database
+         * @memberOf module:configuration
+         * @param {string} dbname - the name of the database to create
+         * @param {object} options - handlers (success and error) for response
+         * @param {object} views - the views to add to the design document
+         * @param {string} validation - the validate_doc_update function
+         */
+        function make_database (dbname, options, views, validation)
         {
             var original_fn;
 
             options = options || {};
             original_fn = options.success;
-            if (secure)
+            if (views || validation)
                 options.success = function ()
                 {
                     if (original_fn)
                         options.success = original_fn;
                     else
                         delete options.success;
-                    make_designdoc (dbname, options, false, true);
+                    make_designdoc (dbname, options, views, validation);
                 };
             $.couch.db (dbname).create (options);
         }
 
-        // make the design document
-        function make_design_doc ()
+        function create_database (config_id, views, validation, security)
         {
-            make_designdoc
+            login.isLoggedIn
             (
-                getConfigurationItem ("public_database"),
                 {
                     success: function ()
                     {
-                        alert (getConfigurationItem ("public_database") + " database created");
+                        var name = getConfigurationItem (config_id);
+                        make_database
+                        (
+                            name,
+                            {
+                                success: function ()
+                                {
+                                    alert (name + " database created");
+                                    if (security)
+                                        make_secure (name, security);
+                                },
+                                error: function ()
+                                {
+                                    alert (name + " database creation failed");
+                                }
+                            },
+                            views,
+                            validation
+                        );
                     },
                     error: function ()
                     {
-                        alert ("make design doc failed");
-                    }
-                },
-                true,
-                true);
-        }
-
-        function make_public ()
-        {
-            make_database
-            (
-                getConfigurationItem ("public_database"),
-                {
-                    success: make_design_doc,
-                    error: function ()
-                    {
-                        alert ("database creation failed");
+                        alert ("You must be logged in to create a database.");
                     }
                 }
             );
         }
 
         /**
-         * Check for configuration database existence.
-         * @param {object} Handlers (success and error) for response.
+         * @summary Check for configuration database existence.
          * @function configuration_exists
-         * @memberOf module:Configuration
+         * @memberOf module:configuration
+         * @param {object} options Handlers (success and error) for response
          */
         function configuration_exists (options)
         {
@@ -392,12 +466,12 @@ define
         }
 
         /**
-         * Configuration setup.
-         * Check for configuration database existence.
+         * @summary Configuration setup.
+         * @description Check for configuration database existence.
          * Read the configuration from the configuration database.
-         * @param {object} Handlers (success and error) for response.
          * @function configuration_setup
-         * @memberOf module:Configuration
+         * @memberOf module:configuration
+         * @param {object} options Handlers (success and error) for response.
          */
         function configuration_setup (options)
         {
@@ -427,9 +501,10 @@ define
             };
             cb.error = function (status) { console.log (status); alert ("Configuration save failed."); };
 
-            setConfigurationItem ("pending_database", document.getElementById ("pending_database").value);
             setConfigurationItem ("local_database", document.getElementById ("local_database").value);
+            setConfigurationItem ("pending_database", document.getElementById ("pending_database").value);
             setConfigurationItem ("public_database", document.getElementById ("public_database").value);
+            setConfigurationItem ("tracker_database", document.getElementById ("tracker_database").value);
 
             login.isLoggedIn
             (
@@ -452,7 +527,8 @@ define
                                             success: function () { saveConfiguration (cb); },
                                             error: cb.error
                                         },
-                                        true
+                                        null,
+                                        standard_validation
                                     );
                                 }
                             }
@@ -473,20 +549,30 @@ define
                 template,
                 function (template)
                 {
+                    function create_local ()   { create_database ("local_database",   standard_views, standard_validation, read_restricted); };
+                    function create_pending () { create_database ("pending_database", standard_views); };
+                    function create_public ()  { create_database ("public_database",  standard_views, standard_validation); };
+                    function create_tracker () { create_database ("tracker_database", tracker_views); };
+
                     page.layout ().content.innerHTML = mustache.render (template);
+
+                    document.getElementById ("local_database").value = getConfigurationItem ("local_database");
+                    document.getElementById ("pending_database").value = getConfigurationItem ("pending_database");
+                    document.getElementById ("public_database").value = getConfigurationItem ("public_database");
+                    document.getElementById ("tracker_database").value = getConfigurationItem ("tracker_database");
+                    document.getElementById ("save_configuration").onclick = save;
+
+                    document.getElementById ("create_local").onclick = create_local;
+                    document.getElementById ("create_pending").onclick = create_pending;
+                    document.getElementById ("create_public").onclick = create_public;
+                    document.getElementById ("create_tracker").onclick = create_tracker;
                     document.getElementById ("secure").onclick = make_secure;
                     document.getElementById ("insecure").onclick = make_insecure;
-                    document.getElementById ("create").onclick = make_public;
-
-                    document.getElementById ("pending_database").value = getConfigurationItem ("pending_database");
-                    document.getElementById ("local_database").value = getConfigurationItem ("local_database");
-                    document.getElementById ("public_database").value = getConfigurationItem ("public_database");
-                    document.getElementById ("save_configuration").onclick = save;
                 }
             );
         }
 
-        // initialize if possible
+        // initialize on first load if possible
         configuration_setup ();
 
         return (

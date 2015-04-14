@@ -115,12 +115,12 @@ define
                                     assertTrue ("create", data.ok);
                                 }
                             );
-                            var fail = callbacks.addErrback ("create database");
+                            var error = callbacks.addErrback ("create database");
                             $.couch.db (this._Db).create
                             (
                                 {
                                     success: ok,
-                                    error: fail
+                                    error: error
                                 }
                             );
                         }
@@ -143,12 +143,12 @@ define
                                     assertTrue ("drop", data.ok);
                                 }
                             );
-                            var fail = callbacks.addErrback ("drop database");
+                            var error = callbacks.addErrback ("drop database");
                             $.couch.db (this._Db).drop
                             (
                                 {
                                     success: ok,
-                                    error: fail
+                                    error: error
                                 }
                             );
                         }
@@ -188,13 +188,13 @@ define
                                     assertTrue ("create view", data.ok);
                                 }
                             );
-                            var fail = callbacks.addErrback ("create view");
+                            var error = callbacks.addErrback ("create view");
                             $.couch.db (this._Db).saveDoc
                             (
                                 view,
                                 {
                                     success: ok,
-                                    error: fail
+                                    error: error
                                 }
                             );
                         }
@@ -213,13 +213,13 @@ define
                                     assertTrue ("create document", data.ok);
                                 }
                             );
-                            var fail = callbacks.addErrback ("create document");
+                            var error = callbacks.addErrback ("create document");
                             $.couch.db (this._Db).saveDoc
                             (
                                 doc,
                                 {
                                     success: ok,
-                                    error: fail
+                                    error: error
                                 }
                             );
                         }
@@ -270,7 +270,7 @@ define
                                     id = data.id;
                                 }
                             );
-                            var fail = callbacks.addErrback ("create document with attachment");
+                            var error = callbacks.addErrback ("create document with attachment");
                             var file = new Blob ([filecontent], { type: "text/html"}); // the blob
                             file.name = filename; // add a name - as if it were a File object
                             records.saveDocWithAttachments.call
@@ -280,7 +280,7 @@ define
                                 doc,
                                 {
                                     success: ok,
-                                    error: fail
+                                    error: error
                                 },
                                 [file]
                             );

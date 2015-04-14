@@ -1,6 +1,6 @@
 /**
- * @fileOverview CouchDB login.
- * @name login
+ * @fileOverview Upload thing to CouchDB.
+ * @name upload
  * @author Derrick Oswald
  * @version: 1.0
  *
@@ -53,7 +53,7 @@ define
 
             };
 
-            function fail (result)
+            function error (result)
             {
                 console.log (result);
                 alert ("upload failed");
@@ -100,7 +100,7 @@ define
                                 data.torrent,
                                 {
                                     success: ok,
-                                    error: fail
+                                    error: error
                                 },
                                 copy
                             );

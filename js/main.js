@@ -17,8 +17,8 @@
 
 requirejs
 (
-    ["mustache", "home", "thingimporter/importwizard", "thingmaker/thingwizard", "configuration", "login"],
-    function (mustache, home, importwizard, thingwizard, configuration, login)
+    ["configuration", "login", "mustache", "home", "thingimporter/importwizard", "thingmaker/thingwizard", "discover"],
+    function (configuration, login, mustache, home, importwizard, thingwizard, discover)
     {
         function activate (id, fn)
         {
@@ -37,6 +37,7 @@ requirejs
         document.getElementById ("home").onclick = activate ("home", home.initialize);
         document.getElementById ("import_thing").onclick = activate ("import_thing", importwizard.initialize);
         document.getElementById ("new_thing").onclick = activate ("new_thing", thingwizard.initialize);
+        document.getElementById ("discover_thing").onclick = activate ("discover_thing", discover.initialize);
         document.getElementById ("configuration").onclick = activate ("configuration", configuration.initialize);
         configuration.configuration_exists
         (

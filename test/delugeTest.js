@@ -95,12 +95,12 @@ define
                                     assertTrue ("create", data.ok);
                                 }
                             );
-                            var fail = callbacks.addErrback ("create database");
+                            var error = callbacks.addErrback ("create database");
                             $.couch.db (this._Db).create
                             (
                                 {
                                     success: ok,
-                                    error: fail
+                                    error: error
                                 }
                             );
                         }
@@ -118,7 +118,7 @@ define
                                     _Torrent = tor;
                                 }
                             );
-                            // var fail = callbacks.addErrback ("make_torrent");
+                            // var error = callbacks.addErrback ("make_torrent");
                             torrent.MakeTorrent ([this._File], 16384, null, null, ok); // no directory or template
                         }
                     );
@@ -155,12 +155,12 @@ define
                                     assertTrue ("drop", data.ok);
                                 }
                             );
-                            var fail = callbacks.addErrback ("drop database");
+                            var error = callbacks.addErrback ("drop database");
                             $.couch.db (this._Db).drop
                             (
                                 {
                                     success: ok,
-                                    error: fail
+                                    error: error
                                 }
                             );
                         }
@@ -183,7 +183,7 @@ define
                                     assertTrue ("create document with attachment", data.ok);
                                 }
                             );
-                            var fail = callbacks.addErrback ("create document with attachment");
+                            var error = callbacks.addErrback ("create document with attachment");
                             _Torrent["url-list"] = document.location.origin + "/" + this._Db + "/" + this._DocId + "/" + this._FileName;
                             var torrentfilename = this._DocId + ".torrent";
                             var torrent_attachment = new File ([torrent.Binarize (_Torrent)], torrentfilename, { type: "application/octet-stream" });
@@ -199,7 +199,7 @@ define
                                 doc,
                                 {
                                     success: ok,
-                                    error: fail
+                                    error: error
                                 },
                                 [this._File, torrent_attachment]
                             );
@@ -218,12 +218,12 @@ define
                                     console.log ("upload torrent");
                                 }
                             );
-                            var fail = callbacks.addErrback ("create document with attachment");
+                            var error = callbacks.addErrback ("create document with attachment");
                             deluge.addTorrent (
                                 document.location.origin + "/" + this._Db + "/" + this._DocId + "/" + this._DocId + ".torrent",
                                 {
                                     success: ok,
-                                    error: fail
+                                    error: error
                                 }
                             );
                         }
@@ -242,7 +242,7 @@ define
 //                                    console.log (data);
 //                                }
 //                            );
-//                            var fail = callbacks.addErrback ("get torrent info");
+//                            var error = callbacks.addErrback ("get torrent info");
 //                            console.log ("get torrent info");
 //                            var hash = torrent.InfoHash (_Torrent["info"]);
 //                            console.log ("hash = " + hash);
@@ -254,7 +254,7 @@ define
 //                                        hash,
 //                                        {
 //                                            success: ok,
-//                                            error: fail
+//                                            error: error
 //                                        }
 //                                    );
 //                                },

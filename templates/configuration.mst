@@ -1,19 +1,20 @@
-                <div><button id="secure">Add security to things</button></div>
-                <div><button id="insecure">Remove security form things</button></div>
-                <div><button id="create">Create public database</button></div>
                 <form id = "thing_form" class = "thing_form">
                     <ul class = "thing_form_list">
-                        <li class = "thing_form_item">
-                            <label class = "thing_form_label" for = "pending_database">Pending database</label>
-                            <input class = "thing_form_input" id = "pending_database" form = "thing_form" type = "text" name = "pending_database">
-                        </li>
                         <li class = "thing_form_item">
                             <label class = "thing_form_label" for = "local_database">Local database</label>
                             <input class = "thing_form_input" id = "local_database" form = "thing_form" type = "text" name = "local_database">
                         </li>
                         <li class = "thing_form_item">
+                            <label class = "thing_form_label" for = "pending_database">Pending database</label>
+                            <input class = "thing_form_input" id = "pending_database" form = "thing_form" type = "text" name = "pending_database">
+                        </li>
+                        <li class = "thing_form_item">
                             <label class = "thing_form_label" for = "public_database">Public database</label>
                             <input class = "thing_form_input" id = "public_database" form = "thing_form" type = "text" name = "public_database">
+                        </li>
+                        <li class = "thing_form_item">
+                            <label class = "thing_form_label" for = "tracker_database">Tracker database</label>
+                            <input class = "thing_form_input" id = "tracker_database" form = "thing_form" type = "text" name = "tracker_database">
                         </li>
                     </ul>
                     <button id = "save_configuration" class = "btn btn-primary start" type = "submit">
@@ -21,4 +22,10 @@
                         <span>Save</span>
                     </button>
                 </form>
+                <div><button id="create_local">Create local database</button></div>
+                <div><button id="secure">Add security to local database</button></div>
+                <div><button id="insecure">Remove security from local database</button></div>
+                <div><button id="create_pending">Create public database</button></div>
+                <div><button id="create_public">Create public database</button></div>
+                <div><button id="create_tracker">Create thing tracker database</button></div>
                 

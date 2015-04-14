@@ -32,9 +32,10 @@ define
                             callbacks.success ();
                     }
                     else
-                        if (callbacks && callbacks.fail)
-                            callbacks.fail ();
+                        if (callbacks && callbacks.error)
+                            callbacks.error ();
             };
+            xmlhttp.timeout = 500; // half a second - the number of milliseconds a request can take before automatically being terminated. A value of 0 (which is the default) means there is no timeout.
             xmlhttp.send (JSON.stringify ({"method": "auth.login", "params": [password], "id": 1}));
 
             return (ret);
@@ -64,7 +65,6 @@ define
         {
             var url;
             var xmlhttp;
-            var ret = null;
 
             url = URL;
             xmlhttp = new XMLHttpRequest ();
@@ -80,12 +80,16 @@ define
                             callbacks.success (JSON.parse (xmlhttp.responseText).result);
                     }
                     else
-                        if (callbacks && callbacks.fail)
-                            callbacks.fail ();
-            };
-            xmlhttp.send (JSON.stringify ({"method": "web.get_torrent_files", "params": [hash], "id": 2}));
+                        if (callbacks && callbacks.error)
+                            callbacks.error ();
 
-            return (ret);
+            };
+            xmlhttp.timeout = 500; // half a second - the number of milliseconds a request can take before automatically being terminated. A value of 0 (which is the default) means there is no timeout.
+//            xmlhttp.ontimeout = function () // whenever the request times out
+//            {
+//                alert ("ready state = " +  xmlhttp.readyState + " status = " + xmlhttp.status);
+//            }
+            xmlhttp.send (JSON.stringify ({"method": "web.get_torrent_files", "params": [hash], "id": 2}));
         }
 
         function addTorrentFile (filename, callbacks)
@@ -119,16 +123,17 @@ define
                         var reply = JSON.parse (xmlhttp.responseText);
                         if (reply.error)
                         {
-                            if (callbacks && callbacks.fail)
-                                callbacks.fail (reply.error);
+                            if (callbacks && callbacks.error)
+                                callbacks.error (reply.error);
                         }
                         else if (callbacks && callbacks.success)
                             callbacks.success (reply.result);
                     }
                     else
-                        if (callbacks && callbacks.fail)
-                            callbacks.fail ();
+                        if (callbacks && callbacks.error)
+                            callbacks.error ();
             }
+            xmlhttp.timeout = 500; // half a second - the number of milliseconds a request can take before automatically being terminated. A value of 0 (which is the default) means there is no timeout.
 
             // note to self, this also handles magnet uri as well as file paths
             // , options: { download_location: "/home/derrick/Torrents" }
@@ -160,9 +165,11 @@ define
                         addTorrentFile (filename, callbacks);
                     }
                     else
-                        if (callbacks && callbacks.fail)
-                            callbacks.fail ();
+                        if (callbacks && callbacks.error)
+                            callbacks.error ();
             };
+            xmlhttp.timeout = 500; // half a second - the number of milliseconds a request can take before automatically being terminated. A value of 0 (which is the default) means there is no timeout.
+
 //            deluge.client.web.download_torrent_from_url(url, cookies, {
 //                success: this.onDownload,
 //                scope: this,
@@ -173,13 +180,94 @@ define
             return (ret);
         }
 
+//        function downloadTorrent (torrent, callbacks)
+//        {
+//            var url;
+//            var xmlhttp;
+//            var ret = null;
+//
+//            url = URL;
+//            xmlhttp = new XMLHttpRequest ();
+//            xmlhttp.open ("POST", url, true);
+//            xmlhttp.setRequestHeader ("Content-Type", "application/json");
+//            xmlhttp.setRequestHeader ("Accept", "application/json");
+//            xmlhttp.onreadystatechange = function ()
+//            {
+//                if (4 == xmlhttp.readyState)
+//                    if (200 == xmlhttp.status)
+//                    {
+//                        var reply = JSON.parse (xmlhttp.responseText);
+//                        if (reply.error)
+//                        {
+//                            if (callbacks && callbacks.error)
+//                                callbacks.error (reply.error);
+//                        }
+//                        else if (callbacks && callbacks.success)
+//                            callbacks.success (reply.result); // filename
+//                    }
+//                    else
+//                        if (callbacks && callbacks.error)
+//                            callbacks.error ();
+//            };
+//            xmlhttp.timeout = 500; // half a second - the number of milliseconds a request can take before automatically being terminated. A value of 0 (which is the default) means there is no timeout.
+////            deluge.client.web.download_torrent_from_url(url, cookies, {
+////                success: this.onDownload,
+////                scope: this,
+////                torrentId: torrentId
+////            });
+//            xmlhttp.send (JSON.stringify ({"method": "web.download_torrent_from_url", "params": [torrent /*, cookies */], "id": 3}));
+//
+//            return (ret);
+//        }
+
+        function downloadTorrent (filename, callbacks)
+        {
+            var url;
+            var xmlhttp;
+            var ret = null;
+
+            url = URL;
+            xmlhttp = new XMLHttpRequest ();
+            xmlhttp.open ("POST", url, true);
+            xmlhttp.setRequestHeader ("Content-Type", "application/json");
+            xmlhttp.setRequestHeader ("Accept", "application/json");
+            xmlhttp.onreadystatechange = function ()
+            {
+                if (4 == xmlhttp.readyState)
+                    if (200 == xmlhttp.status)
+                    {
+                        var reply = JSON.parse (xmlhttp.responseText);
+                        if (reply.error)
+                        {
+                            if (callbacks && callbacks.error)
+                                callbacks.error (reply.error);
+                        }
+                        else if (callbacks && callbacks.success)
+                            callbacks.success (reply.result);
+                    }
+                    else
+                        if (callbacks && callbacks.error)
+                            callbacks.error ();
+            }
+            xmlhttp.timeout = 500; // half a second - the number of milliseconds a request can take before automatically being terminated. A value of 0 (which is the default) means there is no timeout.
+
+            // note to self, this also handles magnet uri as well as file paths
+            // , options: { download_location: "/home/derrick/Torrents" }
+            xmlhttp.send (JSON.stringify ({"method": "web.add_torrents", "params":
+                // from here: http://forum.deluge-torrent.org/viewtopic.php?f=8&t=41333
+                [[{"path":filename, "options": { download_location: "/home/derrick/Torrents", add_paused: true }}]], "id": 4}));
+               // not this like it says in the documentation [{path: filename , options: { download_location: "/home/derrick/Torrents" }}], "id": 4}));
+
+        }
+
         var exported =
         {
             "Password" : Password,
             "login" : login,
             "getTorrentInfo" : getTorrentInfo,
             "addTorrentFile" : addTorrentFile,
-            "addTorrent": addTorrent
+            "addTorrent": addTorrent,
+            "downloadTorrent": downloadTorrent
         };
 
         return (exported);

@@ -1,6 +1,18 @@
+/**
+ * @fileOverview Display things from various databases.
+ * @name home
+ * @author Derrick Oswald
+ * @version: 1.0
+ */
 define
 (
     ["configuration", "page", "mustache", "thingmaker/publish"],
+    /**
+     * @summary Functions to handle the home page.
+     * @name home
+     * @exports home
+     * @version 1.0
+     */
     function (configuration, page, mustache, publish)
     {
         var current = configuration.getConfigurationItem ("local_database"); // current database
@@ -157,12 +169,19 @@ define
             });
         };
 
+        /**
+         * @summary Display another database.
+         * @description Based on the event target, switch the displayed database.
+         * @param {Object} event - the event that causes the switch
+         * @function switch_database
+         * @memberOf module:home
+         */
         function switch_database (event)
         {
             event.stopPropagation ();
             event.preventDefault ();
-            var li = event.target.parentElement;
-            current = li.getAttribute ("data-target");
+
+            current = event.target.parentElement.getAttribute ("data-target");
             draw ();
         }
 
@@ -212,7 +231,9 @@ define
                         (
                             function (item)
                             {
-                                if (!("_" == item.charAt (0)) && ("configuration" != item))
+                                if (!("_" == item.charAt (0))
+                                    && ("configuration" != item)
+                                    && ("thing_tracker" != item))
                                 {
                                     var link = {database: item};
                                     if (item == current)
@@ -237,7 +258,7 @@ define
             for (var i = 0; i < list.length; i++)
             {
                 console.log ("publishing " + docs[i]._id);
-                publish.push (docs[i]._id);
+                publish.announce (docs[i]._id);
             }
         }
 

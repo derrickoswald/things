@@ -19,6 +19,14 @@ define
      */
     function (mustache, sha)
     {
+        /**
+         * @summary Add files to the list.
+         * @description Creates the file list if necessary and adds the
+         * given files to the list.
+         * @param {FileList} files - the files dropped or selected by the user
+         * @param {object} data - the context object for the wizard
+         * @memberOf module:thingmaker/files
+         */
         function add_files (files, data)
         {
             if (typeof (data.files) == "undefined")
@@ -27,7 +35,12 @@ define
                 data.files.push (files.item (i));
         };
 
-        // update the file list and enable/disable the next button
+        /**
+         * @summary Update the file list and enable/disable the next button.
+         * @function update
+         * @memberOf module:thingmaker/files
+         * @param {object} data thinkmaker data object
+         */
         function update (data)
         {
             var total = 0;
@@ -62,8 +75,8 @@ define
         /**
          * @summary Event handler for dropped files.
          * @description Attached to the drop target, this handler responds to dropped files,
-         * by triggering the asynchronous reading.
-         * @see {module:thingmaker/files.ReadFilesAsync}
+         * adding them to the list of files.
+         * @see {module:thingmaker/files.add_files}
          * @param {event} event - the drop event
          * @param data - the context object for the wizard
          * @memberOf module:thingmaker/files
