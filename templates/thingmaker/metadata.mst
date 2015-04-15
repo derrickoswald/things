@@ -1,43 +1,62 @@
+<h2>Enter Metadata</h2>
 
-                    <h2>Enter Metadata</h2>
-                    Fill in this form with the metadata for your <em>Thing</em> and press the <b>Make</b> button.<br>
-                    For details about the fields, consult the <a href = "http://thingtracker.net/#specification">specification</a>.
-                    Authors, licenses and tags are comma separated.
-                    <form id = "thing_form" class = "thing_form">
-                        <ul class = "thing_form_list">
-                            <li class = "thing_form_item">
-                                <label class = "thing_form_label" for = "title">Title</label>
-                                <input class = "thing_form_input" id = "title" form = "thing_form" type = "text" name = "title">
-                               </li>
-                            <li class = "thing_form_item">
-                                <label class = "thing_form_label" for = "url">URL</label>
-                                <input class = "thing_form_input" id = "url" form = "thing_form" type = "text" name = "url">
-                               </li>
-                            <li class = "thing_form_item">
-                                <label class = "thing_form_label" for = "authors">Authors</label>
-                                <input class = "thing_form_input" id = "authors" form = "thing_form" type = "text" name = "authors">
-                               </li>
-                            <li class = "thing_form_item">
-                                <label class = "thing_form_label" for = "licenses">Licenses</label>
-                                   <input class = "thing_form_input" id = "licenses" form = "thing_form" type = "text" name = "licenses">
-                               </li>
-                            <li class = "thing_form_item">
-                                <label class = "thing_form_label" for = "tags">Tags</label>
-                                <input class = "thing_form_input" id = "tags" form = "thing_form" type = "text" name = "tags">
-                               </li>
-                            <li class = "thing_form_item">
-                                <label class = "thing_form_label" for = "thumbnailURL">Thumbnail URL</label>
-                                <input class = "thing_form_input" id = "thumbnailURL" form = "thing_form" type = "text" name = "thumbnailURL">
-                               </li>
-                            <li class = "thing_form_item">
-                                <label class = "thing_form_label" for = "description">Description</label>
-                                <input class = "thing_form_input" id = "description" form = "thing_form" type = "text" name = "description">
-                               </li>
-                        </ul>
-                    </form>
+<p>Fill in this form with the metadata for your <em>thing</em> and press the <b>Make</b> button.</p>
+<p>For details about the fields, consult the <a href="http://thingtracker.net/#specification">specification</a>.</p>
+<p>Authors, licenses and tags are comma separated.</p>
 
-                    <button id = "make_thing_button" class = "btn btn-primary start" type = "submit">
-                        <i class = "glyphicon glyphicon-cog"></i>
-                        <span>Make</span>
-                    </button>
-                    <div id="torrent_link"></div>
+<form id="thing_form" class="form-horizontal">
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="title">Title</label>
+        <div class="col-sm-9">
+            <input id="title" class="form-control" type="text" form="thing_form" name="title" placeholder="Title">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="url">URL</label>
+        <div class="col-sm-9">
+            <input id="url" class="form-control" type="text" form="thing_form" name="url" placeholder="URL">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="authors">Authors</label>
+        <div class="col-sm-9">
+            <input id="authors" class="form-control" type="text" form="thing_form" name="authors" placeholder="Author1,Author2,Author3">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="licenses">Licenses</label>
+        <div class="col-sm-9">
+            <input id="licenses" class="form-control" type="text" form="thing_form" name="licenses" placeholder="License1,License2">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="tags">Tags</label>
+        <div class="col-sm-9">
+            <input id="tags" class="form-control" type="text" form="thing_form" name="tags" placeholder="Tag1,Tag2,Tag3">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="thumbnailURL">Thumbnail URL</label>
+        <div class="col-sm-9">
+            <input id="thumbnailURL" class="form-control" type="text" form="thing_form" name="thumbnailURL" placeholder="http://...">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="description">Description</label>
+        <div class="col-sm-9">
+            <input id="description" class="form-control" type="text" form="thing_form" name="description" placeholder="Description">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="make_thing_button"></label>
+        <div class="col-sm-9">
+            <button id="make_thing_button" class="btn btn-primary start" type="submit">
+                <i class="glyphicon glyphicon-cog" aria-hidden="true"></i>
+                <span>Make</span>
+            </button>
+        </div>
+    </div>
+</form>
+
+
+<div id="torrent_link"></div>

@@ -1,31 +1,89 @@
-                <form id = "thing_form" class = "thing_form">
-                    <ul class = "thing_form_list">
-                        <li class = "thing_form_item">
-                            <label class = "thing_form_label" for = "local_database">Local database</label>
-                            <input class = "thing_form_input" id = "local_database" form = "thing_form" type = "text" name = "local_database">
-                        </li>
-                        <li class = "thing_form_item">
-                            <label class = "thing_form_label" for = "pending_database">Pending database</label>
-                            <input class = "thing_form_input" id = "pending_database" form = "thing_form" type = "text" name = "pending_database">
-                        </li>
-                        <li class = "thing_form_item">
-                            <label class = "thing_form_label" for = "public_database">Public database</label>
-                            <input class = "thing_form_input" id = "public_database" form = "thing_form" type = "text" name = "public_database">
-                        </li>
-                        <li class = "thing_form_item">
-                            <label class = "thing_form_label" for = "tracker_database">Tracker database</label>
-                            <input class = "thing_form_input" id = "tracker_database" form = "thing_form" type = "text" name = "tracker_database">
-                        </li>
-                    </ul>
-                    <button id = "save_configuration" class = "btn btn-primary start" type = "submit">
-                        <i class = "glyphicon glyphicon-hdd"></i>
-                        <span>Save</span>
-                    </button>
-                </form>
-                <div><button id="create_local">Create local database</button></div>
-                <div><button id="secure">Add security to local database</button></div>
-                <div><button id="insecure">Remove security from local database</button></div>
-                <div><button id="create_pending">Create public database</button></div>
-                <div><button id="create_public">Create public database</button></div>
-                <div><button id="create_tracker">Create thing tracker database</button></div>
-                
+<form id="configuration_form" class="form-horizontal">
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="local_database">Local database</label>
+        <div class="col-sm-9">
+            <input id="local_database" class="form-control" type="text" form="configuration_form" name="local_database" placeholder="my_things">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="pending_database">Pending database</label>
+        <div class="col-sm-9">
+            <input id="pending_database" class="form-control" type="text" form="configuration_form" name="pending_database" placeholder="pending_things">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="public_database">Public database</label>
+        <div class="col-sm-9">
+            <input id="public_database" class="form-control" type="text" form="configuration_form" name="public_database" placeholder="public_database">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="tracker_database">Tracker database</label>
+        <div class="col-sm-9">
+            <input id="tracker_database" class="form-control" type="text" form="configuration_form" name="tracker_database" placeholder="tracker_database">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="save_configuration"></label>
+        <div class="col-sm-9">
+            <button id="save_configuration" class="btn btn-primary start" type="submit">
+                <i class="glyphicon glyphicon-save"></i>
+                <span>Save</span>
+            </button>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="create_local"></label>
+        <div class="col-sm-9">
+            <button id="create_local" class="btn btn-primary start" type="submit">
+                <i class="glyphicon glyphicon-hdd"></i>
+                <span>Create local database</span>
+            </button>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="secure"></label>
+        <div class="col-sm-9">
+            <button id="secure" class="btn btn-primary start" type="submit">
+                <i class="glyphicon glyphicon-volume-off"></i>
+                <span>Add security to local database</span>
+            </button>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="insecure"></label>
+        <div class="col-sm-9">
+            <button id="insecure" class="btn btn-primary start" type="submit">
+                <i class="glyphicon glyphicon-volume-up"></i>
+                <span>Remove security from local database</span>
+            </button>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="create_pending"></label>
+        <div class="col-sm-9">
+            <button id="create_pending" class="btn btn-primary start" type="submit">
+                <i class="glyphicon glyphicon-hdd"></i>
+                <span>Create pending database</span>
+            </button>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="create_public"></label>
+        <div class="col-sm-9">
+            <button id="create_public" class="btn btn-primary start" type="submit">
+                <i class="glyphicon glyphicon-hdd"></i>
+                <span>Create public database</span>
+            </button>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="create_tracker"></label>
+        <div class="col-sm-9">
+            <button id="create_tracker" class="btn btn-primary start" type="submit">
+                <i class="glyphicon glyphicon-hdd"></i>
+                <span>Create thing tracker database</span>
+            </button>
+        </div>
+    </div>
+</form>

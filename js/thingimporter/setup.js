@@ -3,15 +3,16 @@ define
     ["../login", "../configuration"],
     function (login, configuration)
     {
+        var pending = configuration.getConfigurationItem ("pending_database");
+
         // check for the existence of the database
         function check_db ()
         {
-            // todo: get "pending" database name from configuration
             var dbname = $ ("#database_name").val ();
             function db_list_receiver (list)
             {
                 var exists = (-1 != list.indexOf (dbname));
-                document.getElementById ("import_database_button").disabled = exists;
+                document.getElementById ("create_import_database_button").disabled = exists;
                 var details = $ ("#import_database_created");
                 if (exists)
                     details.removeClass ("hidden")
@@ -29,7 +30,6 @@ define
         // make the view
         function make_view ()
         {
-            // todo: get "pending" database name from configuration
             configuration.make_designdoc
             (
                 $ ("#database_name").val (),
@@ -43,7 +43,6 @@ define
 
         function make_db ()
         {
-            // todo: get "pending" database name from configuration
             configuration.make_database ($ ("#database_name").val (), { success: make_view, error: function () { alert ("database creation failed"); } })
         }
 
@@ -170,7 +169,7 @@ define
                         // inject the iframe into the page, wait for render complete
                         iframe = document.createElement ("iframe");
                         iframe.id = "thingiverse";
-                        iframe.src = "http://www.thingiverse.com/thing:14504";
+                        iframe.src = "http://www.thingiverse.com/thing:230802";
                         iframe.style.display = "none";
                         iframe.onload =
                             function (event)
@@ -214,6 +213,7 @@ define
         {
             var parameters;
 
+            $ ("#database_name").val (pending);
             parameters =
             {
                 success: function ()
@@ -236,7 +236,7 @@ define
                 {
                     var setup_hooks =
                     [
-                        { id: "import_database_button", event: "click", code: make_db, obj: this },
+                        { id: "create_import_database_button", event: "click", code: make_db, obj: this },
                         { id: "configure_cors_button", event: "click", code: setup_cors, obj: this }
                     ];
                     return ({ id: "setup", title: "Set up", template: "templates/thingimporter/setup.html", hooks: setup_hooks, transitions: { enter: init, obj: this } });

@@ -136,6 +136,10 @@ table.file_list tr:nth-child(even)
     margin: 5px;
 }
 
+#thing_form input
+{
+    background-color: #e3edf9;
+}
 .thing_form_input
 {
     background-color: #e3edf9;
@@ -184,11 +188,6 @@ table.file_list tr:nth-child(even)
     color: green;
     font-size: 1.5em;
     padding: 10px;
-}
-
-.punch_list
-{
-	float: right;
 }
 
 #remember_me, #automatic_login

@@ -15,7 +15,7 @@ define
      */
     function (configuration, page, mustache, publish)
     {
-        var current = configuration.getConfigurationItem ("local_database"); // current database
+        var current = configuration.getConfigurationItem ("public_database"); // current database
 
         var things_template =
             "<div id='count_of_things'>{{#total_rows}}{{total_rows}} documents{{/total_rows}}{{^total_rows}}no documents{{/total_rows}}</div>" +
