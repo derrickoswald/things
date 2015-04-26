@@ -22,6 +22,7 @@ define
 
         function make (event, data)
         {
+            event.preventDefault ();
             torrent.MakeTorrent (data.files, data.piece_length, data.directory, null, // no template yet
                 function (tor)
                 {

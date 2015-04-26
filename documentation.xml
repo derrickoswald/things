@@ -5,7 +5,6 @@
 
     <target name="clean">
         <delete dir="api"/>
-        <delete dir="tutorials"/>
     </target>
 
     <target name="phase1">

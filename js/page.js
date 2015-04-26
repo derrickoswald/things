@@ -3,6 +3,20 @@ define
     ["mustache"],
     function (mustache)
     {
+// ToDo: media query based layout
+//            // see http://www.sitepoint.com/javascript-media-queries/
+//            // http://getbootstrap.com/css/#grid-media-queries
+//            // http://stackoverflow.com/questions/18424798/twitter-bootstrap-3-how-to-use-media-queries
+//            var mq;
+//
+//            mq = window.matchMedia ("(min-width: 1000px)");
+//            if (mq.matches)
+//                // window width is at least 1000px
+//            else
+//            {
+//                // window width is less than 1000px
+//            }
+
         /**
          * Return the standard layout for the main page.
          * @return {object} containing { left, middle, right } elements for
@@ -19,11 +33,11 @@ define
 
             var template =
                 "<div id='main_area' class='row'>" +
-                    "<div class='col-md-3' id='left'>" +
+                    "<div class='col-sm-6 col-md-3' id='left'>" +
                     "</div>" +
-                    "<div class='col-md-6 tab-content' id='content'>" +
+                    "<div class='col-sm-6 col-md-3 col-md-push-6' id='right'>" +
                     "</div>" +
-                    "<div class='col-md-3' id='right'>" +
+                    "<div class='col-md-6 col-md-pull-3 tab-content' id='content'>" +
                     "</div>" +
                 "</div>";
 

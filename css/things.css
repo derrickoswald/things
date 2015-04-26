@@ -278,3 +278,8 @@ table.file_list tr:nth-child(even)
 {
 	cursor: pointer;
 }
+
+.dropdown-menu.pull-right
+{
+	right: auto;
+}

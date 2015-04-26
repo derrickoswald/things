@@ -491,6 +491,7 @@ define
         function save (event)
         {
             event.preventDefault ();
+            event.stopPropagation ();
 
             var cb = {};
             cb.success = function (data)
@@ -566,8 +567,8 @@ define
                     document.getElementById ("create_pending").onclick = create_pending;
                     document.getElementById ("create_public").onclick = create_public;
                     document.getElementById ("create_tracker").onclick = create_tracker;
-                    document.getElementById ("secure").onclick = make_secure;
-                    document.getElementById ("insecure").onclick = make_insecure;
+                    document.getElementById ("secure").onclick = function (event) { make_secure (getConfigurationItem ("local_database"), read_restricted); };
+                    document.getElementById ("insecure").onclick = function (event) { make_insecure (getConfigurationItem ("local_database")); };;
                 }
             );
         }

@@ -1,7 +1,55 @@
-                    <h2>Publish</h2>
-                    Publish the thing using this form and let the <em>Thing Tracker Network</em> handle it.
-                    <button id="publish_button" class="btn btn-primary publish_form_button" type="submit">
-                        <i class="glyphicon glyphicon-book"></i>
-                        <span>Publish</span>
-                    </button>
+<h2>Publish</h2>
+<p>Publish the thing using this form and let the <em>Thing Tracker Network</em> know about it.</p>
+<p>The publish operation does three operations:</p>
+<ol>
+    <li>copies the thing to your public database</li>
+    <li>uploads the thing <a href="https://en.wikipedia.org/wiki/Torrent_file" target="_blank">torrent file</a>
+    and <em>thing</em> files to the local <a href="http://bittorrent.org/" target="_blank">BitTorrent</a>
+    client (<a href="http://deluge-torrent.org/" target="_blank">Deluge</a>)</li>
+    <li>updates the document corresponding to the contents of your public database in the thing tracker database</li>
+</ol>
+<p>The first operation exposes the thing in your public database which has unrestricted read security.
+If your system has an IP address on the internet, and also possibly a domain name, then people who
+already know about your database (or discover it somehow) can see the newly published thing
+by browsing your system.</p>
+<p>The second operation begins seeding your thing in the BitTorrent network, so that if people know the
+unique <a href="https://en.wikipedia.org/wiki/SHA-1" target="_blank">SHA-1 key</a> of your thing
+they can torrent it with a suitable BitTorrent client program - independent of the Thing Tracker Network.</p>
+<p>The third operation provides the Thing Tracker Network with your IP address and/or domain name,
+as well as providing a list of the things you have in your public database - as a list of SHA-1 keys.</p>
+<p>In this way, users of the Thing Tracker Network can find out about your tracker, find out about your things, and
+get the technical details necessary to download the files published as your thing.</p>
+<p>As part of the publish operation, metadata for the torrent file itself can be added or modified.
+Some fields may have already been filled in by the Thingmaker torrent creator,
+like <em>creation date</em> and <em>created by</em>,
+while others are unspecified as yet, namely comment and announce-list - the list of (torrent) trackers. </p>
+<p>The comment is free-form text, while the announce-list is one or more URLs comprising a list of
+(torrent) trackers which have nothing to do with the Thing Tracker Network per se.
+Some tracker URLs have been provided, but you are free to provide your own choice.
+You should include at least one tracker, otherwise it becomes a trackerless torrent  
+<form id="publish_form" class="form-horizontal">
+
+    <div class='form-group'>
+        <label for='comment' class='col-sm-3 control-label'>
+            Comment
+        </label>
+        <div class='col-sm-9'>
+            <input id='comment' type='text' class='form-control' placeholder='comment'>
+        </div>
+    </div>
+
+    <div id='tracker_list' class='form-group'>
+    </div>
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="publish_button"></label>
+        <div class="col-sm-9">
+            <button id="publish_button" class="btn btn-primary publish_form_button" type="submit">
+                <i class="glyphicon glyphicon-book"></i>
+                <span>Publish</span>
+            </button>
+        </div>
+    </div>
+
+</form>
                     

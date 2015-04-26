@@ -39,25 +39,12 @@
 define
 (
     // ToDo: check for conflicting object already uploaded
-    ["mustache", "../records", "../bencoder", "../login", "../configuration"],
-    function (mustache, records, bencoder, login, configuration)
+    ["mustache", "../records", "../bencoder", "../login", "../configuration", "../torrent"],
+    function (mustache, records, bencoder, login, configuration, torrent)
     {
         function upload (event, data)
         {
-            function ok (result)
-            {
-                console.log (result);
-                alert ("upload succeeded");
-                // remove added _rev field for now
-                delete data.torrent["_rev"];
-
-            };
-
-            function error (result)
-            {
-                console.log (result);
-                alert ("upload failed");
-            };
+            event.preventDefault ();
 
             if (data.torrent)
                 login.isLoggedIn
@@ -67,16 +54,11 @@ define
                         {
                             var primary_key = data.torrent["_id"];
 
+                            // convert the pieces into an array (CouchDB doesn't store ArrayBuffers)
+                            data.torrent.info.pieces = torrent.PiecesToArray (data.torrent.info.pieces);
+
                             if (typeof (data.files) == "undefined")
                                 data.files = [];
-
-                            // add the webseed
-                            data.torrent["url-list"] =
-                                document.location.origin + "/" +
-                                configuration.getConfigurationItem ("local_database") +
-                                "/" + primary_key + "/";
-                            if (1 == data.files.length)
-                                data.torrent["url-list"] += data.files[0].name;
 
                             // make the list of files for attachment with names adjusted for directory
                             var copy = [];
@@ -90,7 +72,7 @@ define
                                 }
                             );
 
-                            // add the torrent to a copy of the list of files to be saved
+                            // add the torrent to the copy of the list of files to be saved
                             copy.push (new File ([bencoder.str2ab (bencoder.encode (data.torrent))], primary_key + ".torrent", { type: "application/octet-stream" }));
 
                             records.saveDocWithAttachments.call
@@ -99,8 +81,22 @@ define
                                 data.database,
                                 data.torrent,
                                 {
-                                    success: ok,
-                                    error: error
+                                    success: function (result)
+                                    {
+                                        console.log (result);
+                                        // remove added _rev field for now
+                                        delete data.torrent["_rev"];
+                                        // put the pieces back
+                                        data.torrent.info.pieces = torrent.ArrayToPieces (data.torrent.info.pieces);
+                                        alert ("upload succeeded");
+                                    },
+                                    error: function (result)
+                                    {
+                                        console.log (result);
+                                        // put the pieces back
+                                        data.torrent.info.pieces = torrent.ArrayToPieces (data.torrent.info.pieces);
+                                        alert ("upload failed");
+                                    }
                                 },
                                 copy
                             );

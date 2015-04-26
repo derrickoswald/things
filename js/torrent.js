@@ -310,33 +310,53 @@ define
             return (ret);
         }
 
-        function printPieces (pieces, tabspace)
+        function PiecesToArray (pieces)
         {
             var view;
-            var br;
+            var piece;
+            var bytes;
             var ret;
 
-            ret = "";
+            ret = [];
 
             view = new Uint8Array (pieces);
-            br = 0;
+            piece = "";
+            bytes = 0;
             for (var i = 0; i < view.byteLength; i++)
             {
-                if (0 == (br % 20))
-                    for (var j = 0; j < tabspace; j++)
-                        ret += " ";
-                ret += ((view[i] >>> 4) & 0x0f).toString (16);
-                ret += (view[i] & 0x0f).toString (16);
-                if ((0 == (++br % 20)) && (i + 1 < view.byteLength))
-                    ret += "\n";
+                piece += ((view[i] >>> 4) & 0x0f).toString (16);
+                piece += (view[i] & 0x0f).toString (16);
+                if (0 == (++bytes % 20))
+                {
+                    ret.push (piece);
+                    piece = "";
+                    bytes = 0;
+                }
             }
+
+            return (ret);
+        }
+
+        function ArrayToPieces (array)
+        {
+            var view;
+            var index;
+            var ret;
+
+            ret = new ArrayBuffer (array.length * 20);
+
+            view = new Uint8Array (ret, 0, ret.byteLength);
+            index = 0;
+            for (var i = 0; i < array.length; i++)
+                for (var j = 0; j < 40; j += 2)
+                    view[index++] = parseInt (array[i].substring (j, j + 2), 16);
 
             return (ret);
         }
 
         function PrintTorrent (torrent)
         {
-            var trigger = "\"pieces\": {}";
+            var pieces;
             var cert = "\"certificate\": {}";
             var signature = "\"signature\": {}";
             var index;
@@ -345,20 +365,11 @@ define
             var raw_text;
             var ret;
 
+            pieces = torrent.info.pieces;
+            torrent.info.pieces = PiecesToArray (pieces);
             ret = JSON.stringify (torrent, null, 4);
-            // kludgy way to add the hash values
-            index = ret.indexOf (trigger);
-            if (0 < index)
-            {
-                tabspace = 0;
-                while (" " == ret.substr (index - tabspace - 1, 1))
-                    tabspace++;
-                raw_text = printPieces (torrent["info"]["pieces"], tabspace + 4);
-                s = "";
-                for (var j = 0; j < tabspace; j++)
-                    s += " ";
-                ret = ret.substr (0, index) + "\"pieces\": {\n" + raw_text + "\n" + s + "}" + ret.substr (index + trigger.length);
-            }
+            torrent.info.pieces = pieces;
+
             // kludgy way to show the certificate
             index = 0;
             while (0 < (index = ret.indexOf (cert, index)))
@@ -399,7 +410,9 @@ define
             "Binarize": Binarize,
             "InfoHash": InfoHash,
             "ReadTorrentAsync": ReadTorrentAsync,
-            "PrintTorrent": PrintTorrent
+            "PrintTorrent": PrintTorrent,
+            "PiecesToArray": PiecesToArray,
+            "ArrayToPieces": ArrayToPieces
         };
 
         return (exported);

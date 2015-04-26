@@ -472,6 +472,7 @@ define
 
     return ({
         "str2ab": str2ab,
+        "ab2str": decode.stringize,
         "decode": decode,
         "encode": encode,
         "HexConverter": HexConverter

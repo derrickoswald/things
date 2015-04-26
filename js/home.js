@@ -25,12 +25,14 @@ define
                         "<li class='thing_list_item'>" +
                             "<div class='container-fluid'>" +
                                 "<div class='row'>" +
-                                    "<div class='col-xs-12 col-sm-6 col-md-6'>" +
-                                        "<h2><a href='{{info.thing.url}}'>{{info.thing.title}}</a></h2>" +
+                                    "<div class='col-xs-6'>" +
+                                        "<h2 class='hidden-lg'><a href='{{info.thing.url}}'>{{short_title}}</a></h2>" +
+                                        "<h2 class='hidden-xs hidden-sm hidden-md'><a href='{{info.thing.url}}'>{{info.thing.title}}</a></h2>" +
                                     "</div>" +
-                                    "<div class='col-xs-6 col-md-6'>" +
+                                    "<div class='col-xs-6'>" +
                                         "<div class='pull-right'>" +
-                                            "<span class='fineprint'><a href='/_utils/document.html?{{database}}/{{_id}}'>{{_id}}</a></span>" +
+                                            "<span class='fineprint hidden-lg'><a href='/_utils/document.html?{{database}}/{{_id}}'>{{short_id}}</a></span>" +
+                                            "<span class='fineprint hidden-xs hidden-sm hidden-md'><a href='/_utils/document.html?{{database}}/{{_id}}'>{{_id}}</a></span>" +
                                             "{{#options.edit}}<span class='edit_id glyphicon glyphicon-pencil marginleft' data-database={{database}} data-id='{{_id}}' data-rev={{_rev}}></span>{{/options.edit}}" +
                                             "{{#options.del}}<span class='delete_id glyphicon glyphicon-trash marginleft' data-database={{database}} data-id='{{_id}}' data-rev={{_rev}}></span>{{/options.del}}" +
                                             "{{#options.publish}}<span class='publish_id glyphicon glyphicon-book marginleft' data-database={{database}} data-id='{{_id}}' data-rev={{_rev}}></span>{{/options.publish}}" +
@@ -39,17 +41,19 @@ define
                                         "</div>" +
                                     "</div>" +
                                 "</div>" +
-                                "<div>" +
-                                    "{{info.thing.description}}" +
+                                "<div class='row'>" +
+                                    "<div class='col-xs-12'>" +
+                                        "{{info.thing.description}}" +
+                                    "</div>" +
                                 "</div>" +
                                 "<div class='row'>" +
-                                    "<div class='col-md-6'>" +
+                                    "<div class='col-xs-6'>" +
                                         "<h5>Authors</h5>" +
                                         "<ul class='thing_property_list'>" +
                                             "{{#info.thing.authors}}<li>{{.}}</li>{{/info.thing.authors}}" +
                                         "</ul>" +
                                     "</div>" +
-                                    "<div class='col-md-6'>" +
+                                    "<div class='col-xs-6'>" +
                                         "<h5>Licenses</h5>" +
                                         "<ul class='thing_property_list'>" +
                                             "{{#info.thing.licenses}}<li>{{.}}</li>{{/info.thing.licenses}}" +
@@ -57,13 +61,13 @@ define
                                     "</div>" +
                                 "</div>" +
                                 "<div class='row'>" +
-                                    "<div class='col-md-6'>" +
+                                    "<div class='col-xs-6'>" +
                                         "<h5>Tags</h5>" +
                                         "<ul class='thing_property_list'>" +
                                             "{{#info.thing.tags}}<li>{{.}}</li>{{/info.thing.tags}}" +
                                         "</ul>" +
                                     "</div>" +
-                                    "<div class='col-md-6'>" +
+                                    "<div class='col-xs-6'>" +
                                         "<h5>Attachments</h5>" +
                                         "<ul class='thing_property_list'>" +
                                             "{{#filelist}}<li><a href='{{url}}'>{{name}}</a></li>{{/filelist}}" +
@@ -109,6 +113,43 @@ define
         };
 
         /**
+         * Return the short form of an _id.
+         * Runs in the context of 'this' being a document.
+         * @return A shortened form of a 40 character _id (SHA-1 hash).
+         */
+        function short_id ()
+        {
+            var ret;
+
+            ret = this._id.substring (0, 4) + ".." + this._id.substring (this._id.length - 2, this._id.length);
+
+            return (ret);
+        }
+
+        /**
+         * Return the short form of a title.
+         * Runs in the context of 'this' being a document.
+         * @return A shortened form of the title - first and last words.
+         */
+        function short_title ()
+        {
+            var parts;
+            var ret;
+
+            ret = this.info.thing.title;
+            if (ret.length > 10)
+            {
+                parts = ret.split (" ");
+                if (parts.length == 1) // no spaces
+                    ret = ret.substring (0, 4) + ".." + ret.substring (ret.length - 2, ret.length);
+                else
+                    ret = parts[0] + " .. " + parts[parts.length - 1];
+            }
+
+            return (ret);
+        }
+
+        /**
          * @summary Read the database:view and render the data into html_id.
          * @description Uses mustache to display the contents of the database of <em>things</em>.
          * @param {String} database name of the database to display
@@ -148,6 +189,8 @@ define
                         transfer: options.transfer ? true : false,
                         select: options.select ? true : false,
                     };
+                    result.short_id = short_id;
+                    result.short_title = short_title;
                     document.getElementById (html_id).innerHTML = mustache.render (things_template, result);
                     // attach actions
                     if (options.edit)
@@ -232,6 +275,7 @@ define
                             function (item)
                             {
                                 if (!("_" == item.charAt (0))
+                                    && ("things" != item)
                                     && ("configuration" != item)
                                     && ("thing_tracker" != item))
                                 {
