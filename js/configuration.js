@@ -137,7 +137,7 @@ define
 //        function storeConfiguration ()
 //        {
 //            if (haslLocalStorage ())
-//                for (property in configuration)
+//                for (var property in configuration)
 //                    if (configuration.hasOwnProperty (property))
 //                        localStorage.setItem (property, configuration[property]);
 //        }
@@ -150,7 +150,7 @@ define
 //        function clearConfiguration ()
 //        {
 //            if (haslLocalStorage ())
-//                for (property in configuration)
+//                for (var property in configuration)
 //                    if (configuration.hasOwnProperty (property))
 //                        localStorage.remove (property);
 //        }
@@ -227,11 +227,11 @@ define
                         delete copy._id;
                         delete copy._rev;
                         // transfer any items from in-memory configuration that are not in db configuration
-                        for (property in configuration)
+                        for (var property in configuration)
                             if (configuration.hasOwnProperty (property) && !(copy[property]))
                                 copy[property] = configuration[property];
                         // delete any items present in db configuration that are not in in-memory configuration
-                        for (property in copy)
+                        for (var property in copy)
                             if (copy.hasOwnProperty (property) && !(configuration[property]))
                                 delete copy[property];
                         configuration = copy;

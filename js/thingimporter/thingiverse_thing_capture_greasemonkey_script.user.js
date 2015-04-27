@@ -4,7 +4,7 @@
 // @description Import thing from Thingiverse into CouchDB
 // @include     http://www.thingiverse.com/*
 // @include     https://www.thingiverse.com/*
-// @version     1.0
+// @version     1.1
 // @grant       none
 // ==/UserScript==
 
@@ -15,13 +15,19 @@
 //     [cors]
 //     origins = http://www.thingiverse.com
 //     methods = GET,POST,PUT
-// and create a pending_things database with no authentication needed. It assumes CouchDB is at http://localhost:5984.
+// and create a database with no authentication needed to upload to.
 
 // import
 // a little help in deciphering the code...
-// code that follows immediately is imported modules from things https://github.com/derrickoswald/things
+// code that immediately follows the variable declarations is imported modules from things
+// https://github.com/derrickoswald/things
 // at the bottom, starting with createCORSRequest, is the actual user script.
 
+// variables
+var protocol = "http";
+var host = "localhost";
+var port =  "5984";
+var database = "pending_things";
 
 // module sha1
 
@@ -1592,6 +1598,16 @@ function thing ()
     });
 }
 
+function url_prefix ()
+{
+    return (protocol + "://" + host + ":" + port);
+}
+
+function couch_db ()
+{
+    return (url_prefix () + "/" + database);
+}
+
 function capture ()
 {
     var title = get_title ();
@@ -1637,12 +1653,6 @@ function capture ()
                     tor["info"]["thing"] = thing_metadata;
                     tor["_id"] = torrent.InfoHash (tor["info"]); // setting _id triggers the PUT method instead of POST
 
-                    // add the webseed
-                    // ToDo: use pending_things, then in the publish phase change the database to things
-                    tor["url-list"] = "http://localhost:5984/things/" + tor["_id"] + "/";
-                    if (1 == files.length)
-                        tor["url-list"] += files[0].name;
-
                     // make the list of files for attachment with names adjusted for directory
                     var uploadfiles = [];
                     files.forEach (
@@ -1661,10 +1671,10 @@ function capture ()
                     {
                         success: function () { alert ("thing imported"); },
                         error: function () { alert ("thing import failed"); },
-                        CORS: 'http://localhost:5984',
+                        CORS: url_prefix (),
                         USE_PUT: true
                     }
-                    records.saveDocWithAttachments ("pending_things", tor, options, uploadfiles);
+                    records.saveDocWithAttachments (database, tor, options, uploadfiles);
                 });
             });
         });
@@ -1676,7 +1686,7 @@ function ping ()
     var xmlhttp;
     var payload;
 
-    xmlhttp = createCORSRequest ('GET', 'http://localhost:5984/pending_things/ping');
+    xmlhttp = createCORSRequest ("GET", couch_db () + "/ping");
     xmlhttp.setRequestHeader ("Accept", "application/json");
     xmlhttp.onreadystatechange = function ()
     {
@@ -1688,7 +1698,7 @@ function ping ()
                 var resp = JSON.parse (xmlhttp.responseText);
                 payload._rev = resp._rev;
             }
-            xmlhttp = createCORSRequest ('PUT', 'http://localhost:5984/pending_things/ping');
+            xmlhttp = createCORSRequest ("PUT", couch_db () + "/ping");
             xmlhttp.setRequestHeader ("Accept", "application/json");
             xmlhttp.onreadystatechange = function ()
             {

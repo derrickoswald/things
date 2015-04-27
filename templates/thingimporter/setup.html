@@ -9,13 +9,13 @@ visiting the page on Thingiverse and performing the actual import.</p>
     <li>Install a user script in your browser (either Chrome or Firefox) that performs the import.</li>
 </ul>
 
-<form id="import_setup_form" class="form-horizontal">
+<div id="import_setup_form" class="form-horizontal">
 
     <div class="form-group">
         <label class="col-sm-3 control-label" for="database_name">Name of import database</label>
         <div class="col-sm-9">
-            <input id="database_name" class="form-control" type="text" form="import_setup_form" name="database_name" placeholder="pending_things" value="pending_things" disabled>
-            <div class="thing_form_right">(currently fixed, because it is hard-coded in the user script)</div>
+            <input id="database_name" class="form-control" type="text" form="import_setup_form" name="database_name" placeholder="{{database}}" value="{{database}}" disabled>
+            <div class="thing_form_right">(currently fixed, because it gets hard-coded in the user script)</div>
         </div>
     </div>
     <div class="form-group">
@@ -68,18 +68,18 @@ visiting the page on Thingiverse and performing the actual import.</p>
         <label class="col-sm-3 control-label" for="download_user_script_button">
         </label>
         <div class="col-sm-9">
-            <form method="GET" action="js/thingimporter/thingiverse_thing_capture_greasemonkey_script.user.js">
-                <button id="download_user_script_button" class="btn btn-primary start" type = "submit">
+            <a id="script_link" href="TBD">
+                <button id="download_user_script_button" class="btn btn-primary start">
                     <span class="glyphicon glyphicon-download" aria-hidden="true"></span>
                     <span>Download user script</span>
                 </button>
-            </form>
+            </a>
             <span id="scripted" class="hidden">
                 <span class="glyphicon glyphicon-ok ok" aria-hidden="true"></span>
                 <span>User script for http://thingiverse.com is installed correctly.</span>
             </span>
         </div>
     </div>
-</form>
+</div>
 <div id="thingiverse_section"></div>
 

@@ -121,7 +121,7 @@ and click all the buttons.
 
 Push the **Replicate** button. Click **OK** in the **This will create a database named things. Ok?** confirmation dialog.
 
-The **Event** log should display a JSON, e.g.
+The **Event** log should display a JSON about the replication, e.g.
 
 {"session\_id":"c60d3644ce9e24ec40124b5ab3eb2dda","start\_time":"Sun, 26 Apr 2015 09:46:09 GMT","end\_time":"Sun, 26 Apr 2015 09:46:14 GMT","start\_last\_seq":0,"end\_last\_seq":57,"recorded\_seq":57,"missing\_checked":1,"missing\_found":1,"docs\_read":1,"docs\_written":1,"doc\_write\_failures":0}
 
@@ -130,4 +130,15 @@ Configuration
 
 Browse to http://192.168.10.142:5984/things/\_design/things/\_rewrite/
 
+Deluge
+======
 
+sudo apt-get install deluge
+
+sudo apt-get install deluge-web
+
+deluge-web
+
+[http://192.168.10.142:8112/](http://192.168.10.142:8112/)
+
+password: deluge

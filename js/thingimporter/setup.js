@@ -169,7 +169,7 @@ define
                         // inject the iframe into the page, wait for render complete
                         iframe = document.createElement ("iframe");
                         iframe.id = "thingiverse";
-                        iframe.src = "http://www.thingiverse.com/thing:230802";
+                        iframe.src = "http://www.thingiverse.com/thing:796123";
                         iframe.style.display = "none";
                         iframe.onload =
                             function (event)
@@ -188,7 +188,6 @@ define
                                             scripted = (last.valueOf () != next.valueOf ());
                                         }
                                         document.getElementById ("thingiverse_user_scripted").innerHTML = (scripted ? "true" : "false");
-                                        document.getElementById ("download_user_script_button").disabled = scripted;
                                         details = $ ("#scripted");
                                         if (scripted)
                                             details.removeClass ("hidden")
@@ -209,11 +208,59 @@ define
             xmlhttp.send ();
         }
 
+        function customize_user_script (text)
+        {
+            var ret;
+
+            // ToDo: protocol
+            // ToDo: more surgical editing
+            ret = text.replace ("localhost", location.hostname);
+            ret = ret.replace ("5984", location.port);
+            ret = ret.replace ("pending_things", configuration.getConfigurationItem ("pending_database"));
+
+            return (ret);
+        }
+
+        function prepare_user_script ()
+        {
+            var script;
+            var xmlhttp;
+            var text;
+            var a;
+
+            // get the user script
+            script = document.location.origin + "/" +
+                "things/_design/things/js/thingimporter/thingiverse_thing_capture_greasemonkey_script.user.js";
+            xmlhttp = new XMLHttpRequest ();
+            xmlhttp.open ("GET", script, true);
+            xmlhttp.onreadystatechange = function ()
+            {
+                if (4 == xmlhttp.readyState)
+                    if (200 == xmlhttp.status)
+                    {
+                        text = xmlhttp.responseText;
+                        text = customize_user_script (text);
+                        text = encodeURIComponent (text);
+                        text = unescape (text);
+                        text = btoa (text);
+                        a = document.getElementById ('script_link');
+                        a.setAttribute ("href", "data:application/octet-stream;base64," + text);
+                        a.setAttribute ("download", "thingiverse_thing_capture_greasemonkey_script.user.js");
+                    }
+                    else
+                        alert ("user script " + script + " not found");
+            }
+            xmlhttp.send ();
+        }
+
         function init (event, data)
         {
             var parameters;
 
+            // set the pending database name
             $ ("#database_name").val (pending);
+            // set up the download script button
+            prepare_user_script ();
             parameters =
             {
                 success: function ()
