@@ -543,6 +543,32 @@ define
             );
         }
 
+        function create_proxies (event)
+        {
+            $.couch.config
+            (
+                {
+                    success: function ()
+                    {
+                        $.couch.config
+                        (
+                            {
+                                success: function () { alert ("proxies configured"); },
+                                error: function () { alert ("proxy configuration failed"); }
+                            },
+                            "httpd_global_handlers",
+                            "keybase",
+                            "{couch_httpd_proxy, handle_proxy_req, <<\"https://keybase.io/\">>}"
+                        );
+                    },
+                    error: function () { alert ("proxy configuration failed"); }
+                },
+                "httpd_global_handlers",
+                "json",
+                "{couch_httpd_proxy, handle_proxy_req, <<\"http://localhost:8112\">>}"
+            );
+        }
+
         function init ()
         {
             $.get
@@ -568,7 +594,8 @@ define
                     document.getElementById ("create_public").onclick = create_public;
                     document.getElementById ("create_tracker").onclick = create_tracker;
                     document.getElementById ("secure").onclick = function (event) { make_secure (getConfigurationItem ("local_database"), read_restricted); };
-                    document.getElementById ("insecure").onclick = function (event) { make_insecure (getConfigurationItem ("local_database")); };;
+                    document.getElementById ("insecure").onclick = function (event) { make_insecure (getConfigurationItem ("local_database")); };
+                    document.getElementById ("configure_proxies").onclick = create_proxies;
                 }
             );
         }
