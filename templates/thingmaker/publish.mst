@@ -26,7 +26,7 @@ while others are unspecified as yet, namely comment and announce-list - the list
 <p>The comment is free-form text, while the announce-list is one or more URLs comprising a list of
 (torrent) trackers which have nothing to do with the Thing Tracker Network per se.
 Some tracker URLs have been provided, but you are free to provide your own choice.
-You should include at least one tracker, otherwise it becomes a trackerless torrent  
+You should include at least one tracker, otherwise it becomes a trackerless torrent. 
 <form id="publish_form" class="form-horizontal">
 
     <div class='form-group'>

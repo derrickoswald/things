@@ -137,7 +137,7 @@ define
             var ret;
 
             ret = this.info.thing.title;
-            if (ret.length > 10)
+            if (ret && ret.length > 10)
             {
                 parts = ret.split (" ");
                 if (parts.length == 1) // no spaces

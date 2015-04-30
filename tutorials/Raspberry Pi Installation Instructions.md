@@ -135,6 +135,8 @@ Deluge
 
 sudo apt-get install deluge
 
+sudo apt-get install deluged
+
 sudo apt-get install deluge-web
 
 deluge-web
