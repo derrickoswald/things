@@ -289,9 +289,8 @@ define
             data.context.announce.forEach (function (item) { if (index == item.index) item.url = target.value; });
         }
 
-        function add_tracker (event, data)
+        function render_trackers (data)
         {
-            var index;
             var list;
             var inputs;
             var trackers;
@@ -299,14 +298,7 @@ define
             var change;
             var click;
             var add;
-            var remove
-
-            // find next index
-            index = 0;
-            data.context.announce.forEach (function (item) { if (item.index > index) index = item.index; });
-
-            // add the next tracker input element
-            data.context.announce.push ({ index: index + 1, url: "" });
+            var remove;
 
             // re-render inject the new elements into the DOM
             list = document.getElementById ("tracker_list");
@@ -331,6 +323,20 @@ define
             for (var i = 0; i < spans.length; i++)
                 if (spans[i].classList.contains ("input-group-addon"))
                     spans[i].addEventListener ("click", (1 == Number (spans[i].getAttribute ("data-tracker"))) ? add : remove);
+        }
+
+        function add_tracker (event, data)
+        {
+            var index;
+
+            // find next index
+            index = 0;
+            data.context.announce.forEach (function (item) { if (item.index > index) index = item.index; });
+
+            // add the next tracker input element
+            data.context.announce.push ({ index: index + 1, url: "" });
+
+            render_trackers (data);
         }
 
         function remove_tracker (event, data)
@@ -367,6 +373,8 @@ define
                 }
                 add_tracker (null, data);
             }
+            else
+                render_trackers (data)
         }
 
         return (

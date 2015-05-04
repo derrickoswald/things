@@ -33,6 +33,8 @@ requirejs
             );
         }
 
+        $.couch.urlPrefix = '/api';
+
         login.build ("utility");
         document.getElementById ("home").onclick = activate ("home", home.initialize);
         document.getElementById ("import_thing").onclick = activate ("import_thing", importwizard.initialize);
