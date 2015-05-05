@@ -17,19 +17,11 @@
             <input id="url" class="form-control" type="text" name="url" placeholder="URL">
         </div>
     </div>
-    <div class="form-group">
-        <label class="col-sm-3 control-label" for="authors">Authors</label>
-        <div class="col-sm-9">
-            <input id="authors" class="form-control" type="text" name="authors" placeholder="Author1,Author2,Author3">
-        </div>
+    <div id="authors" class="form-group">
     </div>
     <div id="licenses" class="form-group">
     </div>
-    <div class="form-group">
-        <label class="col-sm-3 control-label" for="tags">Tags</label>
-        <div class="col-sm-9">
-            <input id="tags" class="form-control" type="text" name="tags" placeholder="Tag1,Tag2,Tag3">
-        </div>
+    <div id="tags" class="form-group">
     </div>
     <div class="form-group">
         <label class="col-sm-3 control-label" for="thumbnailURL">Thumbnail URL</label>

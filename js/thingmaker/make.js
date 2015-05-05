@@ -1,9 +1,13 @@
 define
 (
-    ["mustache", "../torrent", "../records", "../login"],
-    function (mustache, torrent, records, login)
+    ["mustache", "../torrent", "../records", "../login", "../chooser"],
+    function (mustache, torrent, records, login, chooser)
     {
         var form_initialized_with = null;
+
+        var author_chooser = null;
+
+        var tag_chooser = null;
 
         /**
          * Inner template for each license input field added on the form.
@@ -224,7 +228,8 @@ define
                 buttonclass: buttonclass,
                 glyph: glyph
             }
-            var some = false;
+            author_chooser = new chooser.Chooser ("authors", "Authors", "Author");
+            tag_chooser = new chooser.Chooser ("tags", "Tags", "Tag");
             if (data.torrent && ((null == form_initialized_with) || (form_initialized_with != data.torrent._id)))
             {
                 form_initialized_with = data.torrent._id;
@@ -242,23 +247,24 @@ define
                                 if (null != thing[id])
                                     if ("licenses" == id)
                                         for (var j = 0; j < thing[id].length; j++)
-                                        {
                                             data.context.licenses.push ({ index: j + 1, license: thing[id][j] });
-                                            some = true;
-                                        }
+                                    else if ("authors" == id)
+                                        for (var j = 0; j < thing[id].length; j++)
+                                            author_chooser.context.items.push ({ index: j + 1, value: thing[id][j] });
+                                    else if ("tags" == id)
+                                        for (var j = 0; j < thing[id].length; j++)
+                                            tag_chooser.context.items.push ({ index: j + 1, value: thing[id][j] });
                                     else
-                                        // kludge here to handle the lists
-                                        if (("authors" == id) || ("tags" == id))
-                                            child.value = thing[id].join ();
-                                        else
-                                            child.value = thing[id];
+                                        child.value = thing[id];
                         }
                     }
                 }
             }
-            if (!some)
+            if (0 == data.context.licenses.length)
                 data.context.licenses.push ({ index: 1, license: "" });
             render_licenses (data);
+            author_chooser.render (author_chooser.context);
+            tag_chooser.render (tag_chooser.context);
         }
 
         return (
