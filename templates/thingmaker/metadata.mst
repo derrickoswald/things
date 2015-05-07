@@ -2,7 +2,6 @@
 
 <p>Fill in this form with the metadata for your <em>thing</em> and press the <b>Make</b> button.</p>
 <p>For details about the fields, consult the <a href="http://thingtracker.net/#specification">specification</a>.</p>
-<p>Authors, licenses and tags are comma separated.</p>
 
 <div id="thing_form" class="form-horizontal">
     <div class="form-group">

@@ -283,3 +283,25 @@ table.file_list tr:nth-child(even)
 {
 	right: auto;
 }
+
+/* Styling for Chooser component */
+
+.chooser-label
+{
+	visibility: hidden;
+}
+
+.chooser-label:first-child
+{
+	visibility: inherit;
+}
+
+.form-group > div
+{
+	margin-bottom: 5px;
+}
+
+.form-group > div:last-child
+{
+	margin-bottom: 0;
+}
