@@ -3,7 +3,7 @@ define
     ["records"],
     function (records)
     {
-        var URL = "/json/json"; // corresponds to http://localhost:8112/json as proxied by couchdb
+        var URL = $.couch.urlPrefix + "/json/json"; // corresponds to http://localhost:8112/json as proxied by couchdb
         // i.e. add this line under the [httpd_global_handlers] section:
         // json = {couch_httpd_proxy, handle_proxy_req, <<"http://localhost:8112">>}
         // NOTE: the json name is not optional, since the cookie contains the path /json and hence

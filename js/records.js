@@ -157,12 +157,12 @@ define ([ "multipart" ],
             if (doc._id === undefined)
             {
                 var method = "POST";
-                var uri = "/" + db + "/";
+                var uri = $.couch.urlPrefix + "/" + db + "/";
             }
             else
             {
                 var method = "PUT";
-                var uri = "/" + db + "/" + encodeDocId (doc._id);
+                var uri = $.couch.urlPrefix + "/" + db + "/" + encodeDocId (doc._id);
                 delete (doc._id);
             }
             var versioned = maybeApplyVersion (doc);
