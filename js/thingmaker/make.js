@@ -1,79 +1,109 @@
+/**
+ * @fileOverview Torrent creation form.
+ * @name make
+ * @author Derrick Oswald
+ * @version: 1.0
+ */
 define
 (
     ["mustache", "../torrent", "../records", "../login", "../chooser"],
     function (mustache, torrent, records, login, chooser)
     {
+        /**
+         * The SHA1 hash of the currently displayed torrent file.
+         */
         var form_initialized_with = null;
 
+        /**
+         * List of authors builder component.
+         */
         var author_chooser = null;
 
+        /**
+         * List of licenses builder component.
+         */
         var license_chooser = null;
 
+        /**
+         * Preselected list of licenses from which to choose.
+         */
         var license_list =
         [
             "Creative Commons Attribution 4.0 International License",
             "Open Hardware Initiative 2.0"
         ];
 
+        /**
+         * List of tags builder component.
+         */
         var tag_chooser = null;
 
-        // show the contents of the encoded Thing as a link in the content area
+        /**
+         * Display a link to the torrent contents for download
+         * @param {object} torrent the torrent encoded as a JavaScript object
+         */
         function showlink (torrent)
         {
-            // show the torrent contents
-            var a = document.createElement ("a");
+            var a;
+            var content;
+
+            a = document.createElement ("a");
             a.setAttribute ("href", "data:application/octet-stream;base64," + btoa (torrent));
             a.setAttribute ("download", "test.torrent");
-            var text = document.createTextNode ("Torrent File");
-            a.appendChild (text);
-            var content = document.getElementById ('torrent_link');
+            a.appendChild (document.createTextNode ("Torrent File"));
+
+            content = document.getElementById ('torrent_link');
             while (content.firstChild)
                 content.removeChild (content.firstChild);
             content.appendChild (a);
         }
 
+        /**
+         * Event handler for the make button.
+         * @param {object} event the button pressed event
+         * @param {object} data the data object for the thingmaker
+         */
         function make (event, data)
         {
-            event.preventDefault ();
-            torrent.MakeTorrent (data.files, data.piece_length, data.directory, null, // no template yet
+            var dir;
+
+            dir = data.directory ? data.directory : null;
+
+            torrent.MakeTorrent (data.files, data.piece_length, dir, null, // no template being used yet
                 function (tor)
                 {
-                    var thing = {};
-                    tor["info"]["thing"] = thing;
-                    var form = document.getElementById ("thing_form");
-                    if (null != form)
-                    {
-                        for (var i = 0; i < form.elements.length; i++)
-                        {
-                            var child = form.elements[i];
-                            var id = child.getAttribute ("id");
-                            if (null != id)
-                            {
-                                if ("licenses" == id)
-                                {
-                                    var licenses = [];
-                                    data.context.licenses.forEach (function (item) { if ("" != item.license) licenses.push (item.license); });
-                                    thing[id] = licenses;
-                                }
-                                else
-                                {
-                                    var value = child.value;
-                                    if ((null != value) && ("" != value))
-                                    {
-                                        thing[id] = value;
-                                        // kludge here to handle the lists
-                                        if (("authors" == id) || ("tags" == id))
-                                            thing[id] = value.split (',');
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    var thing;
+                    var authors;
+                    var licenses;
+                    var tags;
 
-                    var info = tor["info"];
-                    var primary_key = torrent.InfoHash (info);
-                    tor["_id"] = primary_key;
+                    thing = {};
+                    tor.info.thing = thing;
+
+                    thing.title = document.getElementById ("title").value;
+
+                    thing.description = document.getElementById ("description").value;
+
+                    thing.url = document.getElementById ("url").value;
+
+                    authors = [];
+                    author_chooser.context.items.forEach (function (item) { if ("" != item.value) authors.push (item.value); });
+                    thing.authors = authors;
+
+                    licenses = [];
+                    license_chooser.context.items.forEach (function (item) { if ("" != item.value) licenses.push (item.value); });
+                    thing.licenses = licenses;
+
+                    tags = [];
+                    tag_chooser.context.items.forEach (function (item) { if ("" != item.value) tags.push (item.value); });
+                    thing.tags = tags;
+
+                    thing.thumbnailURL = document.getElementById ("thumbnailURL").value;
+
+                    tor._id = torrent.InfoHash (tor.info);
+
                     data.torrent = tor;
+
                     form_initialized_with = null;
 
                     showlink (torrent.Encode (tor));
@@ -81,39 +111,63 @@ define
             );
         };
 
+        /**
+         * For initialization function.
+         * @param {object} event the tab being shown event
+         * @param {object} data the data object for the thingmaker
+         */
         function init (event, data)
         {
+            var thing;
+
             author_chooser = new chooser.Chooser ("authors", "Authors", "Author");
             license_chooser = new chooser.Chooser ("licenses", "Licenses", "License", license_list);
             tag_chooser = new chooser.Chooser ("tags", "Tags", "Tag");
             if (data.torrent && ((null == form_initialized_with) || (form_initialized_with != data.torrent._id)))
             {
                 form_initialized_with = data.torrent._id;
-                if (data.torrent.info.thing)
+                if (data.torrent.info && data.torrent.info.thing)
                 {
-                    var thing = data.torrent.info.thing;
-                    var form = document.getElementById ("thing_form");
-                    if (null != form)
-                    {
-                        for (var i = 0; i < form.elements.length; i++)
-                        {
-                            var child = form.elements[i];
-                            var id = child.getAttribute ("id");
-                            if (null != id)
-                                if (null != thing[id])
-                                    if ("licenses" == id)
-                                        for (var j = 0; j < thing[id].length; j++)
-                                            license_chooser.context.items.push ({ index: j + 1, license: thing[id][j] });
-                                    else if ("authors" == id)
-                                        for (var j = 0; j < thing[id].length; j++)
-                                            author_chooser.context.items.push ({ index: j + 1, value: thing[id][j] });
-                                    else if ("tags" == id)
-                                        for (var j = 0; j < thing[id].length; j++)
-                                            tag_chooser.context.items.push ({ index: j + 1, value: thing[id][j] });
-                                    else
-                                        child.value = thing[id];
-                        }
-                    }
+                    thing = data.torrent.info.thing;
+
+                    if (thing.title)
+                        document.getElementById ("title").value = thing.title;
+
+                    if (thing.description)
+                        document.getElementById ("description").value = thing.description;
+
+                    if (thing.url)
+                        document.getElementById ("url").value = thing.url;
+
+                    if (thing.authors)
+                        if ('[object Array]' === Object.prototype.toString.call (thing.authors))
+                            for (var j = 0; j < thing.authors.length; j++)
+                                author_chooser.context.items.push ({ value: thing.authors[j] });
+                        else
+                            author_chooser.context.items.push ({ value: thing.authors.toString () });
+                    else if (thing.author)
+                        author_chooser.context.items.push ({ value: thing.author.toString () });
+
+                    if (thing.licenses)
+                        if ('[object Array]' === Object.prototype.toString.call (thing.licenses))
+                            for (var j = 0; j < thing.licenses.length; j++)
+                                license_chooser.context.items.push ({ value: thing.licenses[j] });
+                        else
+                            license_chooser.context.items.push ({ value: thing.licenses.toString () });
+                    else if (thing.license)
+                        license_chooser.context.items.push ({ value: thing.license.toString () });
+
+                    if (thing.tags)
+                        if ('[object Array]' === Object.prototype.toString.call (thing.tags))
+                            for (var j = 0; j < thing.tags.length; j++)
+                                tag_chooser.context.items.push ({ value: thing.tags[j] });
+                        else
+                            tag_chooser.context.items.push ({ value: thing.tags.toString () });
+                    else if (thing.tag)
+                        tag_chooser.context.items.push ({ value: thing.tag.toString () });
+
+                    if (thing.thumbnailURL)
+                        document.getElementById ("thumbnailURL").value = thing.thumbnailURL;
                 }
             }
             author_chooser.render ();
@@ -125,11 +179,22 @@ define
             {
                 getStep: function ()
                 {
-                    var make_hooks =
-                        [
-                            { id: "make_thing_button", event: "click", code: make, obj: this }
-                        ];
-                    return ({ id: "enter_metadata", title: "Enter metadata", template: "templates/thingmaker/metadata.mst", hooks: make_hooks, transitions: { enter: init, obj: this } });
+                    return (
+                        {
+                            id: "enter_metadata",
+                            title: "Enter metadata",
+                            template: "templates/thingmaker/metadata.mst",
+                            hooks:
+                            [
+                                { id: "make_thing_button", event: "click", code: make, obj: this }
+                            ],
+                            transitions:
+                            {
+                                enter: init,
+                                obj: this
+                            }
+                        }
+                    );
                 }
             }
         );

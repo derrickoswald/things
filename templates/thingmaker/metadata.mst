@@ -11,6 +11,12 @@
         </div>
     </div>
     <div class="form-group">
+        <label class="col-sm-3 control-label" for="description">Description</label>
+        <div class="col-sm-9">
+            <input id="description" class="form-control" type="text" name="description" placeholder="Description">
+        </div>
+    </div>
+    <div class="form-group">
         <label class="col-sm-3 control-label" for="url">URL</label>
         <div class="col-sm-9">
             <input id="url" class="form-control" type="text" name="url" placeholder="URL">
@@ -26,12 +32,6 @@
         <label class="col-sm-3 control-label" for="thumbnailURL">Thumbnail URL</label>
         <div class="col-sm-9">
             <input id="thumbnailURL" class="form-control" type="text" name="thumbnailURL" placeholder="http://...">
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-3 control-label" for="description">Description</label>
-        <div class="col-sm-9">
-            <input id="description" class="form-control" type="text" name="description" placeholder="Description">
         </div>
     </div>
     <div class="form-group">
