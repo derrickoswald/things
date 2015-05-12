@@ -1,6 +1,6 @@
 [
-    { "description": "Access to api with vhosts enabled", "from": "api", "to": "../../.." },
-    { "from": "api/*", "to": "../../../*" },
+    { "description": "Access to api with vhosts enabled", "from": "root", "to": "../../.." },
+    { "from": "root/*", "to": "../../../*" },
     { "description": "Access to this database" , "from": "_db" , "to"  : "../.." },
     { "from": "_db/*" , "to"  : "../../*" },
     { "description": "Access to this design document" , "from": "_ddoc" , "to"  : "" },

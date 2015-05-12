@@ -23,7 +23,7 @@ requirejs
         var options;
 
         if (-1 == location.host.indexOf ("localhost"))
-            $.couch.urlPrefix = '/api';
+            $.couch.urlPrefix = '/root';
 
         // initialize on first load if possible
         options =
