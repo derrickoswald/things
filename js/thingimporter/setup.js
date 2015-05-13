@@ -1,11 +1,26 @@
+/**
+ * @fileOverview Initial setup for importing things.
+ * @name thingimporter/setup
+ * @author Derrick Oswald
+ * @version 1.0
+ */
 define
 (
     ["../login", "../configuration"],
+    /**
+     * @summary Perform setup operations for the thingimporter.
+     * @name thingimporter/setup
+     * @exports thingimporter/setup
+     * @version 1.0
+     */
     function (login, configuration)
     {
         var pending = configuration.getConfigurationItem ("pending_database");
 
-        // check for the existence of the database
+        /**
+         * Check for the existence of the database.
+         * @memberOf module:thingimporter/setup
+         */
         function check_db ()
         {
             var dbname = $ ("#database_name").val ();
@@ -27,7 +42,10 @@ define
             );
         }
 
-        // make the view
+        /**
+         * Make the view.
+         * @memberOf module:thingimporter/setup
+         */
         function make_view ()
         {
             configuration.make_designdoc
@@ -41,11 +59,19 @@ define
             );
         }
 
+        /**
+         * Make the database.
+         * @memberOf module:thingimporter/setup
+         */
         function make_db ()
         {
             configuration.make_database ($ ("#database_name").val (), { success: make_view, error: function () { alert ("database creation failed"); } })
         }
 
+        /**
+         * Check that CORS is set up accordingly.
+         * @memberOf module:thingimporter/setup
+         */
         function check_CORS ()
         {
             function configuration_receiver (configuration)
@@ -77,6 +103,10 @@ define
             );
         }
 
+        /**
+         * Turn on CORS support.
+         * @memberOf module:thingimporter/setup
+         */
         function enable_cors (options)
         {
             $.couch.config
@@ -88,6 +118,10 @@ define
             );
         }
 
+        /**
+         * Set up CORS methods.
+         * @memberOf module:thingimporter/setup
+         */
         function set_methods (options)
         {
             $.couch.config
@@ -99,6 +133,10 @@ define
             );
         }
 
+        /**
+         * Set up CORS origins.
+         * @memberOf module:thingimporter/setup
+         */
         function set_origins (options)
         {
             $.couch.config
@@ -110,6 +148,10 @@ define
             );
         }
 
+        /**
+         * Set up CORS support for http://thingiverse.com.
+         * @memberOf module:thingimporter/setup
+         */
         function setup_cors ()
         {
             enable_cors
@@ -139,6 +181,10 @@ define
             )
         }
 
+        /**
+         * Check if the user script is set up for thingiverse.com.
+         * @memberOf module:thingimporter/setup
+         */
         function check_thingiverse ()
         {
             var ping;
@@ -150,7 +196,7 @@ define
             var details;
 
             // get the current value of ping time
-            ping = document.location.origin + "/" +
+            ping = configuration.getDocumentRoot () + "/" +
                 configuration.getConfigurationItem ("pending_database") +
                 "/ping";
             xmlhttp = new XMLHttpRequest ();
@@ -208,6 +254,10 @@ define
             xmlhttp.send ();
         }
 
+        /**
+         * Edit the user script according to the current configuration.
+         * @memberOf module:thingimporter/setup
+         */
         function customize_user_script (text)
         {
             var ret;
@@ -221,6 +271,10 @@ define
             return (ret);
         }
 
+        /**
+         * Set up the "download user script" button.
+         * @memberOf module:thingimporter/setup
+         */
         function prepare_user_script ()
         {
             var script;
@@ -229,7 +283,7 @@ define
             var a;
 
             // get the user script
-            script = document.location.origin + "/" +
+            script = configuration.getDocumentRoot () + "/" +
                 "things/_design/things/js/thingimporter/thingiverse_thing_capture_greasemonkey_script.user.js";
             xmlhttp = new XMLHttpRequest ();
             xmlhttp.open ("GET", script, true);
@@ -253,6 +307,10 @@ define
             xmlhttp.send ();
         }
 
+        /**
+         * Initialize the thingimporter setup page.
+         * @memberOf module:thingimporter/setup
+         */
         function init (event, data)
         {
             var parameters;

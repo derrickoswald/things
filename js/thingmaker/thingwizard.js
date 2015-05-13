@@ -2,7 +2,7 @@
  * @fileOverview Extension of {@link module:wizard} for creating things.
  * @name thingmaker/thingwizard
  * @author Derrick Oswald
- * @version: 1.0
+ * @version 1.0
  */
 define
 (

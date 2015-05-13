@@ -2,7 +2,7 @@
  * @fileOverview Multipart mime HTTP body support for sending and receiving couchdb document attachments.
  * @name multipart
  * @author Derrick Oswald
- * @version: 1.0
+ * @version 1.0
  */
 define
 (

@@ -1,14 +1,17 @@
 /**
  * @fileOverview Extension of {@link module:wizard} for importing things.
- * @name thingmaker/importwizard
+ * @name thingimporter/importwizard
  * @author Derrick Oswald
- * @version: 1.0
+ * @version 1.0
  */
 define
 (
     ["../page", "wizard", "thingimporter/setup", "thingimporter/transfer", "configuration"],
     /**
-     * @summary Import things by setting up the database, setting CouchDb configuration, loading a user script and transferring.
+     * @summary Import things.
+     * @description Imports things from Thingiverse by setting up the database,
+     * setting CouchDb configuration, loading a user script and transferring.
+     * @name thingimporter/importwizard
      * @exports thingimporter/importwizard
      * @version 1.0
      */
@@ -16,26 +19,24 @@ define
     {
         /**
          * @summary Create the wizard.
-         *
          * @description Builds on the generic wizard module and adds specific html id values and
          * method steps to create a functioning import wizard.
-         *
          * @function initialize
+         * @memberOf module:thingimporter/importwizard
          */
         function initialize ()
         {
             var steps =
-                [
-                    { id: "overview", title: "Overview", template: "templates/thingimporter/overview.html"},
-                    setup.getStep (), // { id: "setup", title: "Setup", template: "templates/thingimporter/setup.html"},
-                    transfer.getStep (),
-                ];
+            [
+                { id: "overview", title: "Overview", template: "templates/thingimporter/overview.html"},
+                setup.getStep (), // { id: "setup", title: "Setup", template: "templates/thingimporter/setup.html"},
+                transfer.getStep (),
+            ];
 
             /**
              * @summary Wizard data.
              * @description The object passed around to maintain state.
              * The aim is to have this eventually filled in from user storage.
-             * @member
              */
             var data =
             {

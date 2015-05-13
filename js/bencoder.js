@@ -2,7 +2,7 @@
  * @fileOverview Bencode on the client side
  * @name bencoder
  * @author Derrick Oswald
- * @version: 1.0
+ * @version 1.0
  *
  * Google search on "bencode" "javascript" yields:
  * https://github.com/themasch/node-bencode/blob/master/bencode.js

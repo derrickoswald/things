@@ -1,4 +1,6 @@
 [
+    { "description": "Deluge access with vhosts enabled (more general rule below)", "from": "json", "to": "../../../json" },
+    { "from": "json/*", "to": "../../../json/*" },
     { "description": "Access to api with vhosts enabled", "from": "root", "to": "../../.." },
     { "from": "root/*", "to": "../../../*" },
     { "description": "Access to this database" , "from": "_db" , "to"  : "../.." },

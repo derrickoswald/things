@@ -2,10 +2,16 @@
  * @fileOverview CouchDB login.
  * @name login
  * @author Derrick Oswald
- * @version: 1.0
+ * @version 1.0
  */
 define (
     ["mustache"],
+    /**
+     * @summary Login dialog for CouchDB access.
+     * @name login
+     * @exports login
+     * @version 1.0
+     */
     function (mustache)
     {
         var template = "templates/login.mst";

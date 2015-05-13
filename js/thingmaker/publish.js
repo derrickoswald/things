@@ -1,6 +1,20 @@
+/**
+ * @fileOverview Publish step of the ThingMaker wizard.
+ * @name thingmaker/publish
+ * @author Derrick Oswald
+ * @version 1.0
+ */
 define
 (
     ["mustache", "../deluge", "../records", "../bencoder", "../login", "../configuration", "../discover", "../torrent"],
+    /**
+     * @summary Publish a thing.
+     * @description Provides the functionality to publish a thing to the
+     * public database, deluge and the thingtracker network.
+     * @name thingmaker/publish
+     * @exports thingmaker/publish
+     * @version 1.0
+     */
     function (mustache, deluge, records, bencoder, login, configuration, discover, torrent)
     {
         /**
@@ -61,6 +75,19 @@ define
 //comment     string
 //created by  string  Application-generated string that may include its name, version, etc. Optional.
 
+        /**
+         * @summary Copy to the public database.
+         * @description Copy a thing to the public database.
+         * @param {string} primary_key - the SHA1 hash code of the thing to publish
+         * @param {object} options - options to process the copy operation:
+         * <pre>
+         * success: function() to call when the document is copied
+         * error: function to call when a problem occurs
+         * </pre>
+         * @return <em>nothing</em>
+         * @function copy_to_public
+         * @memberOf module:thingmaker/publish
+         */
         function copy_to_public (primary_key, options)
         {
             options = options || {};
@@ -93,7 +120,7 @@ define
 
                         // add the webseed
                         doc["url-list"] =
-                            document.location.origin + "/" + // ToDo: configure the domain name
+                            configuration.getDocumentRoot () + "/" +
                             configuration.getConfigurationItem ("local_database") + // the attachment only exists locally
                             "/" + primary_key + "/";
                         if (!doc.info.files)
@@ -140,6 +167,19 @@ define
 
         }
 
+        /**
+         * @summary Post the torrent to Deluge.
+         * @description Add the torrent to the Deluge maintained list of torrents.
+         * @param {string} primary_key - the SHA1 hash code of the thing to publish
+         * @param {object} options - options to process the add operation:
+         * <pre>
+         * success: function() to call when the document is added
+         * error: function to call when a problem occurs
+         * </pre>
+         * @return <em>nothing</em>
+         * @function post_to_deluge
+         * @memberOf module:thingmaker/publish
+         */
         function post_to_deluge (primary_key, options)
         {
             deluge.login (
@@ -148,8 +188,9 @@ define
                     success:
                         function ()
                         {
+                            alert ("deluge login succeeded");
                             deluge.addTorrent (
-                                document.location.origin + "/" +
+                                configuration.getDocumentRoot () + "/" +
                                 configuration.getConfigurationItem ("public_database") +
                                 "/" + primary_key + "/" + primary_key + ".torrent",
                                 {
@@ -184,6 +225,9 @@ define
          * posts the torrent to deluge and triggers an update of the thing tracker database.
          * @param primary_key thing id (SHA1 hash of info section)
          * @param options additional options for the torrent that is published, e.g. comment, announce or announce-list
+         * @return <em>nothing</em>
+         * @function announce
+         * @memberOf module:thingmaker/publish
          */
         function announce (primary_key, options)
         {
@@ -208,7 +252,10 @@ define
         /**
          * Publish button pushed event handler
          * @param event the triggering event
-         * @ param data the ThingMaker data object.
+         * @param data the ThingMaker data object.
+         * @return <em>nothing</em>
+         * @function publish_handler
+         * @memberOf module:thingmaker/publish
          */
         function publish_handler (event, data)
         {

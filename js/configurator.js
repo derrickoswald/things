@@ -2,7 +2,7 @@
  * @fileOverview Initial system configuration user interface.
  * @name configurator
  * @author Derrick Oswald
- * @version: 1.0
+ * @version 1.0
  */
 define
 (

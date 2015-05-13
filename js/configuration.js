@@ -2,7 +2,7 @@
  * @fileOverview Configuration with backing store in a database.
  * @name configuration
  * @author Derrick Oswald
- * @version: 1.0
+ * @version 1.0
  */
 define
 (
@@ -194,6 +194,20 @@ define
         }
 
         /**
+         * @summary Get the web page root.
+         * @description Like <code>document.location.origin</code> but also adds
+         * the necessary rewrite prefix for the virtual host (if any).
+         * So, for example, <code>http:localhost:5984</code> remains unchanged
+         * but <code>http:thingtracker.no-ip.org</code> becomes
+         * <code>http:thingtracker.no-ip.org/root</code> when used
+         * with a vhost and <code>root</code> rewrite rule.
+         */
+        function getDocumentRoot ()
+        {
+            return (document.location.origin + $.couch.urlPrefix);
+        }
+
+        /**
          * @summary Check for configuration database existence.
          * @function configuration_exists
          * @memberOf module:configuration
@@ -250,6 +264,7 @@ define
                 loadConfiguration: loadConfiguration,
                 getConfigurationItem: getConfigurationItem,
                 setConfigurationItem: setConfigurationItem,
+                getDocumentRoot: getDocumentRoot,
                 configuration_exists: configuration_exists,
                 configuration_setup: configuration_setup
             }

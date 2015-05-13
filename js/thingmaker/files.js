@@ -2,7 +2,7 @@
  * @fileOverview File selection step of the ThingMaker wizard.
  * @name thingmaker/files
  * @author Derrick Oswald
- * @version: 1.0
+ * @version 1.0
  */
 define
 (
@@ -25,6 +25,7 @@ define
          * given files to the list.
          * @param {FileList} files - the files dropped or selected by the user
          * @param {object} data - the context object for the wizard
+         * @function add_files
          * @memberOf module:thingmaker/files
          */
         function add_files (files, data)

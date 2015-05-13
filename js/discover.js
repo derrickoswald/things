@@ -2,7 +2,7 @@
  * @fileOverview View of the thing tracker network.
  * @name discover
  * @author Derrick Oswald
- * @version: 1.0
+ * @version 1.0
  */
 define
 (
@@ -39,13 +39,17 @@ define
                 "{{/rows}}" +
             "</ul>";
 
-
-
+        /**
+         * @summary Push the URL and SHA1 keys in the public database to the tracker database.
+         * @description Updates the document about the local public database in the tracker database.
+         * @function post_my_things
+         * @memberOf module:discover
+         */
         function post_my_things ()
         {
             $.get
             (
-                document.location.origin,
+                configuration.getDocumentRoot (),
                 function (welcome) // {"couchdb":"Welcome","uuid":"fe736197b3e3e543fdba84b1c2385111","version":"1.6.1","vendor":{"version":"14.04","name":"Ubuntu"}}
                 {
                     welcome = JSON.parse (welcome);
@@ -57,7 +61,7 @@ define
                             success: function (data)
                             {
                                 var doc = { _id: welcome.uuid };
-                                doc.tracker = document.location.origin + "/" + public_name + "/";
+                                doc.tracker = configuration.getDocumentRoot () + "/" + public_name + "/";
                                 doc.things = [];
                                 data.rows.forEach
                                 (
@@ -111,6 +115,12 @@ define
             );
         }
 
+        /**
+         * @summary Display the database with functions to post to the tracker database, etc.
+         * @description Main screen for the discover page.
+         * @function display
+         * @memberOf module:discover
+         */
         function display (database, view)
         {
             $.couch.db (database).view
@@ -177,6 +187,12 @@ define
             );
         }
 
+        /**
+         * @summary Initialize the discover page.
+         * @description Display the discover page.
+         * @function init
+         * @memberOf module:discover
+         */
         function init ()
         {
             display (configuration.getConfigurationItem ("tracker_database"), "Trackers");

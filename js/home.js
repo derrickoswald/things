@@ -2,7 +2,7 @@
  * @fileOverview Display things from various databases.
  * @name home
  * @author Derrick Oswald
- * @version: 1.0
+ * @version 1.0
  */
 define
 (
@@ -171,12 +171,13 @@ define
                 success : function (result)
                 {
                     options = options || {};
-                    var prefix = "/" + database + "/";
+                    var prefix = configuration.getDocumentRoot () + "/" + database + "/";
                     result.rows.forEach (function (item)
                     {
                         var list = [];
                         for (var property in item.value._attachments)
                             if (item.value._attachments.hasOwnProperty (property))
+                                // ToDo: fix paths with slash through mustache
                                 list.push ({name: property, url: (prefix + item.id + "/" + property)});
                         item.value.filelist = list;
                     });
@@ -228,6 +229,13 @@ define
             draw ();
         }
 
+        /**
+         * @summary Delete the given ids (SHA1 hash values) from the database.
+         * @description Calls removeDoc for each id.
+         * @param {array} ids the array of id values to delete.
+         * @function delete_document
+         * @memberOf module:home
+         */
         function delete_document (ids)
         {
             ids.forEach
@@ -250,6 +258,12 @@ define
             );
         }
 
+        /**
+         * @summary Render the individual documents.
+         * @description Uses mustache to create HTML DOM elements that display the document information.
+         * @function draw
+         * @memberOf module:home
+         */
         function draw ()
         {
             var right_template =
@@ -295,6 +309,12 @@ define
             build (current, "Things", areas.content.id, { del: delete_document, publish: push_to_public } );
         }
 
+        /**
+         * @summary Replicate the given documents to the public database.
+         * @description Doesn't work because publish now needs more information (comments and such).
+         * @function push_to_public
+         * @memberOf module:home
+         */
         function push_to_public (docs)
         {
             var list = [docs._id];

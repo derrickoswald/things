@@ -1,6 +1,19 @@
+/**
+ * @fileOverview Torrent conversion to and from JavaScript objects.
+ * @name torrent
+ * @author Derrick Oswald
+ * @version 1.0
+ */
 define
 (
     ["bencoder", "sha1"],
+    /**
+     * @summary Torrent reading and writing.
+     * @description Packing and unpacking between bencoded binary and JavaScript objects.
+     * @name torrent
+     * @exports torrent
+     * @version 1.0
+     */
     function (bencoder, sha1)
     {
         /**

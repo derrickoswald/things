@@ -1,6 +1,20 @@
+/**
+ * @fileOverview Application layout
+ * @name page
+ * @author Derrick Oswald
+ * @version 1.0
+ */
 define
 (
     ["mustache"],
+    /**
+     * @summary Single page application layout component.
+     * @description ... will eventually be used for back button history,
+     * working with pushState() and onpopstate handler with context save and restore
+     * @name page
+     * @exports page
+     * @version 1.0
+     */
     function (mustache)
     {
 // ToDo: media query based layout
@@ -18,7 +32,7 @@ define
 //            }
 
         /**
-         * Return the standard layout for the main page.
+         * @summary Return the standard layout for the main page.
          * @return {object} containing { left, middle, right } elements for
          * the left quarter, middle half and right quarter respectively.
          * @function layout

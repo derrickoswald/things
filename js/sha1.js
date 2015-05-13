@@ -1,14 +1,31 @@
 /**
- *
- * Secure Hash Algorithm (SHA1) http://www.webtoolkit.info/
- *
+ * @fileOverview Secure Hash Algorithm (SHA1).
+ * @name sha1
+ * @author unknown
+ * @version 1.0
  */
 define
 (
     [],
+    /**
+     * @summary Secure Hash Algorithm (SHA1).
+     * @description Compute SHA1 hash values from a buffer.
+     * @see http://www.webtoolkit.info/
+     * @name sha1
+     * @exports sha1
+     * @version 1.0
+     */
     function ()
     {
-
+        /**
+         * @summary Compute the SHA1 hash of a message.
+         * @description Finds the hash of msg.
+         * @param {ArrayBuffer | string} msg the message to compute the hash for.
+         * @param {boolean} binary if <code>true</code> return the hash as an ArrayBuffer.
+         * @return the SHA1 hash as a string or as an ArrayBuffer
+         * @function sha1
+         * @memberOf module:sha1
+         */
         function sha1 (msg, binary)
         {
 
@@ -243,7 +260,9 @@ define
             return (ret);
         }
 
-    return ({
-        "sha1": sha1
-    });
+    return (
+        {
+            "sha1": sha1
+        }
+    );
 });

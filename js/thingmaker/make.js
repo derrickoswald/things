@@ -1,12 +1,19 @@
 /**
  * @fileOverview Torrent creation form.
- * @name make
+ * @name thingmaker/make
  * @author Derrick Oswald
- * @version: 1.0
+ * @version 1.0
  */
 define
 (
     ["mustache", "../torrent", "../records", "../login", "../chooser"],
+    /**
+     * @summary Create a torrent file.
+     * @description Combines file, metadata and thing information into the torrent file.
+     * @name thingmaker/make
+     * @exports thingmaker/make
+     * @version 1.0
+     */
     function (mustache, torrent, records, login, chooser)
     {
         /**
@@ -41,6 +48,8 @@ define
         /**
          * Display a link to the torrent contents for download
          * @param {object} torrent the torrent encoded as a JavaScript object
+         * @function showlink
+         * @memberOf module:thingmaker/make
          */
         function showlink (torrent)
         {
@@ -62,6 +71,8 @@ define
          * Event handler for the make button.
          * @param {object} event the button pressed event
          * @param {object} data the data object for the thingmaker
+         * @function make
+         * @memberOf module:thingmaker/make
          */
         function make (event, data)
         {
@@ -115,6 +126,8 @@ define
          * For initialization function.
          * @param {object} event the tab being shown event
          * @param {object} data the data object for the thingmaker
+         * @function init
+         * @memberOf module:thingmaker/make
          */
         function init (event, data)
         {

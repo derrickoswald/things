@@ -2,11 +2,17 @@
  * @fileOverview Multi-text input field component.
  * @name chooser
  * @author Derrick Oswald
- * @version: 1.0
+ * @version 1.0
  */
 define
 (
     ["mustache"],
+    /**
+     * @summary UI component to allow multiple text values.
+     * @version 1.0
+     * @name chooser
+     * @exports chooser
+     */
     function (mustache)
     {
         /**
@@ -16,6 +22,8 @@ define
          * @param {string} placeholder User visible placeholder text in an empty input field
          * @param {array} choices list of user visible items for the drop down menu
          * (if not supplied or empty, the input field is a plain text input with no dropdown)
+         * @class
+         * @memberOf module:chooser
          */
         function Chooser (target_list, label, placeholder, choices)
         {
@@ -24,18 +32,21 @@ define
              * The DIV with this id is filled with the chooser from the template.
              * This is also used as an id pattern for this input set,
              * suffixed with the index value to create unique element ids for input elements.
+             * @memberOf chooser.Chooser#
              */
             this.list_name = target_list;
 
             /**
              * Label for this input group.
              * I18N
+             * @memberOf Chooser#
              */
             this.input_label = label;
 
             /**
              * Placeholder text for each input element.
              * I18N
+             * @memberOf Chooser#
              */
             this.prompt = placeholder;
 
@@ -43,27 +54,32 @@ define
              * List of user entered data.
              * Each element is an object with property 'value' as the user chosen string.
              * At lifecycle end, objects with empty strings need to be removed by the caller.
+             * @memberOf Chooser#
              */
             this.items = [];
 
             /**
              * List of predefined values made available in the drop-down list.
              * Each entry is a string.
+             * @memberOf Chooser#
              */
             this.values = choices;
 
             /**
              * DOM element attribute name that stores the index value of the input group.
+             * @memberOf Chooser#
              */
             this.data_source = "data_source";
 
             /**
              * DOM element attribute name that stores the id of the input element.
+             * @memberOf Chooser#
              */
             this.data_target = "data_target";
 
             /**
              * Mustache template to generate the list item DOM elements.
+             * @memberOf Chooser#
              */
             this.template =
                  "{{#items}}" +
@@ -96,6 +112,7 @@ define
 
             /**
              * Context for mustache rendering.
+             * @memberOf Chooser#
              */
             var temp = this.context =
             {
@@ -117,6 +134,8 @@ define
         /**
          * Event handler for user pressing Enter in an input field.
          * @param {object} event keypress event from the input element
+         * @function enter
+         * @memberOf module:chooser.Chooser.prototype
          */
         Chooser.prototype.enter = function (event)
         {
@@ -131,6 +150,8 @@ define
         /**
          * Event handler for user entering a value by key entry.
          * @param {object} event change event from the input element
+         * @function changed
+         * @memberOf module:chooser.Chooser.prototype
          */
         Chooser.prototype.changed = function (event)
         {
@@ -143,6 +164,8 @@ define
         /**
          * Event handler for drop-down list item selected.
          * @param {object} event click event from the link list item
+         * @function clicked
+         * @memberOf module:chooser.Chooser.prototype
          */
         Chooser.prototype.clicked = function (event)
         {
@@ -168,6 +191,8 @@ define
         /**
          * Set the focus to the given input item.
          * @param {number} index The index (data_source attribute value) of the item to focus on
+         * @function focus
+         * @memberOf module:chooser.Chooser.prototype
          */
         Chooser.prototype.focus = function (index)
         {
@@ -182,6 +207,8 @@ define
         /**
          * Event handler for clicking the plus icon.
          * @param {object} event click event from the input group addon item
+         * @function add
+         * @memberOf module:chooser.Chooser.prototype
          */
         Chooser.prototype.add = function (event)
         {
@@ -198,6 +225,8 @@ define
         /**
          * Event handler for clicking the minus icon.
          * @param {object} event click event from the input group addon item
+         * @function remove
+         * @memberOf module:chooser.Chooser.prototype
          */
         Chooser.prototype.remove = function (event)
         {
@@ -222,6 +251,8 @@ define
 
         /**
          * Render the chooser field set.
+         * @function render
+         * @memberOf module:chooser.Chooser.prototype
          */
         Chooser.prototype.render = function ()
         {
@@ -269,6 +300,7 @@ define
         }
 
         return (
+            /** @alias module:chooser */
             {
                 Chooser: Chooser
             }

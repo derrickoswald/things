@@ -1,11 +1,32 @@
+/**
+ * @fileOverview Transfer things from pending to local database.
+ * @name thingimporter/transfer
+ * @author Derrick Oswald
+ * @version 1.0
+ */
 define
 (
     ["../login", "../home", "../configuration"],
+    /**
+     * @summary Transfer things between the pending database from the import operation to the local database.
+     * @name thingimporter/transfer
+     * @exports thingimporter/transfer
+     * @version 1.0
+     */
     function (login, home, configuration)
     {
         var db = configuration.getConfigurationItem ("pending_database");
         var view_name = "Things";
 
+        /**
+         * @summary Transfer the given documents to the local database.
+         * @description Uses CouchDB replication to replicate the documents
+         * given by docs from the pending database into the local database.
+         * @param {array} docs list of document SHA1 hash codes as strings
+         * @function transfer
+         * @memberOf module:thingimporter/transfer
+         * @return <em>nothing</em>
+         */
         function transfer (docs)
         {
             var list = [];
@@ -38,24 +59,33 @@ define
             );
         }
 
+        /**
+         * @summary Initialize the transfer page.
+         * @description Sets up the DOM elements for the transfer page
+         * by calling home.build.
+         * @function init
+         * @memberOf module:thingimporter/transfer
+         * @return <em>nothing</em>
+         */
         function init ()
         {
             home.build (db, view_name, "listing", { transfer: transfer });
         }
 
         return (
-        {
-
-            getStep : function ()
             {
-               return (
+
+                getStep : function ()
                 {
-                    id : "transfer",
-                    title : "Transfer Things",
-                    template : "templates/thingimporter/transfer.mst",
-                    transitions: { enter: init, obj: this }
-                });
+                   return (
+                    {
+                        id : "transfer",
+                        title : "Transfer Things",
+                        template : "templates/thingimporter/transfer.mst",
+                        transitions: { enter: init, obj: this }
+                    });
+                }
             }
-        });
+        );
     }
 );

@@ -2,7 +2,7 @@
  * @fileOverview Simple UI wizard for stepping the user through a linear sequence of steps.
  * @name wizard
  * @author Derrick Oswald
- * @version: 1.0
+ * @version 1.0
  */
 define
 (

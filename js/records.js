@@ -2,7 +2,7 @@
  * @fileOverview CouchDB support specific to things.
  * @name records
  * @author Derrick Oswald
- * @version: 1.0
+ * @version 1.0
  */
 define ([ "multipart" ],
     /**

@@ -2,7 +2,7 @@
  * @fileOverview Template selection step of the ThingMaker wizard.
  * @name thingmaker/template
  * @author Derrick Oswald
- * @version: 1.0
+ * @version 1.0
  */
 define
 (
