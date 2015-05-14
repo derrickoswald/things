@@ -43,7 +43,7 @@ requirejs
     {
         // to support vhost systems set CouchDB jQuery module base path if main.js is not coming from localhost
         if (-1 == location.host.indexOf ("localhost"))
-            $.couch.urlPrefix = '/root'; // the name must agree with the name in rewrites.json
+            $.couch.urlPrefix = "/root"; // the name must agree with the name in rewrites.json
 
         // ensure that configuration is loaded first, everything else depends on it
         configuration.configuration_setup
@@ -74,9 +74,12 @@ requirejs
                                      */
                                     function (event)
                                     {
-                                        var link = $ (event.target); // get a jQuery element
-                                        link.parent ().parent ().find ('.active').removeClass ('active');
-                                        link.parent ().addClass ('active');
+                                        var link;
+
+                                        event.preventDefault ();
+                                        link = $ (event.target); // get a jQuery element
+                                        link.parent ().parent ().find (".active").removeClass ("active");
+                                        link.parent ().addClass ("active");
                                         fn ();
                                     }
                                 );

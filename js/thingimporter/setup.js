@@ -267,6 +267,7 @@ define
             ret = text.replace ("localhost", location.hostname);
             ret = ret.replace ("5984", location.port);
             ret = ret.replace ("pending_things", configuration.getConfigurationItem ("pending_database"));
+            ret = ret.replace ("prefix = \"\"", "prefix = \"" + $.couch.urlPrefix + "\"");
 
             return (ret);
         }

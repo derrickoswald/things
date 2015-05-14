@@ -178,7 +178,7 @@ define
                         for (var property in item.value._attachments)
                             if (item.value._attachments.hasOwnProperty (property))
                                 // ToDo: fix paths with slash through mustache
-                                list.push ({name: property, url: (prefix + item.id + "/" + property)});
+                                list.push ({name: property, url: (prefix + item.id + "/" + encodeURIComponent (property))});
                         item.value.filelist = list;
                     });
                     result.database = database;

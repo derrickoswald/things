@@ -27,6 +27,7 @@
 var protocol = "http";
 var host = "localhost";
 var port =  "5984";
+var prefix = "";
 var database = "pending_things";
 
 // module sha1
@@ -1600,7 +1601,7 @@ function thing ()
 
 function url_prefix ()
 {
-    return (protocol + "://" + host + ":" + port);
+    return (protocol + "://" + host + ":" + port + prefix);
 }
 
 function couch_db ()
@@ -1637,7 +1638,7 @@ function capture ()
                 console.log ("images converted: " + urls.length);
 
                 thing_metadata["thumbnails"] = urls;
-                var directory = make_file_name (get_title ());
+                var directory = encodeURIComponent (make_file_name (get_title ()));
                 var filelist = [];
                 files.forEach (function (file) { file.data.name = file.name; filelist.push (file.data); });
                 torrent.MakeTorrent (filelist, 16384, directory, null, function (tor)
@@ -1659,7 +1660,7 @@ function capture ()
                         function (file)
                         {
                             if (1 < files.length)
-                                uploadfiles.push (new File ([file.data], directory + "/" + file.name, { type: file.data.type, lastModifiedDate: file.data.lastModifiedDate }));
+                                uploadfiles.push (new File ([file.data], directory + "/" + encodeURIComponent (file.name), { type: file.data.type, lastModifiedDate: file.data.lastModifiedDate }));
                             else
                                 uploadfiles.push (file.data);
                         });
@@ -1704,14 +1705,16 @@ function ping ()
             {
                 if (4 == xmlhttp.readyState)
                 {
-                    var button = document.getElementById ("import_thing_button");
+                    console.log ("pinged status: " + xmlhttp.status);
                     var pinged = (200 == xmlhttp.status || 201 == xmlhttp.status || 202 == xmlhttp.status);
-                    button.disabled = !pinged;
+                    document.getElementById ("import_thing_button").disabled = !pinged;
                 }
             }
+            console.log ("PUT:\n" + JSON.stringify (payload, null, 4));
             xmlhttp.send (JSON.stringify (payload, null, 4));
         }
     }
+    console.log ("GET: " + couch_db () + "/ping");
     xmlhttp.send ();
 }
 
