@@ -329,7 +329,9 @@ define
         return (
             {
                 initialize: draw,
-                build: build
+                build: build,
+                delete_document: delete_document,
+                push_to_public: push_to_public
             }
         );
     }

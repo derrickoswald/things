@@ -36,13 +36,16 @@ define
                 {
                     success: function (userCtx)
                     {
-                        // ToDo: delete  from pending database
                         $.couch.replicate
                         (
                             db,
                             configuration.getConfigurationItem ("local_database"),
                             {
-                                success: function (data) { console.log (data); },
+                                success: function (data)
+                                {
+                                    console.log (data);
+                                    home.delete_document (docs);
+                                },
                                 error: function (status) { console.log (status); }
                             },
                             {
