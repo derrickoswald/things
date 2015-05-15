@@ -63,31 +63,81 @@ define
                                 "<div class='row'>" +
                                     "<div class='col-xs-6'>" +
                                         "<h5>Tags</h5>" +
-                                        "<ul class='thing_property_list'>" +
+                                        "<ul class='thing_property_list tags'>" +
                                             "{{#info.thing.tags}}<li>{{.}}</li>{{/info.thing.tags}}" +
                                         "</ul>" +
                                     "</div>" +
                                     "<div class='col-xs-6'>" +
                                         "<h5>Attachments</h5>" +
-                                        "<ul class='thing_property_list'>" +
+                                        "<ul class='thing_property_list attachment'>" +
                                             "{{#filelist}}<li><a href='{{url}}'>{{name}}</a></li>{{/filelist}}" +
                                         "</ul>" +
                                     "</div>" +
                                 "</div>" +
                                 "<div class='row'>" +
-                                    "{{#info.thing.thumbnails}}" +
-                                    "<div class='col-xs-6 col-md-3'>" +
-                                        "<a href='#' class='thumbnail'>" +
-                                            "<img src='{{.}}'></img>" +
-                                        "</a>" +
-                                    "</div>" +
-                                    "{{/info.thing.thumbnails}}" +
+                                    "{{#thumbnaillist}}" +
+                                        "<div class='col-xs-6 col-md-3'>" +
+                                            "<a href='#' class='thumbnail'>" +
+                                                "<img src='{{image}}' alt='{{_id}}_image_{{index}}'>" +
+                                            "</a>" +
+                                        "</div>" +
+                                    "{{/thumbnaillist}}" +
+
+// identical height images... but only one row
+// see http://www.minimit.com/articles/solutions-tutorials/bootstrap-3-responsive-columns-of-same-height
+//                                    "<div class='row-same-height'>" +
+//                                        "{{#thumbnaillist}}" +
+//                                        "<div class='col-xs-6 col-xs-height col-md-3'>" +
+//                                            "<a href='#' class='thumbnail'>" +
+//                                                "<img src='{{image}}' alt='{{_id}}_image_{{index}}'>" +
+//                                            "</a>" +
+//                                        "</div>" +
+//                                        "{{/thumbnaillist}}" +
+//                                    "</div>" +
+
+// carousel that doesn't really work well with different sized images
+//                                    "<div id='{{_id}}_carousel' class='carousel slide col-xs-12 col-md-12' data-ride='carousel'>" +
+//                                        "<ol class='carousel-indicators'>" +
+//                                            "{{#thumbnaillist}}" +
+//                                                "<li data-target='#{{_id}}_carousel' data-slide-to='{{index}}'{{#active}} class='active'{{/active}}></li>" +
+//                                            "{{/thumbnaillist}}" +
+//                                        "</ol>" +
+//                                        "<div class='carousel-inner' role='listbox'>" +
+//                                            "{{#thumbnaillist}}" +
+//                                                "<div class='item{{#active}} active{{/active}}'>" +
+//                                                    "<img src='{{image}}' alt='{{_id}}_image_{{index}}'>" +
+//                                                "</div>" +
+//                                            "{{/thumbnaillist}}" +
+//                                        "</div>" +
+//                                        "<a class='left carousel-control' href='#{{_id}}_carousel' role='button' data-slide='prev'>" +
+//                                            "<span class='glyphicon glyphicon-chevron-left' aria-hidden='true'></span>" +
+//                                            "<span class='sr-only'>Previous</span>" +
+//                                        "</a>" +
+//                                        "<a class='right carousel-control' href='#{{_id}}_carousel' role='button' data-slide='next'>" +
+//                                            "<span class='glyphicon glyphicon-chevron-right' aria-hidden='true'></span>" +
+//                                            "<span class='sr-only'>Next</span>" +
+//                                         "</a>" +
+//                                    "</div>" +
+
+
                                 "</div>" +
                             "</div>" +
                         "</li>" +
                     "{{/value}}" +
                 "{{/rows}}" +
             "</ul>";
+
+        var right_template =
+            "<div id='databases'>" +
+                "<ul class='database_list'>" +
+                    "{{#.}}" +
+                        "<li class='database_item{{#current}} current{{/current}}' data-target={{database}}>" +
+                            "<a href={{database}}>{{database}}</a>" +
+                        "</li>" +
+                    "{{/.}}" +
+                "</ul>" +
+            "</div>" +
+            "<div id='info'></div>";
 
         /**
          * @summary Read the database:view of count information and render the data into html_id.
@@ -161,11 +211,12 @@ define
          *   del: function (array_of_doc) function to delete the documents
          *   publish: function (array_of_doc) function to publish the documents
          *   transfer: function (array_of_doc) function to transfer the documents
-         * @function build
+         * @function build_content
          * @memberOf module:home
          */
-        function build (database, view, html_id, options)
+        function build_content (database, view, html_id, options)
         {
+            current = database;
             $.couch.db (database).view (database + "/" + view,
             {
                 success : function (result)
@@ -177,9 +228,13 @@ define
                         var list = [];
                         for (var property in item.value._attachments)
                             if (item.value._attachments.hasOwnProperty (property))
-                                // ToDo: fix paths with slash through mustache
                                 list.push ({name: property, url: (prefix + item.id + "/" + encodeURIComponent (property))});
                         item.value.filelist = list;
+                        list = [];
+                        if (item.value.info.thing.thumbnails)
+                            for (var i = 0; i < item.value.info.thing.thumbnails.length; i++)
+                                list.push ({index: i, image: item.value.info.thing.thumbnails[i], active: (0 == i)});
+                        item.value.thumbnaillist = list;
                     });
                     result.database = database;
                     result.options =
@@ -212,6 +267,54 @@ define
                 reduce : false
             });
         };
+
+        /**
+         * @summary Riht hand side index builder.
+         * @description Build the DOM for the database list and chooser list.
+         * @param {string} html_id the id of the element to fill
+         * @function build_index
+         * @memberOf module:home
+         */
+        function build_index (html_id)
+        {
+            $.couch.allDbs
+            (
+                {
+                    success: function (data)
+                    {
+                        var dbs;
+                        var right;
+                        var links;
+
+                        // fill the DOM
+                        dbs = [];
+                        data.forEach
+                        (
+                            function (item)
+                            {
+                                if (!("_" == item.charAt (0))
+                                    && ("things" != item)
+                                    && ("configuration" != item)
+                                    && ("thing_tracker" != item))
+                                {
+                                    var link = {database: item};
+                                    if (item == current)
+                                        link.current = true;
+                                    dbs.push (link);
+                                }
+                            }
+                        );
+                        right = document.getElementById (html_id);
+                        right.innerHTML = mustache.render (right_template, dbs);
+
+                        // hook up database switch actions
+                        links = right.getElementsByTagName ("a");
+                        for (var i = 0; i < links.length; i++)
+                            links[i].addEventListener ("click", switch_database);
+                    }
+                }
+            );
+        }
 
         /**
          * @summary Display another database.
@@ -266,47 +369,9 @@ define
          */
         function draw ()
         {
-            var right_template =
-                "<div id='databases'>" +
-                    "<ul class='database_list'>" +
-                        "{{#.}}" +
-                            "<li class='database_item{{#current}} current{{/current}}' data-target={{database}}>" +
-                                "<a href={{database}}>{{database}}</a>" +
-                            "</li>" +
-                        "{{/.}}" +
-                    "</ul>" +
-                "</div>" +
-                "<div id='info'></div>";
             var areas = page.layout ();
-            $.couch.allDbs
-            (
-                {
-                    success: function (data)
-                    {
-                        var dbs = [];
-                        data.forEach
-                        (
-                            function (item)
-                            {
-                                if (!("_" == item.charAt (0))
-                                    && ("things" != item)
-                                    && ("configuration" != item)
-                                    && ("thing_tracker" != item))
-                                {
-                                    var link = {database: item};
-                                    if (item == current)
-                                        link.current = true;
-                                    dbs.push (link);
-                                }
-                            }
-                        );
-                        areas.right.innerHTML = mustache.render (right_template, dbs);
-                        // hook up database switch actions
-                        $ (".database_item a").on ("click", switch_database);
-                    }
-                }
-            );
-            build (current, "Things", areas.content.id, { del: delete_document, publish: push_to_public } );
+            build_index (areas.right.id);
+            build_content (current, "Things", areas.content.id, { del: delete_document, publish: push_to_public } );
         }
 
         /**
@@ -329,7 +394,8 @@ define
         return (
             {
                 initialize: draw,
-                build: build,
+                build_content: build_content,
+                build_index: build_index,
                 delete_document: delete_document,
                 push_to_public: push_to_public
             }

@@ -65,14 +65,15 @@ define
         /**
          * @summary Initialize the transfer page.
          * @description Sets up the DOM elements for the transfer page
-         * by calling home.build.
+         * by calling home.build_content and home.build_index.
          * @function init
          * @memberOf module:thingimporter/transfer
          * @return <em>nothing</em>
          */
         function init ()
         {
-            home.build (db, view_name, "listing", { transfer: transfer });
+            home.build_content (db, view_name, "listing", { transfer: transfer });
+            home.build_index ("right"); // ToDo: how to get page layout here
         }
 
         return (

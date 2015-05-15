@@ -80,6 +80,8 @@ requirejs
                                         link = $ (event.target); // get a jQuery element
                                         link.parent ().parent ().find (".active").removeClass ("active");
                                         link.parent ().addClass ("active");
+                                        // close the menu (for cell phones)
+                                        $ ("#navigator_menu").removeClass ("in");
                                         fn ();
                                     }
                                 );

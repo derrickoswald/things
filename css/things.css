@@ -305,3 +305,16 @@ table.file_list tr:nth-child(even)
 {
 	margin-bottom: 0;
 }
+
+/* home: don't show long links */
+.attachment
+{
+	overflow: hidden;
+}
+
+/* home: horizontal list of tags */
+ul.tags li
+{
+	display: inline-block;
+	margin-right: 10px;
+}
