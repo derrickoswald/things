@@ -16,6 +16,7 @@ define
     function (configuration, page, mustache, publish)
     {
         var current = configuration.getConfigurationItem ("public_database"); // current database
+        var databases = null; // list of databases
 
         var things_template =
             "<div id='count_of_things'>{{#total_rows}}{{total_rows}} documents{{/total_rows}}{{^total_rows}}no documents{{/total_rows}}</div>" +
@@ -268,8 +269,82 @@ define
             });
         };
 
+        function changes (html_id, dbs)
+        {
+            dbs.forEach
+            (
+                function (db)
+                {
+                    var url;
+                    var last;
+                    var xmlhttp;
+
+                    url = configuration.getDocumentRoot () + "/" + db.database + "/_changes";
+                    db.last = configuration.loadProperty (db.database + ".last");
+                    if (null != db.last)
+                        url += "?since=" + db.last;
+                    xmlhttp = new XMLHttpRequest ();
+                    xmlhttp.open ("GET", url, true);
+                    xmlhttp.setRequestHeader ("Content-Type", "application/json");
+                    xmlhttp.setRequestHeader ("Accept", "application/json");
+                    xmlhttp.onreadystatechange = function ()
+                    {
+                        if (4 == xmlhttp.readyState)
+                            if (200 == xmlhttp.status)
+                            {
+                                var reply = JSON.parse (xmlhttp.responseText);
+//                                {
+//                                    "results":
+//                                    [
+//                                        {"seq":34,"id":"ping","changes":[{"rev":"15-51ac2602644ebc0be38ef4b157c090af"}]},
+//                                        {"seq":35,"id":"7622c4be1716f2e7f4a67621d074481557b52632","changes":[{"rev":"1-a3bd224fae0f545f8c9f7fbbe12da07d"}]}
+//                                    ],
+//                                    "last_seq":35
+//                                }
+                                if (null == db.last)
+                                    configuration.storeProperty (db.database + ".last", reply.last_seq);
+                                else if (db.last != reply.last_seq)
+                                {
+                                    db.last_seq = reply.last_seq;
+                                    // count the inserts/updates to real documents
+                                    changes = 0;
+                                    reply.results.forEach
+                                    (
+                                        function (item)
+                                        {
+                                            if (/^(?:[0-9A-F]{40})$/i.test (item.id)) // id is 40 hex characters
+                                                if (!item.deleted)
+                                                    changes++;
+                                        }
+                                    );
+                                    if (0 == changes) // no substantive changes
+                                        configuration.storeProperty (db.database + ".last", reply.last_seq);
+                                    else
+                                    {
+                                        var items = document.getElementById (html_id).getElementsByTagName ("li");
+                                        for (var i = 0; i < items.length; i++)
+                                        {
+                                            var target = items[i].getAttribute ("data-target");
+                                            if (target && (target == db.database))
+                                            {
+                                                // <span class="badge">42</span>
+                                                var badge = document.createElement ("span");
+                                                badge.setAttribute ("class", "badge");
+                                                badge.innerHTML = String (changes);
+                                                items[i].appendChild (badge);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                    };
+                    xmlhttp.send ();
+                }
+            );
+        }
+
         /**
-         * @summary Riht hand side index builder.
+         * @summary Right hand side index builder.
          * @description Build the DOM for the database list and chooser list.
          * @param {string} html_id the id of the element to fill
          * @function build_index
@@ -282,12 +357,10 @@ define
                 {
                     success: function (data)
                     {
-                        var dbs;
                         var right;
                         var links;
 
-                        // fill the DOM
-                        dbs = [];
+                        databases = [];
                         data.forEach
                         (
                             function (item)
@@ -297,20 +370,25 @@ define
                                     && ("configuration" != item)
                                     && ("thing_tracker" != item))
                                 {
-                                    var link = {database: item};
+                                    var link = { database: item };
                                     if (item == current)
                                         link.current = true;
-                                    dbs.push (link);
+                                    databases.push (link);
                                 }
                             }
                         );
+
+                        // fill the DOM
                         right = document.getElementById (html_id);
-                        right.innerHTML = mustache.render (right_template, dbs);
+                        right.innerHTML = mustache.render (right_template, databases);
 
                         // hook up database switch actions
                         links = right.getElementsByTagName ("a");
                         for (var i = 0; i < links.length; i++)
                             links[i].addEventListener ("click", switch_database);
+
+                        // check for changes
+                        changes (html_id, databases);
                     }
                 }
             );
@@ -329,6 +407,15 @@ define
             event.preventDefault ();
 
             current = event.target.parentElement.getAttribute ("data-target");
+            databases.forEach
+            (
+                function (item)
+                {
+                    if (item.database == current)
+                        if (item.last_seq)
+                            configuration.storeProperty (current + ".last", item.last_seq);
+                }
+            );
             draw ();
         }
 

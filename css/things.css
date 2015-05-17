@@ -318,3 +318,9 @@ ul.tags li
 	display: inline-block;
 	margin-right: 10px;
 }
+
+/* database update count badges spacing */
+li.database_item span.badge
+{
+	margin-left: 10px;
+}

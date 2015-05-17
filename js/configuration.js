@@ -29,53 +29,68 @@ define
             tracker_database: "thing_tracker"
         };
 
-//        /**
-//         * Check if local storage is supported.
-//         * @return <code>true</code> if the browser supports local storage.
-//         * @function haslLocalStorage
-//         * @memberOf module:configuration
-//         */
-//        function haslLocalStorage ()
-//        {
-//            var ret = false;
-//
-//            try
-//            {
-//                ret = (("localStorage" in window) && (null != window["localStorage"]));
-//            }
-//            catch (e)
-//            {
-//            }
-//
-//            return (ret);
-//          }
-//
-//        /**
-//         * Store the configuration settings in local storage if possible.
-//         * @function storeConfiguration
-//         * @memberOf module:configuration
-//         */
-//        function storeConfiguration ()
-//        {
-//            if (haslLocalStorage ())
-//                for (var property in configuration)
-//                    if (configuration.hasOwnProperty (property))
-//                        localStorage.setItem (property, configuration[property]);
-//        }
-//
-//        /**
-//         * Deletes the configuration from local storage.
-//         * @function clearConfiguration
-//         * @memberOf module:Configuration
-//         */
-//        function clearConfiguration ()
-//        {
-//            if (haslLocalStorage ())
-//                for (var property in configuration)
-//                    if (configuration.hasOwnProperty (property))
-//                        localStorage.remove (property);
-//        }
+        /**
+         * Check if local storage is supported.
+         * @return <code>true</code> if the browser supports local storage.
+         * @function haslLocalStorage
+         * @memberOf module:configuration
+         */
+        function haslLocalStorage ()
+        {
+            var ret = false;
 
+            try
+            {
+                ret = (("localStorage" in window) && (null != window["localStorage"]));
+            }
+            catch (e)
+            {
+            }
+
+            return (ret);
+          }
+
+        /**
+         * Store a property in local storage if possible.
+         * @param {string} property the property name
+         * @param {string} value the property value
+         * @function storeProperty
+         * @memberOf module:configuration
+         */
+        function storeProperty (property, value)
+        {
+            if (haslLocalStorage ())
+                localStorage.setItem (property, value);
+        }
+
+        /**
+         * Retrieve a property from local storage if possible.
+         * @param {string} property the property name
+         * @function loadProperty
+         * @memberOf module:configuration
+         */
+        function loadProperty (property)
+        {
+            return (haslLocalStorage () ? localStorage.getItem (property) : null);
+        }
+
+        /**
+         * Deletes the property from local storage.
+         * @param {string} property the property name
+         * @function clearProperty
+         * @memberOf module:Configuration
+         */
+        function clearProperty (property)
+        {
+            if (haslLocalStorage ())
+                localStorage.remove (property);
+        }
+
+        /**
+         * Get the nanme of the configuration database.
+         * @function getConfigurationDatabase
+         * @memberOf module:Configuration
+         */
         function getConfigurationDatabase ()
         {
             return (configuration_database);
@@ -264,6 +279,9 @@ define
                 loadConfiguration: loadConfiguration,
                 getConfigurationItem: getConfigurationItem,
                 setConfigurationItem: setConfigurationItem,
+                storeProperty: storeProperty,
+                loadProperty: loadProperty,
+                clearProperty: clearProperty,
                 getDocumentRoot: getDocumentRoot,
                 configuration_exists: configuration_exists,
                 configuration_setup: configuration_setup
