@@ -75,6 +75,27 @@ define
 //comment     string
 //created by  string  Application-generated string that may include its name, version, etc. Optional.
 
+        function b64toBlob (b64Data, contentType, sliceSize)
+        {
+            contentType = contentType || "";
+            sliceSize = sliceSize || 512;
+
+            var byteCharacters = atob (b64Data);
+            var byteArrays = [];
+
+            for (var offset = 0; offset < byteCharacters.length; offset += sliceSize)
+            {
+                var slice = byteCharacters.slice (offset, offset + sliceSize);
+                var byteNumbers = new Array (slice.length);
+                for (var i = 0; i < slice.length; i++)
+                    byteNumbers[i] = slice.charCodeAt (i);
+
+                byteArrays.push (new Uint8Array (byteNumbers));
+            }
+
+            return (new Blob (byteArrays, { type: contentType }));
+        }
+
         /**
          * @summary Copy to the public database.
          * @description Copy a thing to the public database.
@@ -97,12 +118,28 @@ define
             (
                 primary_key,
                 {
+                    attachments: true,
                     success: function (doc)
                     {
                         var comment;
                         var announce;
                         var attachments;
                         var pieces;
+
+                        // re-hydrate the attachments
+                        attachments = [];
+                        for (attachment in doc._attachments)
+                        {
+                            if (doc._attachments.hasOwnProperty (attachment))
+                            {
+                                if (attachment != primary_key + ".torrent") // skip the torrent: added later
+                                {
+                                    var blob = b64toBlob (doc._attachments[attachment].data, doc._attachments[attachment].content_type);
+                                    var file = new File ([blob], attachment, { type: doc._attachments[attachment].content_type });
+                                    attachments.push (file);
+                                }
+                            }
+                        }
 
                         // remove couch stuff
                         delete doc._rev;
@@ -131,7 +168,7 @@ define
                         doc.info.pieces = torrent.ArrayToPieces (pieces);
 
                         // make the torrent attachment
-                        attachments = [new File ([bencoder.str2ab (bencoder.encode (doc))], primary_key + ".torrent", { type: "application/octet-stream" })];
+                        attachments.push (new File ([bencoder.str2ab (bencoder.encode (doc))], primary_key + ".torrent", { type: "application/octet-stream" }));
 
                         doc.info.pieces = pieces;
 
@@ -297,7 +334,7 @@ define
 
                     var primary_key;
                     if (!data.torrent)
-                        primary_key = "11020459b0af49d0eb2695ffa0e98677eabf941f";
+                        primary_key = "c24e450a550f8a399f93092c1c6366aac5565c2e";
                     else
                         primary_key = data.torrent._id;
                     announce (primary_key, options);
