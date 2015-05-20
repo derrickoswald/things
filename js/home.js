@@ -307,17 +307,17 @@ define
                                 {
                                     db.last_seq = reply.last_seq;
                                     // count the inserts/updates to real documents
-                                    changes = 0;
+                                    updates = 0;
                                     reply.results.forEach
                                     (
                                         function (item)
                                         {
                                             if (/^(?:[0-9A-F]{40})$/i.test (item.id)) // id is 40 hex characters
                                                 if (!item.deleted)
-                                                    changes++;
+                                                    updates++;
                                         }
                                     );
-                                    if (0 == changes) // no substantive changes
+                                    if (0 == updates) // no substantive changes
                                         configuration.storeProperty (db.database + ".last", reply.last_seq);
                                     else
                                     {
@@ -330,7 +330,7 @@ define
                                                 // <span class="badge">42</span>
                                                 var badge = document.createElement ("span");
                                                 badge.setAttribute ("class", "badge");
-                                                badge.innerHTML = String (changes);
+                                                badge.innerHTML = String (updates);
                                                 items[i].appendChild (badge);
                                             }
                                         }
@@ -352,14 +352,36 @@ define
          */
         function build_index (html_id)
         {
+            var right;
+            var links;
+
+            // fill the DOM
+            right = document.getElementById (html_id);
+            right.innerHTML = mustache.render (right_template, databases);
+
+            // hook up database switch actions
+            links = right.getElementsByTagName ("a");
+            for (var i = 0; i < links.length; i++)
+                links[i].addEventListener ("click", switch_database);
+
+            // check for changes
+            changes (html_id, databases);
+        }
+
+        /**
+         * @summary Get the list of databases.
+         * @description Get all documents and filter out non-thing databases.
+         * @param {string} html_id the id of the element to fill
+         * @function fetch_databases
+         * @memberOf module:home
+         */
+        function fetch_databases (html_id)
+        {
             $.couch.allDbs
             (
                 {
                     success: function (data)
                     {
-                        var right;
-                        var links;
-
                         databases = [];
                         data.forEach
                         (
@@ -377,18 +399,7 @@ define
                                 }
                             }
                         );
-
-                        // fill the DOM
-                        right = document.getElementById (html_id);
-                        right.innerHTML = mustache.render (right_template, databases);
-
-                        // hook up database switch actions
-                        links = right.getElementsByTagName ("a");
-                        for (var i = 0; i < links.length; i++)
-                            links[i].addEventListener ("click", switch_database);
-
-                        // check for changes
-                        changes (html_id, databases);
+                        build_index (html_id);
                     }
                 }
             );
@@ -457,7 +468,10 @@ define
         function draw ()
         {
             var areas = page.layout ();
-            build_index (areas.right.id);
+            if (null == databases)
+                fetch_databases (areas.right.id);
+            else
+                build_index (areas.right.id);
             build_content (current, "Things", areas.content.id, { del: delete_document, publish: push_to_public } );
         }
 
