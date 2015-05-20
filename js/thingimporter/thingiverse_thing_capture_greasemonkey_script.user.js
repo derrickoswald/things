@@ -1594,7 +1594,7 @@ bencoder = function ()
                                 }
                                 options.error (xmlhttp.status, msg, reason);
                             }
-                    }
+                    };
                     xmlhttp.send (ab);
                 });
         };

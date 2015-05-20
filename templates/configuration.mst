@@ -1,3 +1,8 @@
+{{!
+    <link rel="stylesheet" href="../css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="../css/static/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../css/things.css">
+}}
 <h2>Configuration</h2>
 <p>Set up this instance of the <em>things</em> system.</p>
 <p>The configuration is broken up into logical groups:</p>

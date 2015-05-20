@@ -1,4 +1,8 @@
-
+{{!
+    <link rel="stylesheet" href="../../css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/static/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../../css/things.css">
+}}
                 <h1>Pending Things</h1>
                 <p>
                     <strong>List of <em>Things</em> in pending state.</strong>

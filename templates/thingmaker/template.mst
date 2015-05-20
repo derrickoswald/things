@@ -1,3 +1,8 @@
+{{!
+    <link rel="stylesheet" href="../../css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/static/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../../css/things.css">
+}}
                     <h2>Select a Template</h2>
                     <em>This step is optional.</em><br>
                     Choose a torrent file that will be used as a basis for the <em>Thing</em> you create.<br>

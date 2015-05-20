@@ -1,3 +1,8 @@
+{{!
+    <link rel="stylesheet" href="../../css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/static/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../../css/things.css">
+}}
                     <h2>Upload</h2>
                     Upload the <em>thing</em> and the associated files to the local things database. 
                     <button id="upload_button" class="btn btn-primary start upload_form_button" type="submit">

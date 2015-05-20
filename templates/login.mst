@@ -1,3 +1,8 @@
+{{!
+    <link rel="stylesheet" href="../css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="../css/static/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../css/things.css">
+}}
 <li id="login" class="dropdown">
     <a id="login_button_link" href="#" data-toggle="dropdown">Login</a>
     <div class="dropdown-menu loginform">

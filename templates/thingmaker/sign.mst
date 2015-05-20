@@ -1,3 +1,8 @@
+{{!
+    <link rel="stylesheet" href="../../css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/static/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../../css/things.css">
+}}
                     <h2>Sign the Thing</h2>
                     You can optionally sign your <em>Thing</em> by providing the private key in PEM format.
                     Also supply the corresponding public certificate if it has not been widely distributed already,
@@ -8,7 +13,7 @@
                     <form id="signing_form" action="javascript:sign_thing ();">
                         <ul>
                             <li>
-                                <label class="signing_form_label" for="private_key">Private Key</label>
+                                <label for="private_key">Private Key</label>
                                 <textarea id="private_key" name="private_key" rows="16" cols="65">-----BEGIN RSA PRIVATE KEY-----
 MIICXQIBAAKBgQC/875gQ3CrLKmf6Ag/sLtK/Y0wnEmzwBOSJY1ecGBoLrPc6Hdc
 NCK0eAwcB70A62VBOQZJ4mbyQwKmCaIUNDzBnDAO4p+5UCB4WWvwIILBXDRR2bP8
@@ -26,7 +31,7 @@ LrvSlhBrIatVmU1NzJetJNXtMqyOFfTJTJDtJOkritTQ
 -----END RSA PRIVATE KEY-----</textarea>
                             </li>
                             <li>
-                                <label class="signing_form_label" for="certificate">Certificate</label>
+                                <label for="certificate">Certificate</label>
                                 <textarea id="certificate" name="certificate" rows="30" cols="65">-----BEGIN CERTIFICATE-----
 MIIE/zCCAuegAwIBAgIDDeFpMA0GCSqGSIb3DQEBBQUAMHkxEDAOBgNVBAoTB1Jv
 b3QgQ0ExHjAcBgNVBAsTFWh0dHA6Ly93d3cuY2FjZXJ0Lm9yZzEiMCAGA1UEAxMZ
@@ -58,19 +63,19 @@ tiVNNk2MZ6PDp0Kfzmf0FfT1TJELXrsM4VuQVsqdhDBDvmI=
 -----END CERTIFICATE-----</textarea>
                             </li>
                             <li>
-                                <label class="signing_form_label" for="version">Version</label>
+                                <label for="version">Version</label>
                                 <input id="version" type="text" name="version" placeholder="v1.0.0">
                             </li>
                             <li>
-                                <label class="signing_form_label" for="nonce">Nonce</label>
-                                <textarea id="nonce" type="text" name="nonce" rows="5" cols="65"></textarea>
+                                <label for="nonce">Nonce</label>
+                                <textarea id="nonce" name="nonce" rows="5" cols="65"></textarea>
                             </li>
                             <li>
-                                <label class="signing_form_label" for="next_nonce">Next nonce</label>
-                                <textarea id="next_nonce" type="text" name="next_nonce" rows="5" cols="65"></textarea>
+                                <label for="next_nonce">Next nonce</label>
+                                <textarea id="next_nonce" name="next_nonce" rows="5" cols="65"></textarea>
                             </li>
                             <li>
-                                <input class="signing_form_button" type="submit" value="Sign Thing"
+                                <input type="submit" value="Sign Thing"
                                 name="sign_thing" disabled="disabled">
                             </li>
                         </ul>

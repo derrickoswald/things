@@ -1,3 +1,8 @@
+{{!
+    <link rel="stylesheet" href="../../css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/static/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../../css/things.css">
+}}
                     <h2>Select Files</h2>
                     Identify the files to be included in your <em>Thing</em>.<br>
                     You can either select a single file or multiple files by clicking on the <b>Add files</b> button below and using the dialog to navigate to and identify the file(s),

@@ -1,3 +1,8 @@
+{{!
+    <link rel="stylesheet" href="../../css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/static/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../../css/things.css">
+}}
 <h2>Publish</h2>
 <p>Publish the thing using this form and let the <em>Thing Tracker Network</em> know about it.</p>
 <p>The publish operation does three operations:</p>

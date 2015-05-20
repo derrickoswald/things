@@ -1,3 +1,8 @@
+{{!
+    <link rel="stylesheet" href="../../css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/static/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../../css/things.css">
+}}
 <h2>Enter Metadata</h2>
 
 <p>Fill in this form with the metadata for your <em>thing</em> and press the <b>Make</b> button.</p>
