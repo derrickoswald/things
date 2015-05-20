@@ -15,7 +15,7 @@ function output (head, req)
         if (0 != records)
             send (",\n");
         var text = JSON.stringify (row.value, null, 4);
-        var text = "        " + text.replace (/\n/g, "\n        ");
+        text = "        " + text.replace (/\n/g, "\n        ");
         send (text);
         records++;
     }

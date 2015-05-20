@@ -12,7 +12,7 @@
  * https://github.com/benjreinhart/bencode-js/blob/master/src/bencode.js
  * http://demon.tw/my-work/javascript-bencode.html
  * http://svn.mg2.org/projects/pco/browser/trunk/net/cjdns-mikey/admin/http/text/javascript/bencode.js?rev=8
- * https://code.google.com/p/jsxt/source/browse/trunk/js/Bencode.js?spec=svn491&r=491
+ * https://code.google.com/p/jsxt/source/browse/trunk/js/Bencode.js?spec=svn491&amp;r=491
  *
  * All of the above either depend on the node.js Buffer class so they aren't applicable
  * to client side use (maybe lobrow could be used) or have done string

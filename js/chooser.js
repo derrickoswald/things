@@ -145,7 +145,7 @@ define
                 this.changed (event);
                 this.add (null);
             }
-        }
+        };
 
         /**
          * Event handler for user entering a value by key entry.
@@ -159,7 +159,7 @@ define
 
             index = Number (event.target.getAttribute (this.data_source));
             this.context.items[index].value = event.target.value;
-        }
+        };
 
         /**
          * Event handler for drop-down list item selected.
@@ -186,7 +186,7 @@ define
             // update the value list
             index = Number (target.getAttribute (this.data_source));
             this.context.items[index].value = value;
-        }
+        };
 
         /**
          * Set the focus to the given input item.
@@ -202,7 +202,7 @@ define
             list = document.getElementById (this.list_name);
             inputs = list.getElementsByTagName ("input");
             inputs[index].focus ();
-        }
+        };
 
         /**
          * Event handler for clicking the plus icon.
@@ -220,7 +220,7 @@ define
 
             // set focus to the new input element
             this.focus (this.context.items.length - 1);
-        }
+        };
 
         /**
          * Event handler for clicking the minus icon.
@@ -247,7 +247,7 @@ define
 
             // set focus to the new input element
             this.focus (this.context.items.length - 1);
-        }
+        };
 
         /**
          * Render the chooser field set.
@@ -297,7 +297,7 @@ define
             for (var i = 0; i < spans.length; i++)
                 if (spans[i].classList.contains ("input-group-addon"))
                     spans[i].addEventListener ("click", (0 == Number (spans[i].getAttribute (this.data_source))) ? added : removed);
-        }
+        };
 
         return (
             /** @alias module:chooser */
@@ -306,4 +306,4 @@ define
             }
         );
     }
-)
+);

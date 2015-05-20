@@ -278,6 +278,7 @@ define
                     var url;
                     var last;
                     var xmlhttp;
+                    var updates;
 
                     url = configuration.getDocumentRoot () + "/" + db.database + "/_changes";
                     db.last = configuration.loadProperty (db.database + ".last");

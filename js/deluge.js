@@ -19,7 +19,7 @@ define
          * Deluge URL.
          * Corresponds to http://localhost:8112/json as proxied by couchdb
          * i.e. add this line under the [httpd_global_handlers] section:
-         * <code>json = {couch_httpd_proxy, handle_proxy_req, <<"http://localhost:8112">>}</code>
+         * <code>json = {couch_httpd_proxy, handle_proxy_req, &lt;&lt;"http://localhost:8112"&gt;&gt;}</code>
          * NOTE: the json name is not optional, since the cookie contains the path /json and hence
          * will only match through the proxy if the trigger path is also json, hence the /json/json
          * @memberOf module:deluge
@@ -190,7 +190,7 @@ define
                     else
                         if (callbacks && callbacks.error)
                             callbacks.error ();
-            }
+            };
             xmlhttp.timeout = 500; // half a second - the number of milliseconds a request can take before automatically being terminated. A value of 0 (which is the default) means there is no timeout.
 
             // note to self, this also handles magnet uri as well as file paths
@@ -280,7 +280,7 @@ define
                     else
                         if (callbacks && callbacks.error)
                             callbacks.error ();
-            }
+            };
             xmlhttp.timeout = 500; // half a second - the number of milliseconds a request can take before automatically being terminated. A value of 0 (which is the default) means there is no timeout.
 
             // note to self, this also handles magnet uri as well as file paths

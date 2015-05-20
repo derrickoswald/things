@@ -72,7 +72,7 @@ define
 
             for (var i = 0; (i < steps.length) && (0 > ret); i++)
                 if (id == steps[i].id)
-                    ret = i
+                    ret = i;
 
             return (ret);
         };
@@ -156,7 +156,7 @@ define
             // make the left nav item
             item = document.createElement ("li");
             list.appendChild (item);
-            item.id = id + "_nav"
+            item.id = id + "_nav";
             if (active)
                 item.className = "active";
 
@@ -286,7 +286,7 @@ define
         var functions =
         {
             "wizard": wizard
-        }
+        };
 
         return (functions);
     }

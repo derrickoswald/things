@@ -1335,7 +1335,7 @@ bencoder = function ()
                 for (var i = 0; i < files.length; i++)
                     doneset.push (false);
 
-                var readers = [];
+                readers = [];
                 for (var i = 0; i < files.length; i++)
                 {   // here we add the file bytes with spacers between files
                     var reader = new FileReader ();
@@ -1405,8 +1405,7 @@ bencoder = function ()
          */
         function fullCommit (options)
         {
-            var options = options ||
-            {};
+            options = options || {};
             if (typeof (options.ensure_full_commit) !== "undefined")
             {
                 var commit = options.ensure_full_commit;
@@ -1482,22 +1481,27 @@ bencoder = function ()
          */
         function saveDocWithAttachments (db, doc, options, files, fn)
         {
+            var beforeSend;
+            var method;
+            var uri;
+            var versioned;
+
             options = options || {};
-            var beforeSend = fullCommit (options);
+            beforeSend = fullCommit (options);
             if (doc._id === undefined)
             {
-                var method = "POST";
-                var uri = "/" + db + "/";
+                method = "POST";
+                uri = "/" + db + "/";
             }
             else
             {
-                var method = "PUT";
-                var uri = "/" + db + "/" + encodeDocId (doc._id);
+                method = "PUT";
+                uri = "/" + db + "/" + encodeDocId (doc._id);
                 delete (doc._id);
             }
             if (options.CORS)
                 uri = options.CORS + uri;
-            var versioned = maybeApplyVersion (doc);
+            versioned = maybeApplyVersion (doc);
             function decodeUtf8 (arrayBuffer)
             {
                 var result = "";
@@ -1737,7 +1741,6 @@ function convertImagesToDataURLs (blobs, width, height, fn)
     var img;
     var canvas;
     var context;
-    var ret;
 
     var urls = [];
     var count = blobs.length;
@@ -1778,7 +1781,7 @@ function thing ()
 {
     var title = get_title ();
 
-    var author = document.getElementsByClassName ("thing-header-data")[0].getElementsByTagName ("h2")[0].getElementsByTagName ("a")[0].innerHTML
+    var author = document.getElementsByClassName ("thing-header-data")[0].getElementsByTagName ("h2")[0].getElementsByTagName ("a")[0].innerHTML;
 
     var license = document.getElementsByClassName ("thing-license")[0].getAttribute ("title");
 
@@ -1885,7 +1888,7 @@ function capture ()
                         error: function () { alert ("thing import failed"); },
                         CORS: url_prefix (),
                         USE_PUT: true
-                    }
+                    };
                     records.saveDocWithAttachments (database, tor, options, uploadfiles);
                 });
             });
@@ -1920,11 +1923,11 @@ function ping ()
                     var pinged = (200 == xmlhttp.status || 201 == xmlhttp.status || 202 == xmlhttp.status);
                     document.getElementById ("import_thing_button").disabled = !pinged;
                 }
-            }
+            };
             console.log ("PUT:\n" + JSON.stringify (payload, null, 4));
             xmlhttp.send (JSON.stringify (payload, null, 4));
         }
-    }
+    };
     console.log ("GET: " + couch_db () + "/ping");
     xmlhttp.send ();
 }
@@ -1937,7 +1940,7 @@ function ping ()
         var trigger2 = "https://www.thingiverse.com/thing:";
         if ((document.URL.substring (0, trigger1.length) == trigger1) || (document.URL.substring (0, trigger2.length) == trigger2))
         {
-            console.log ("initializing thingiverse_import")
+            console.log ("initializing thingiverse_import");
             var ff = document.createElement ("div");
             ff.setAttribute ("style", "position: relative;");
             var template = "<div style='position: absolute; top: 100px; left: 20px;'>" +

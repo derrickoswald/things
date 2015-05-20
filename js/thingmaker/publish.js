@@ -6,7 +6,7 @@
  */
 define
 (
-    ["mustache", "../deluge", "../records", "../bencoder", "../login", "../configuration", "../discover", "../torrent"],
+    ["mustache", "../deluge", "../records", "../bencoder", "../login", "../configuration", "../discover", "../torrent", "../chooser"],
     /**
      * @summary Publish a thing.
      * @description Provides the functionality to publish a thing to the
@@ -15,51 +15,8 @@ define
      * @exports thingmaker/publish
      * @version 1.0
      */
-    function (mustache, deluge, records, bencoder, login, configuration, discover, torrent)
+    function (mustache, deluge, records, bencoder, login, configuration, discover, torrent, chooser)
     {
-        /**
-         * Inner template for each tracker input field added on the form.
-         * Initially there are none, but in the init() function the first empty one is added.
-         */
-        var tracker_template =
-            "{{#announce}}" +
-                "<label for='announce-list-{{index}}' data-tracker='{{index}}' class='col-sm-3 control-label'>" +
-                    "{{label}}" +
-                "</label>" +
-                "<div class='col-sm-9' data-tracker='{{index}}'>" +
-                    "<div class='input-group'>" +
-                        "<span class='dropdown'>" +
-                            "<input id='announce-list-{{index}}' type='text' class='form-control dropdown-toggle' data-tracker='{{index}}' data-toggle='dropdown' placeholder='udp://<tracker_url>' aria-label='tracker' value='{{url}}'>" +
-                            "<ul class='dropdown-menu pull-right' role='menu' aria-labelledby='announce-list-{{index}}' >" +
-                                "{{#trackers}}" +
-                                "<li role='presentation'>" +
-                                    "<a class='tracker' data-target='announce-list-{{index}}' role='menuitem' tabindex='-1' href='#'>{{.}}</a>" +
-                                "</li>" +
-                                "{{/trackers}}" +
-                            "</ul>" +
-                        "</span>" +
-                        "<span class='input-group-addon btn btn-default {{buttonclass}}' data-tracker='{{index}}'>" +
-                            "<i class='glyphicon {{glyph}}'></i>" +
-                        "</span>" +
-                    "</div>" +
-                "</div>" +
-            "{{/announce}}";
-
-        function label ()
-        {
-            return (("1" == this.index) ? "Trackers" : "");
-        }
-
-        function buttonclass ()
-        {
-            return (("1" == this.index) ? "add_tracker" : "remove_tracker");
-        }
-
-        function glyph ()
-        {
-            return (("1" == this.index) ? "glyphicon-plus" : "glyphicon-minus");
-        }
-
         var trackers =
         [
             "udp://tracker.openbittorrent.com:80",
@@ -70,6 +27,11 @@ define
             "udp://tracker.pomf.se",
             "udp://tracker.blackunicorn.xyz:6969"
         ];
+
+        /**
+         * List of trackers builder component.
+         */
+        var tracker_chooser = null;
 
 //creation date   integer     The creation date and time, expressed as the number of seconds since January 1, 1970 12:00. Optional.
 //comment     string
@@ -121,8 +83,6 @@ define
                     attachments: true,
                     success: function (doc)
                     {
-                        var comment;
-                        var announce;
                         var attachments;
                         var pieces;
 
@@ -281,7 +241,7 @@ define
                             success: discover.post_my_things
                         }
                     );
-                }
+                };
             // copy the document to the public database with appropriate .torrent
             copy_to_public (primary_key, options);
         };
@@ -317,14 +277,7 @@ define
 
                     // add the announce-list - optional
                     announce_list = [];
-                    data.context.announce.forEach
-                    (
-                        function (item)
-                        {
-                            if (item.url != "")
-                                announce_list.push (item.url);
-                        }
-                    );
+                    tracker_chooser.context.items.forEach (function (item) { if ("" != item.value) announce_list.push (item.value); });
                     if (0 != announce_list.length)
                     {
                         options.announce = announce_list[0];
@@ -347,118 +300,10 @@ define
             login.isLoggedIn (parameters);
         }
 
-        function tracker_changed (event, data)
-        {
-            var index;
-
-            // update the announce list
-            index = event.target.getAttribute ("data-tracker");
-            data.context.announce.forEach (function (item) { if (index == item.index) item.url = event.target.value; });
-        }
-
-        function tracker_clicked (event, data)
-        {
-            var link;
-            var target;
-            var index;
-
-            link = event.target;
-
-            // fill in the input field with the chosen tracker URL
-            target = document.getElementById (link.getAttribute ("data-target"));
-            target.value = link.innerHTML;
-
-            // update the announce list
-            index = target.getAttribute ("data-tracker");
-            data.context.announce.forEach (function (item) { if (index == item.index) item.url = target.value; });
-        }
-
-        function render_trackers (data)
-        {
-            var list;
-            var inputs;
-            var trackers;
-            var spans;
-            var change;
-            var click;
-            var add;
-            var remove;
-
-            // re-render inject the new elements into the DOM
-            list = document.getElementById ("tracker_list");
-            list.innerHTML = mustache.render (tracker_template, data.context);
-
-            // handle edit events
-            change = function (event) { tracker_changed (event, data); };
-            inputs = list.getElementsByTagName ("input");
-            for (var i = 0; i < inputs.length; i++)
-                inputs[i].addEventListener ("change", change);
-
-            // handle drop down chosen events
-            click = function (event) { tracker_clicked (event, data); };
-            trackers = list.getElementsByTagName ("a");
-            for (var i = 0; i < trackers.length; i++)
-                trackers[i].addEventListener ("click", click);
-
-            // handle add and remove tracker events on the input group addon button
-            add = function (event) { add_tracker (event, data); }
-            remove = function (event) { remove_tracker (event, data); }
-            spans = list.getElementsByTagName ("span");
-            for (var i = 0; i < spans.length; i++)
-                if (spans[i].classList.contains ("input-group-addon"))
-                    spans[i].addEventListener ("click", (1 == Number (spans[i].getAttribute ("data-tracker"))) ? add : remove);
-        }
-
-        function add_tracker (event, data)
-        {
-            var index;
-
-            // find next index
-            index = 0;
-            data.context.announce.forEach (function (item) { if (item.index > index) index = item.index; });
-
-            // add the next tracker input element
-            data.context.announce.push ({ index: index + 1, url: "" });
-
-            render_trackers (data);
-        }
-
-        function remove_tracker (event, data)
-        {
-            var index;
-            var list;
-
-            // get the index
-            index = event.target.getAttribute ("data-tracker");
-            if (null == index)
-                index = event.target.parentElement.getAttribute ("data-tracker");
-
-            // remove it from the list
-            list = [];
-            data.context.announce.forEach (function (item) { if (index != item.index) list.push (item); });
-            data.context.announce = list;
-
-            // delete the DOM elements - could also re-render, but at added cost
-            $ ("label[data-tracker='" + index + "']").remove ();
-            $ ("div[data-tracker='" + index + "']").remove ();
-        }
-
         function init (event, data)
         {
-            if ("undefined" == typeof (data.context))
-            {   // first run
-                data.context =
-                {
-                    trackers: trackers,
-                    label: label,
-                    buttonclass: buttonclass,
-                    glyph: glyph,
-                    announce: []
-                }
-                add_tracker (null, data);
-            }
-            else
-                render_trackers (data)
+            tracker_chooser = new chooser.Chooser ("tracker_list", "Trackers", trackers[0], trackers);
+            tracker_chooser.render ();
         }
 
         return (
@@ -475,4 +320,4 @@ define
             }
         );
     }
-)
+);

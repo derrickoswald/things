@@ -62,43 +62,43 @@ define
                     "throw { 'forbidden': 'Only admins and users can alter documents' };" +
             "}";
 
-            var tracker_views =
+        var tracker_views =
+        {
+            // view of only "trackers"
+            Trackers:
             {
-                // view of only "trackers"
-                Trackers:
-                {
-                    map: "function(doc) { if (doc.tracker) emit (doc._id, doc); }"
-                }
-            };
+                map: "function(doc) { if (doc.tracker) emit (doc._id, doc); }"
+            }
+        };
 
-            var read_restricted =
-            // security document limiting CRUD to the admin user
+        var read_restricted =
+        // security document limiting CRUD to the admin user
+        {
+            "admins":
             {
-                "admins":
-                {
-                    "names":
-                    [
-                        "admin"
-                    ],
-                    "roles":
-                    [
-                        "_admin"
-                    ]
-                },
-                "members":
-                {
-                    "names":
-                    [
-                        "admin"
-                    ],
-                    "roles":
-                    [
-                        "_admin"
-                    ]
-                }
-            };
+                "names":
+                [
+                    "admin"
+                ],
+                "roles":
+                [
+                    "_admin"
+                ]
+            },
+            "members":
+            {
+                "names":
+                [
+                    "admin"
+                ],
+                "roles":
+                [
+                    "_admin"
+                ]
+            }
+        };
 
-            /**
+        /**
          * @summary Make the local database secure by adding the _security document.
          * @description Stores a security policy that only allows an admin to
          * read and write the database.
@@ -150,7 +150,7 @@ define
                         {
                             names: [],
                             roles: []
-                        }
+                        };
 
                         $.couch.db (name).saveDoc
                         (
@@ -389,4 +389,4 @@ define
             }
         );
     }
-)
+);

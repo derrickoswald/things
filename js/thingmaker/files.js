@@ -48,7 +48,7 @@ define
             var filelist = [];
             for (var i = 0; i < data.files.length; i++)
             {
-                filelist.push ({ filename: data.files[i].name, filesize: data.files[i].size, filetype: data.files[i].type })
+                filelist.push ({ filename: data.files[i].name, filesize: data.files[i].size, filetype: data.files[i].type });
                 // also ??? data.files[i].lastModifiedDate ? data.files[i].lastModifiedDate.toLocaleDateString () : 'n/a'
                 total += data.files[i].size;
             }
@@ -142,4 +142,4 @@ define
             }
         );
     }
-)
+);

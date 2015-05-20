@@ -23,16 +23,19 @@ define
 
         function select_template (files, data)
         {
-            torrent.ReadTorrentAsync (files[0],
-            {
-                success: function (name, tor)
+            torrent.ReadTorrentAsync
+            (
+                files[0],
                 {
-                    data.torrent = tor;
-                    if (!tor._id && tor.info)
-                        tor._id = torrent.InfoHash (tor.info);
-                    update (data);
+                    success: function (name, tor)
+                    {
+                        data.torrent = tor;
+                        if (!tor._id && tor.info)
+                            tor._id = torrent.InfoHash (tor.info);
+                        update (data);
+                    }
                 }
-            })
+            );
         }
 
         /**
@@ -90,4 +93,4 @@ define
             }
         );
     }
-)
+);

@@ -324,3 +324,12 @@ li.database_item span.badge
 {
 	margin-left: 10px;
 }
+
+/* configuration page */
+.configuration_group
+{
+    border: 5px solid #e3edf9;
+    border-radius: 2em;
+    padding: 2em;
+    margin: 1em;
+}

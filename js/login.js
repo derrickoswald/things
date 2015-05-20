@@ -300,8 +300,8 @@ define (
         {
             "build": build,
             "isLoggedIn": isLoggedIn
-        }
+        };
 
         return (ret);
     }
-)
+);

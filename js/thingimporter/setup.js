@@ -30,7 +30,7 @@ define
                 document.getElementById ("create_import_database_button").disabled = exists;
                 var details = $ ("#import_database_created");
                 if (exists)
-                    details.removeClass ("hidden")
+                    details.removeClass ("hidden");
                 else
                     details.addClass ("hidden");
             }
@@ -65,7 +65,7 @@ define
          */
         function make_db ()
         {
-            configuration.make_database ($ ("#database_name").val (), { success: make_view, error: function () { alert ("database creation failed"); } })
+            configuration.make_database ($ ("#database_name").val (), { success: make_view, error: function () { alert ("database creation failed"); } });
         }
 
         /**
@@ -86,7 +86,7 @@ define
                 document.getElementById ("configure_cors_button").disabled = cors;
                 var details = $ ("#cors_configured");
                 if (cors)
-                    details.removeClass ("hidden")
+                    details.removeClass ("hidden");
                 else
                     details.addClass ("hidden");
 
@@ -178,7 +178,7 @@ define
                     },
                     error: function () { alert ("Enabling CORS failed"); }
                 }
-            )
+            );
         }
 
         /**
@@ -236,21 +236,21 @@ define
                                         document.getElementById ("thingiverse_user_scripted").innerHTML = (scripted ? "true" : "false");
                                         details = $ ("#scripted");
                                         if (scripted)
-                                            details.removeClass ("hidden")
+                                            details.removeClass ("hidden");
                                         else
                                             details.addClass ("hidden");
 
                                         // remove the iframe
                                         document.getElementById ("thingiverse_section").removeChild (iframe);
                                     }
-                                }
+                                };
                                 xmlhttp.send ();
                             };
                         document.getElementById ("thingiverse_section").appendChild (iframe);
                     }
                     else
                         document.getElementById ("thingiverse_user_scripted").innerHTML = "false";
-            }
+            };
             xmlhttp.send ();
         }
 
@@ -304,7 +304,7 @@ define
                     }
                     else
                         alert ("user script " + script + " not found");
-            }
+            };
             xmlhttp.send ();
         }
 
@@ -350,4 +350,4 @@ define
             }
         );
     }
-)
+);

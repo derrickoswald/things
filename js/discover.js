@@ -156,7 +156,7 @@ define
                                 "E5CF08EF3FDA6C8E393F5C30C10CD5718D829973",
                                 {
                                     success: function (data) { alert (JSON.stringify (data, null, 4)); },
-                                    error: function () { alert ("failed to get info") }
+                                    error: function () { alert ("failed to get info"); }
                                 }
                             );
                         },
@@ -178,7 +178,7 @@ define
                                 // 32 bit encoded "magnet:?xt=urn:btih:4XHQR3Z73JWI4OJ7LQYMCDGVOGGYFGLT",
                                 {
                                     success: function (data) { alert (JSON.stringify (data, null, 4)); },
-                                    error: function () { alert ("failed to add magnet") }
+                                    error: function () { alert ("failed to add magnet"); }
                                 }
                             );
                         },

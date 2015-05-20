@@ -1,7 +1,5 @@
 function map (doc)
 {
-    var thing = doc.thing;
-
     var plain_fields = ["title", "url", "description"];
     plain_fields.forEach
     (

@@ -152,26 +152,30 @@ define ([ "multipart" ],
          */
         function saveDocWithAttachments (db, doc, options, files, fn)
         {
+            var beforeSend;
+            var method;
+            var uri;
+            var versioned;
+
             options = options || {};
-            var beforeSend = fullCommit (options);
+            beforeSend = fullCommit (options);
             if (doc._id === undefined)
             {
-                var method = "POST";
-                var uri = $.couch.urlPrefix + "/" + db + "/";
+                method = "POST";
+                uri = $.couch.urlPrefix + "/" + db + "/";
             }
             else
             {
-                var method = "PUT";
-                var uri = $.couch.urlPrefix + "/" + db + "/" + encodeDocId (doc._id);
+                method = "PUT";
+                uri = $.couch.urlPrefix + "/" + db + "/" + encodeDocId (doc._id);
                 delete (doc._id);
             }
-            var versioned = maybeApplyVersion (doc);
+            versioned = maybeApplyVersion (doc);
             function decodeUtf8 (arrayBuffer)
             {
                 var result = "";
                 var i = 0;
                 var c = 0;
-                var c1 = 0;
                 var c2 = 0;
                 var c3 = 0;
 
@@ -247,7 +251,7 @@ define ([ "multipart" ],
                                 }
                                 options.error (xmlhttp.status, msg, reason);
                             }
-                    }
+                    };
                     xmlhttp.send (ab);
                 });
         };

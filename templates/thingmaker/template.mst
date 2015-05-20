@@ -11,6 +11,5 @@
                         <span>Select template...</span>
                         <input id="thing_template" type="file" name="files[]" multiple>
                     </span>
-                    <pre>
-                        <div id="byte_content"></div>
-                    </pre>
+                    <div><pre id="byte_content"></pre></div>
+                    

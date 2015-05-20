@@ -18,7 +18,7 @@
                     </span>
                     
                     <table id="file_table" class="file_list">
-						<tr><td></td><td>No files selected</td><td class=\"right\"></td></tr>
+						<tr><td></td><td>No files selected</td><td class="right"></td></tr>
 					</table>
 					<div id="total_size">{{total}}</div>
                     <div id="info_hash"></div>
