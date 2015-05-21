@@ -6,14 +6,14 @@
  */
 define
 (
-    ["records"],
+    ["records", "configuration"],
     /**
      * @summary Functions for interfacing to the Deluge web plugin.
      * @name deluge
      * @exports deluge
      * @version 1.0
      */
-    function (records)
+    function (records, configuration)
     {
         /**
          * Deluge URL.
@@ -195,10 +195,30 @@ define
 
             // note to self, this also handles magnet uri as well as file paths
             // , options: { download_location: "/home/derrick/Torrents" }
-            xmlhttp.send (JSON.stringify ({"method": "web.add_torrents", "params":
-                // from here: http://forum.deluge-torrent.org/viewtopic.php?f=8&t=41333
-                [[{"path":filename, "options": { download_location: "/home/derrick/Torrents" }}]], "id": 4}));
-               // not this like it says in the documentation [{path: filename , options: { download_location: "/home/derrick/Torrents" }}], "id": 4}));
+            xmlhttp.send
+            (
+                JSON.stringify
+                (
+                    {
+                        method: "web.add_torrents",
+                        params:
+                        // from here: http://forum.deluge-torrent.org/viewtopic.php?f=8&t=41333
+                        // not this like it says in the documentation [{path: filename , options: { download_location: "/home/derrick/Torrents" }}], "id": 4}));
+                        [
+                            [
+                                {
+                                    path: filename,
+                                    options:
+                                    {
+                                        download_location: configuration.getConfigurationItem ("download_directory")
+                                    }
+                                }
+                            ]
+                        ],
+                        id: 4
+                    }
+                )
+            );
         }
 
         /**

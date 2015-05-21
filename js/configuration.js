@@ -26,7 +26,8 @@ define
             local_database: "my_things",
             pending_database: "pending_things",
             public_database: "public_things",
-            tracker_database: "thing_tracker"
+            tracker_database: "thing_tracker",
+            torrent_directory: "/home/derrick/Torrents"
         };
 
         /**

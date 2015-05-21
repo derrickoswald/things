@@ -208,7 +208,7 @@ define
         /**
          * @summary Creates a database.
          * @description Creates the given database and optionally
-         * adds atandard views and logged-in security.
+         * adds standard views and logged-in security.
          * @function make_database
          * @memberOf module:configurator
          * @param {string} dbname - the name of the database to create
@@ -234,6 +234,18 @@ define
             $.couch.db (dbname).create (options);
         }
 
+        /**
+         * @summary Creates a database.
+         * @description Creates the configured database and optionally
+         * adds standard views and logged-in security.
+         * Used as a generic function by the database creation handlers.
+         * @function create_database
+         * @memberOf module:configurator
+         * @param {string} config_id - the configuration key value with the database name.
+         * @param {object} views - the views to add to the design document
+         * @param {string} validation - the validate_doc_update function
+         * @param {boolean} security - <em>optional</em> security document to attach to the database
+         */
         function create_database (config_id, views, validation, security)
         {
             login.isLoggedIn
@@ -269,6 +281,12 @@ define
             );
         }
 
+        /**
+         * @summary Save button event handler.
+         * @description Saves the form values as the current configuration document.
+         * If the configuration database doesn't yet exist it is created.
+         * @param {object} event - the save button press event
+         */
         function save (event)
         {
             event.preventDefault ();
@@ -287,6 +305,7 @@ define
             configuration.setConfigurationItem ("pending_database", document.getElementById ("pending_database").value);
             configuration.setConfigurationItem ("public_database", document.getElementById ("public_database").value);
             configuration.setConfigurationItem ("tracker_database", document.getElementById ("tracker_database").value);
+            configuration.setConfigurationItem ("torrent_directory", document.getElementById ("torrent_directory").value);
 
             login.isLoggedIn
             (
@@ -324,6 +343,11 @@ define
             );
         }
 
+        /**
+         * @summary Create proxy entries in the CouchDB local cnfiguration.
+         * @description Creates http proxy entries for keybase.io and the local deluge-web.
+         * @param {object} event - the create proxies button pressed event
+         */
         function create_proxies (event)
         {
             $.couch.config
@@ -350,6 +374,15 @@ define
             );
         }
 
+        /**
+         * Fills the form with existing configuration data and attaches handlers for the
+         * various operations.
+         * @summary Initialize the configurator.
+         * @description Fills the form with existing configuration data and attaches handlers for the
+         * various operations.
+         * @function init
+         * @memberOf module:configurator
+         */
         function init ()
         {
             $.get
@@ -368,6 +401,7 @@ define
                     document.getElementById ("pending_database").value = configuration.getConfigurationItem ("pending_database");
                     document.getElementById ("public_database").value = configuration.getConfigurationItem ("public_database");
                     document.getElementById ("tracker_database").value = configuration.getConfigurationItem ("tracker_database");
+                    document.getElementById ("torrent_directory").value = configuration.getConfigurationItem ("torrent_directory");
                     document.getElementById ("save_configuration").onclick = save;
 
                     document.getElementById ("create_local").onclick = create_local;
