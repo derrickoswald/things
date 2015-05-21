@@ -253,6 +253,7 @@ define
                     };
                     var filecontent = "file" + "_" + Math.floor ((Math.random () * 1000) + 1);
                     var filename = "foo.txt";
+                    var type = "text/html";
                     var id = null;
 
                     queue.call
@@ -271,7 +272,7 @@ define
                                 }
                             );
                             var error = callbacks.addErrback ("create document with attachment");
-                            var file = new Blob ([filecontent], { type: "text/html"}); // the blob
+                            var file = new Blob ([filecontent], { type: type}); // the blob
                             file.name = filename; // add a name - as if it were a File object
                             records.saveDocWithAttachments.call
                             (
@@ -287,23 +288,45 @@ define
                         }
                     );
 
-//                    queue.call
-//                    (
-//                        "read attachment",
-//                        function (callbacks)
-//                        {
-//                            var result = callbacks.add
-//                            (
-//                                function (data)
-//                                {
-//                                    console.log ("read attachment");
-//                                    console.log (data);
-//                                    assertEquals (filecontent, data);
-//                                }
-//                            );
-//                            records.read_attachment (this._Db, id, filename, result);
-//                        }
-//                    );
+                    queue.call
+                    (
+                        "read document with attachment",
+                        function (callbacks)
+                        {
+                            var success = callbacks.add
+                            (
+                                function (doc)
+                                {
+                                    assertEquals ("document", payload, doc.name);
+                                    var has_attachments = "undefined" != typeof (doc._attachments);
+                                    assertTrue ("has attachments", has_attachments);
+                                    assertTrue ("has foo.txt", ("undefined" != typeof (doc._attachments[filename])));
+                                    assertEquals ("mime type", type, doc._attachments[filename].content_type);
+                                    var blob = records.base64toBlob (doc._attachments[filename].data,type);
+                                    var reader = new FileReader ();
+                                    reader.addEventListener
+                                    (
+                                        "loadend",
+                                        function()
+                                        {
+                                            assertEquals ("content", filecontent, reader.result);
+                                        }
+                                    );
+                                    reader.readAsText (blob);
+                                }
+                            );
+                            var error = callbacks.addErrback ("read document with attachment");
+                            $.couch.db (this._Db).openDoc
+                            (
+                                id,
+                                {
+                                    attachments: true,
+                                    success: success,
+                                    error: error
+                                }
+                            );
+                        }
+                    );
                 }
             }
         );

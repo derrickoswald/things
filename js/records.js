@@ -4,7 +4,7 @@
  * @author Derrick Oswald
  * @version 1.0
  */
-define ([ "multipart" ],
+define (["multipart", ""],
     /**
      * @summary Support for reading and writing things and their attachments.
      * @name records
@@ -321,7 +321,8 @@ define ([ "multipart" ],
             }
             return $.ajax (
             {
-                url : "/" + db + "/" + encodeDocId (docId) + "/" + attachment + encodeOptions (options),
+                url : // ToDo: configuration.getDocumentRoot () +
+                                "/" + db + "/" + encodeDocId (docId) + "/" + attachment + encodeOptions (options),
 
                 complete : function (req, outcome)
                 {
@@ -357,10 +358,11 @@ define ([ "multipart" ],
         /**
          * Read an attachment from the document in the specified database
          * @param {String} db - the database to read from
-         * @param {String} id - the docum ent id
+         * @param {String} id - the document id
          * @param {String} name - the document name
          * @param {callback} fn - not used yet
          * @returns {Deferred} with the {jqXHR} ajax object Promise
+         * @function read_attachment
          * @memberOf module:record
          */
         function read_attachment (db, id, name, fn)
@@ -379,12 +381,48 @@ define ([ "multipart" ],
             });
         };
 
+        /**
+         * @summary Convert base64 to a blob.
+         * @description Convert a base64 string into a blob.
+         * @param {string} data - the string of base64 data
+         * @param {string} type - the mime type to attach to the blob
+         * @param {number} size - the processing chunk size
+         * @function base64toBlob
+         * @memberOf module:record
+         */
+        function base64toBlob (data, type, size)
+        {
+            var s;
+            var array;
+            var slice;
+            var bytes;
+
+            type = type || "";
+            size = size || 512;
+
+            s = atob (data);
+            array = [];
+
+            for (var offset = 0; offset < s.length; offset += size)
+            {
+                slice = s.slice (offset, offset + size);
+                bytes = new Array (slice.length);
+                for (var i = 0; i < slice.length; i++)
+                    bytes[i] = slice.charCodeAt (i);
+
+                array.push (new Uint8Array (bytes));
+            }
+
+            return (new Blob (bytes, { type: type }));
+        }
+
         var functions =
         {
             "read_records" : read_records,
             "insert_record" : insert_record,
             "saveDocWithAttachments" : saveDocWithAttachments,
-            "read_attachment" : read_attachment
+            "read_attachment" : read_attachment,
+            "base64toBlob": base64toBlob
         };
 
         return (functions);
