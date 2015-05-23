@@ -264,12 +264,7 @@ define
                             options["announce-list"] = announce_list;
                     }
 
-                    var primary_key;
-                    if (!data.torrent)
-                        primary_key = "c24e450a550f8a399f93092c1c6366aac5565c2e";
-                    else
-                        primary_key = data.torrent._id;
-                    announce (primary_key, options);
+                    announce (data.torrent._id, options);
                 },
                 error: function ()
                 {

@@ -17,6 +17,10 @@ define
      */
     function (mustache)
     {
+        var left;
+        var content;
+        var right;
+
 // ToDo: media query based layout
 //            // see http://www.sitepoint.com/javascript-media-queries/
 //            // http://getbootstrap.com/css/#grid-media-queries
@@ -32,7 +36,7 @@ define
 //            }
 
         /**
-         * @summary Return the standard layout for the main page.
+         * @summary Perform the standard layout for the main page.
          * @return {object} containing { left, middle, right } elements for
          * the left quarter, middle half and right quarter respectively.
          * @function layout
@@ -41,9 +45,6 @@ define
         function layout ()
         {
             var target;
-            var left;
-            var content;
-            var right;
 
             var template =
                 "<div id='main_area' class='row'>" +
@@ -65,9 +66,22 @@ define
             return ({ left: left, content: content, right: right });
         }
 
+        /**
+         * @summary Return the layout for the main page.
+         * @return {object} containing { left, middle, right } elements for
+         * the left quarter, middle half and right quarter respectively.
+         * @function layout
+         * @memberOf module:page
+         */
+        function get_layout ()
+        {
+            return ({ left: left, content: content, right: right });
+        }
+
         return (
             {
-                layout: layout
+                layout: layout,
+                get_layout: get_layout
             }
         );
     }

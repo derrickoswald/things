@@ -6,61 +6,17 @@
  */
 define
 (
-    ["../login", "../home", "../configuration"],
+    ["../home", "../configuration", "../page"],
     /**
      * @summary Transfer things between the pending database from the import operation to the local database.
      * @name thingimporter/transfer
      * @exports thingimporter/transfer
      * @version 1.0
      */
-    function (login, home, configuration)
+    function (home, configuration, page)
     {
         var db = configuration.getConfigurationItem ("pending_database");
         var view_name = "Things";
-
-        /**
-         * @summary Transfer the given documents to the local database.
-         * @description Uses CouchDB replication to replicate the documents
-         * given by docs from the pending database into the local database.
-         * @param {array} docs list of document SHA1 hash codes as strings
-         * @function transfer
-         * @memberOf module:thingimporter/transfer
-         * @return <em>nothing</em>
-         */
-        function transfer (docs)
-        {
-            var list = [];
-            docs.forEach (function (item) { list.push (item._id); });
-            login.isLoggedIn
-            (
-                {
-                    success: function (userCtx)
-                    {
-                        $.couch.replicate
-                        (
-                            db,
-                            configuration.getConfigurationItem ("local_database"),
-                            {
-                                success: function (data)
-                                {
-                                    console.log (data);
-                                    home.delete_document (docs);
-                                },
-                                error: function (status) { console.log (status); }
-                            },
-                            {
-                                create_target: false,
-                                doc_ids: list
-                            }
-                        );
-                    },
-                    error: function (userCtx)
-                    {
-                        alert ("You must be logged in to transfer a thing");
-                    }
-                }
-            );
-        }
 
         /**
          * @summary Initialize the transfer page.
@@ -72,13 +28,13 @@ define
          */
         function init ()
         {
-            home.build_content (db, view_name, "listing", { transfer: transfer });
-            home.build_index ("right"); // ToDo: how to get page layout here
+            home.set_current (db);
+            home.build_content (db, view_name, "listing", { del: home.delete_document, transfer: home.transfer_to_local });
+            home.build_index (page.get_layout ().right.id);
         }
 
         return (
             {
-
                 getStep : function ()
                 {
                    return (

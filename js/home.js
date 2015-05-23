@@ -6,16 +6,15 @@
  */
 define
 (
-    ["configuration", "page", "mustache", "thingmaker/publish"],
+    ["configuration", "page", "mustache", "thingmaker/thingwizard", "login"],
     /**
      * @summary Functions to handle the home page.
      * @name home
      * @exports home
      * @version 1.0
      */
-    function (configuration, page, mustache, publish)
+    function (configuration, page, mustache, thingwizard, login)
     {
-        var current = configuration.getConfigurationItem ("public_database"); // current database
         var databases = null; // list of databases
 
         var things_template =
@@ -34,11 +33,25 @@ define
                                         "<div class='pull-right'>" +
                                             "<span class='fineprint hidden-lg'><a href='/_utils/document.html?{{database}}/{{_id}}'>{{short_id}}</a></span>" +
                                             "<span class='fineprint hidden-xs hidden-sm hidden-md'><a href='/_utils/document.html?{{database}}/{{_id}}'>{{_id}}</a></span>" +
-                                            "{{#options.edit}}<span class='edit_id glyphicon glyphicon-pencil marginleft' data-database={{database}} data-id='{{_id}}' data-rev={{_rev}}></span>{{/options.edit}}" +
-                                            "{{#options.del}}<span class='delete_id glyphicon glyphicon-trash marginleft' data-database={{database}} data-id='{{_id}}' data-rev={{_rev}}></span>{{/options.del}}" +
-                                            "{{#options.publish}}<span class='publish_id glyphicon glyphicon-book marginleft' data-database={{database}} data-id='{{_id}}' data-rev={{_rev}}></span>{{/options.publish}}" +
-                                            "{{#options.transfer}}<span class='transfer_id glyphicon glyphicon-share-alt marginleft' data-database={{database}} data-id='{{_id}}' data-rev={{_rev}}></span>{{/options.transfer}}" +
-                                            "{{#options.select}}<input class='select_id marginleft' type='checkbox' data-database={{database}} data-id='{{_id}}' data-rev={{_rev}} checked>{{/options.select}}" +
+                                            "{{#options.edit}}" +
+                                                "<span class='edit_id glyphicon glyphicon-pencil marginleft' data-toggle='tooltip' data-placement='top' title='Edit' data-database={{database}} data-id='{{_id}}' data-rev={{_rev}}>" +
+                                                "</span>" +
+                                            "{{/options.edit}}" +
+                                            "{{#options.del}}" +
+                                                "<span class='delete_id glyphicon glyphicon-trash marginleft' data-toggle='tooltip' data-placement='top' title='Delete' data-database={{database}} data-id='{{_id}}' data-rev={{_rev}}>" +
+                                                "</span>" +
+                                            "{{/options.del}}" +
+                                            "{{#options.publish}}" +
+                                                "<span class='publish_id glyphicon glyphicon-book marginleft' data-toggle='tooltip' data-placement='top' title='Publish' data-database={{database}} data-id='{{_id}}' data-rev={{_rev}}>" +
+                                                "</span>" +
+                                            "{{/options.publish}}" +
+                                            "{{#options.transfer}}" +
+                                                "<span class='transfer_id glyphicon glyphicon-share-alt marginleft' data-toggle='tooltip' data-placement='top' title='Transfer' data-database={{database}} data-id='{{_id}}' data-rev={{_rev}}>" +
+                                                "</span>" +
+                                            "{{/options.transfer}}" +
+                                            "{{#options.select}}" +
+                                                "<input class='select_id marginleft' type='checkbox' data-database={{database}} data-id='{{_id}}' data-rev={{_rev}} checked>" +
+                                            "{{/options.select}}" +
                                         "</div>" +
                                     "</div>" +
                                 "</div>" +
@@ -164,9 +177,12 @@ define
         };
 
         /**
-         * Return the short form of an _id.
-         * Runs in the context of 'this' being a document.
+         * @description Return the short form of an _id.
+         * @summary Runs in the context of 'this' being a document in mustache template processing to make
+         * a shorter version of the id for small devices.
          * @return A shortened form of a 40 character _id (SHA-1 hash).
+         * @function short_id
+         * @memberOf module:home
          */
         function short_id ()
         {
@@ -178,9 +194,12 @@ define
         }
 
         /**
-         * Return the short form of a title.
-         * Runs in the context of 'this' being a document.
+         * @summary Return the short form of a title.
+         * @description Runs in the context of 'this' being a document in mustache template processing to make
+         * a shortened title for small devices.
          * @return A shortened form of the title - first and last words.
+         * @function short_title
+         * @memberOf module:home
          */
         function short_title ()
         {
@@ -201,6 +220,15 @@ define
         }
 
         /**
+         * Just here because the outline in eclipse is stupid
+         * @function crap
+         * @memberOf module:home
+         */
+        function dummmy ()
+        {
+        }
+
+        /**
          * @summary Read the database:view and render the data into html_id.
          * @description Uses mustache to display the contents of the database of <em>things</em>.
          * @param {String} database name of the database to display
@@ -217,7 +245,6 @@ define
          */
         function build_content (database, view, html_id, options)
         {
-            current = database;
             $.couch.db (database).view (database + "/" + view,
             {
                 success : function (result)
@@ -248,7 +275,10 @@ define
                     };
                     result.short_id = short_id;
                     result.short_title = short_title;
-                    document.getElementById (html_id).innerHTML = mustache.render (things_template, result);
+                    var element = document.getElementById (html_id);
+                    element.innerHTML = mustache.render (things_template, result);
+                    // activate tooltips
+                    $("[data-toggle='tooltip']", element).tooltip ();
                     // attach actions
                     if (options.edit)
                         $ (".edit_id").on ("click", function (event) { options.edit ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
@@ -269,9 +299,16 @@ define
             });
         };
 
-        function changes (html_id, dbs)
+        /**
+         * @summary Get the changes for all databases.
+         * @description Uses the CouchDB _changes API to get the changes since the last time the database was queried.
+         * @param {String} html_id the id of the element with datbase names to badge
+         * @function changes
+         * @memberOf module:home
+         */
+        function changes (html_id)
         {
-            dbs.forEach
+            databases.forEach
             (
                 function (db)
                 {
@@ -372,12 +409,13 @@ define
         /**
          * @summary Get the list of databases.
          * @description Get all documents and filter out non-thing databases.
-         * @param {string} html_id the id of the element to fill
+         * @param {object} options - options for result handling
          * @function fetch_databases
          * @memberOf module:home
          */
-        function fetch_databases (html_id)
+        function fetch_databases (options)
         {
+            var initial = configuration.getConfigurationItem ("public_database"); // initial database
             $.couch.allDbs
             (
                 {
@@ -394,14 +432,21 @@ define
                                     && ("thing_tracker" != item))
                                 {
                                     var link = { database: item };
-                                    if (item == current)
+                                    if (item == initial)
                                         link.current = true;
                                     databases.push (link);
                                 }
                             }
                         );
-                        build_index (html_id);
+                        if (options.success)
+                            options.success (databases);
+                    },
+                    error: function ()
+                    {
+                        if (options.error)
+                            options.error ();
                     }
+
                 }
             );
         }
@@ -418,16 +463,8 @@ define
             event.stopPropagation ();
             event.preventDefault ();
 
-            current = event.target.parentElement.getAttribute ("data-target");
-            databases.forEach
-            (
-                function (item)
-                {
-                    if (item.database == current)
-                        if (item.last_seq)
-                            configuration.storeProperty (current + ".last", item.last_seq);
-                }
-            );
+            var next = event.target.parentElement.getAttribute ("data-target");
+            set_current (next);
             draw ();
         }
 
@@ -461,36 +498,148 @@ define
         }
 
         /**
-         * @summary Render the individual documents.
+         * @summary Replicate the given documents to the public database.
+         * @function push_to_public
+         * @memberOf module:home
+         */
+        function push_to_public (docs)
+        {
+            if (docs.length != 1)
+                alert ("sorry, currently only one document can be published at a time");
+            thingwizard.data.torrent = { _id: docs[0]._id }; // fake torrent... publish only needs the id
+            thingwizard.initialize (6); // publish is the seventh step
+        }
+
+        /**
+         * @summary Transfer the given documents to the local database.
+         * @description Uses CouchDB replication to replicate the documents
+         * given by docs from the pending database into the local database.
+         * @param {array} docs list of document SHA1 hash codes as strings
+         * @function transfer
+         * @memberOf module:home
+         * @return <em>nothing</em>
+         */
+        function transfer_to_local (docs)
+        {
+            var db;
+            var list = [];
+            docs.forEach (function (item) { list.push (item._id); db = item.database; });
+            login.isLoggedIn
+            (
+                {
+                    success: function (userCtx)
+                    {
+                        $.couch.replicate
+                        (
+                            db,
+                            configuration.getConfigurationItem ("local_database"),
+                            {
+                                success: function (data)
+                                {
+                                    console.log (data);
+                                    delete_document (docs);
+                                },
+                                error: function (status) { console.log (status); }
+                            },
+                            {
+                                create_target: false,
+                                doc_ids: list
+                            }
+                        );
+                    },
+                    error: function (userCtx)
+                    {
+                        alert ("You must be logged in to transfer a thing");
+                    }
+                }
+            );
+        }
+
+        /**
+         * @summary Get the current database.
+         * @return {string} the name of the current database
+         * @function get_current
+         * @memberOf module:home
+         */
+        function get_current ()
+        {
+            var ret;
+
+            ret = null;
+            databases.forEach
+            (
+                function (item)
+                {
+                    if (item.current)
+                        ret = item.database;
+                }
+            );
+
+            return (ret);
+        }
+
+        /**
+         * @summary Set the current database.
+         * @param {string} the name of the to-be current database
+         * @function set_current
+         * @memberOf module:home
+         */
+        function set_current (database)
+        {
+            if (null != databases)
+                databases.forEach
+                (
+                    function (item)
+                    {
+                        delete item.current;
+                        if (item.database == database)
+                        {
+                            item.current = true;
+                            if (item.last_seq)
+                                configuration.storeProperty (database + ".last", item.last_seq);
+                        }
+                    }
+                );
+            else
+                fetch_databases ({ success: function () { set_current (database); } });
+        }
+
+        /**
+         * @summary Render the parts of the home page.
+         * @function render
+         * @memberOf module:home
+         */
+        function render ()
+        {
+            var areas;
+            var database;
+            var options;
+
+            // layout the page
+            areas = page.layout ();
+            build_index (areas.right.id);
+            database = get_current ();
+            options = { del: delete_document };
+            if (database == configuration.getConfigurationItem ("local_database"))
+                options.publish = push_to_public;
+            if (database == configuration.getConfigurationItem ("pending_database"))
+                options.transfer = transfer_to_local;
+            build_content (database, "Things", areas.content.id, options);
+        }
+
+        /**
+         * @summary Render the home page.
          * @description Uses mustache to create HTML DOM elements that display the document information.
          * @function draw
          * @memberOf module:home
          */
         function draw ()
         {
-            var areas = page.layout ();
+            // get the databases
             if (null == databases)
-                fetch_databases (areas.right.id);
+                fetch_databases ({ success: render });
             else
-                build_index (areas.right.id);
-            build_content (current, "Things", areas.content.id, { del: delete_document, publish: push_to_public } );
-        }
-
-        /**
-         * @summary Replicate the given documents to the public database.
-         * @description Doesn't work because publish now needs more information (comments and such).
-         * @function push_to_public
-         * @memberOf module:home
-         */
-        function push_to_public (docs)
-        {
-            var list = [docs._id];
-
-            for (var i = 0; i < list.length; i++)
-            {
-                console.log ("publishing " + docs[i]._id);
-                publish.announce (docs[i]._id);
-            }
+                render ();
         }
 
         return (
@@ -498,8 +647,12 @@ define
                 initialize: draw,
                 build_content: build_content,
                 build_index: build_index,
+                get_current: get_current,
+                set_current: set_current,
+                draw: draw,
                 delete_document: delete_document,
-                push_to_public: push_to_public
+                push_to_public: push_to_public,
+                transfer_to_local: transfer_to_local
             }
         );
     }

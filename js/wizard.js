@@ -16,42 +16,20 @@ define
     function (mustache)
     {
         /**
-         * @summary Removes item from array.
-         * @description Brain dead JavasScript has no remove() function, so this plugs that gap.
-         * @param {Array} array - the array to remove the item from
-         * @param {*} item - the item to remove
-         * @returns true if it did, false otherwise
-         * @memberOf module:wizard
-         */
-        function remove (array, item)
-        {
-            var ret;
-
-            ret = false;
-            for (var i = array.length; i--; )
-                if (array[i] === item)
-                {
-                    array.splice (i, 1);
-                    ret = true;
-                }
-
-            return (ret);
-        };
-
-        /**
          * Get current step index based on which XXX_nav is active.
-         * @param {Step[]} steps - the list of steps provided to the wizard
          * @returns {Number} the index of the current step
          * @memberOf module:wizard
          */
-        function currentIndex (steps)
+        function currentIndex ()
         {
+            var navs;
             var ret;
 
             ret = -1;
 
-            for (var i = 0; (i < steps.length) && (0 > ret); i++)
-                if (-1 != document.getElementById (steps[i].id + "_nav").className.split (" ").indexOf ("active"))
+            navs = document.getElementById ("navigator").getElementsByTagName ("li");
+            for (var i = 0; (i < navs.length) && (0 > ret); i++)
+                if (-1 != navs[i].className.split (" ").indexOf ("active"))
                     ret = i;
 
             return (ret);
@@ -60,50 +38,55 @@ define
         /**
          * Get index of step given the id.
          * @param {string} id - the id to search for
-         * @param {Step[]} steps - the list of steps provided to the wizard
          * @returns {Number} the index of the requested step
          * @memberOf module:wizard
          */
-        function indexOf (id, steps)
+        function indexOf (id)
         {
+            var navs;
             var ret;
 
             ret = -1;
 
-            for (var i = 0; (i < steps.length) && (0 > ret); i++)
-                if (id == steps[i].id)
+            navs = document.getElementById ("navigator").getElementsByTagName ("li");
+            for (var i = 0; (i < navs.length) && (0 > ret); i++)
+                if (id == navs[i].getAttribute ("data-tab-id"))
                     ret = i;
 
             return (ret);
         };
 
         /**
+         * Get number of steps.
+         * @returns {Number} the total number of steps
+         * @memberOf module:wizard
+         */
+        function stepCount ()
+        {
+            return (document.getElementById ("navigator").getElementsByTagName ("li").length + 1);
+        };
+
+        /**
          * Transition between steps and handle button visibility based on XXX_lnk clicked.
          * @param {string} event - the click event
-         * @param {Step[]} steps - the list of steps provided to the wizard
          * @param {*} data - the data used as context for the action
          * @memberOf module:wizard
          */
-        function jump (event, steps, data)
+        function jump (event, data)
         {
-            var from;
             var id;
             var to;
 
-            from = currentIndex (steps);
-            id = event.target.id.substring (0, event.target.id.length - 4);
-            to = indexOf (id, steps);
-            if (-1 != to)
-            {
-                if (0 != to)
-                    $(data.prev_button).removeClass ("hide");
-                else
-                    $(data.prev_button).addClass ("hide");
-                if (to != steps.length - 1)
-                    $(data.next_button).removeClass ("hide");
-                else
-                    $(data.next_button).addClass ("hide");
-            }
+            id = event.target.getAttribute ("data-tab-id");
+            to = indexOf (id);
+            if (0 < to)
+                data.prev_button.classList.remove ("hide");
+            else
+                data.prev_button.classList.add ("hide");
+            if (to < stepCount () - 2)
+                data.next_button.classList.remove ("hide");
+            else
+                data.next_button.classList.add ("hide");
         };
 
         /**
@@ -118,7 +101,7 @@ define
             var current;
             var future;
 
-            current = currentIndex (steps);
+            current = currentIndex ();
             if (-1 != current)
             {
                 future = current + increment;
@@ -128,106 +111,150 @@ define
         };
 
         /**
+         * @summary Initialize the body of a step.
+         * @description Fetch the template for a step, render it and add event handlers.
+         * @param {object} step - the step provided to the wizard
+         * @param {*} data - the data used as context for each action
+         * @param active - if <code>true</code> make this step the active one
+         * @memberOf module:wizard         */
+        function make_page (step, data, active)
+        {
+            var xmlhttp = new XMLHttpRequest ();
+            xmlhttp.open ("GET", step.template, true);
+            xmlhttp.onreadystatechange = function ()
+            {
+                if ((4 == xmlhttp.readyState) && (200 == xmlhttp.status))
+                {
+                    var content = document.getElementById (step.id);
+                    content.innerHTML = mustache.render (xmlhttp.responseText, data);
+
+                    // add event listeners
+                    if (step.hooks)
+                        for (var i = 0; i < step.hooks.length; i++)
+                        {
+                            var element = document.getElementById (step.hooks[i].id);
+                            var handler =
+                            (
+                                function ()
+                                {
+                                    var fn = step.hooks[i].code;
+                                    return (
+                                        function (event)
+                                        {
+                                            fn (event, data);
+                                        }
+                                    );
+                                }
+                            )();
+                            element.addEventListener (step.hooks[i].event, handler.bind (step.hooks[i].obj));
+                        }
+
+                    if (active)
+                    {
+                        var transitions = step.transitions;
+                        if (transitions && transitions.enter)
+                            transitions.enter.call (transitions.obj, null, data);
+                    }
+                }
+            };
+            xmlhttp.send ();
+        }
+
+        /**
          * Initialize a step with nav item, page and listeners.
          * @param {element} list - the DOM element to add nav link items to
          * @param {element} content - the DOM element to add the wizard page to
-         * @param {Step[]} steps - the list of steps provided to the wizard
+         * @param {object} step - the step provided to the wizard, expected properties:
+         * <ul>
+         * <li> id - a unique id for the step</li>
+         * <li> title - the title to appear in the navigator</li>
+         * <li> template - the (realtive) URL for the template to be used for the step</li>
+         * <li> hooks - a list of objects, each with:
+         * id - the id of the element to add the eventlistener to
+         * code - the function to attach
+         * event - the string name of the event to hook
+         * </li>
+         * <li> transitions - an object with properties leave and enter as functions to execute when tab page changes occur
+         * and obj as the object to make 'this' when they execute</li>
+         * </ul>
          * @param {*} data - the data used as context for each action
+         * @param active - if <code>true</code> make this step the active one
          * @memberOf module:wizard
          */
-        function addStep (list, content, steps, data, index)
+        function addStep (list, content, step, data, active)
         {
+            var nav;
+            var wrapper;
             var item;
             var link;
-            var id;
-            var title;
-            var template;
-            var active;
-            var hooks;
-            var transitions;
 
-            id = steps[index].id;
-            title = steps[index].title;
-            template = steps[index].template;
-            active = (0 == index);
-            hooks = steps[index].hooks;
-            transitions = steps[index].transitions;
+            // make the nav item
+            nav = "<li id='{{id}}_nav' data-tab-id='{{id}}'{{#active}} class='active'{{/active}}>" +
+                       "<a id='{{id}}_lnk' href='#{{id}}' role='tab' data-tab-id={{id}}>{{{title}}}</a>" +
+                  "</li>";
+            wrapper = document.createElement ("div");
+            wrapper.innerHTML = mustache.render (nav, {id: step.id, active: active, title: step.title});
+            item = list.appendChild (wrapper.children[0]);
 
-            // make the left nav item
-            item = document.createElement ("li");
-            list.appendChild (item);
-            item.id = id + "_nav";
-            if (active)
-                item.className = "active";
-
-            link = document.createElement ("a");
-            item.appendChild (link);
-            link.id = id + "_lnk";
-            link.setAttribute ("href", "#" + id);
-            link.setAttribute ("role", "tab");
-            link.setAttribute ("data-toggle", "tab");
-            link.appendChild (document.createTextNode (title));
-            link.addEventListener ("click", function (event) { jump (event, steps, data); });
-
-            // get mustache to make the page
-            item = document.createElement ("div");
-            content.appendChild (item);
-            item.className = "tab-pane" + (active ? " active" : "");
-            item.id = id;
-            $.get
+            // add click event listener
+            link = item.getElementsByTagName ("a")[0];
+            link.addEventListener
             (
-                template,
-                function (template)
+                "click",
+                function (event)
                 {
-                    var content = document.getElementById (id);
-                    content.innerHTML = mustache.render (template, data);
-                    if (hooks)
-                        for (var i = 0; i < hooks.length; i++)
-                        {
-                            var element = document.getElementById (hooks[i].id);
-                            var handler = (function ()
-                            {
-                                var fn = hooks[i].code;
-                                return (function (event) { fn (event, data); });
-                            })();
-                            element.addEventListener (hooks[i].event, handler.bind (hooks[i].obj));
-                        }
-
-                    if (transitions && transitions.leave)
-                    {
-                        /*
-                         * hide.bs.tab
-                         * This event fires when a new tab is to be shown
-                         * (and thus the previous active tab is to be hidden).
-                         * Use event.target and event.relatedTarget to target the
-                         * current active tab and the new soon-to-be-active tab, respectively.
-                         */
-                        var fn = transitions.leave.bind (transitions.obj);
-                        $(link).on
-                        (
-                            'hide.bs.tab',
-                            function (event) { fn (event, data); }
-                        );
-                    }
-
-                    if (transitions && transitions.enter)
-                    {
-                        /*
-                         * show.bs.tab
-                         * This event fires on tab show, but before the
-                         * new tab has been shown.
-                         * Use event.target and event.relatedTarget to target the
-                         * active tab and the previous active tab (if available) respectively.
-                         */
-                        var fn = transitions.enter.bind (transitions.obj);
-                        $(link).on
-                        (
-                            'show.bs.tab',
-                            function (event) { fn (event, data); }
-                        );
-                    }
+                    event.preventDefault ();
+                    jump (event, data);
+                    $(link).tab ("show");
                 }
             );
+
+            // add transition event listeners
+            if (step.transitions && step.transitions.leave)
+            {
+                /*
+                 * hide.bs.tab
+                 * This event fires when a new tab is to be shown
+                 * (and thus the previous active tab is to be hidden).
+                 * Use event.target and event.relatedTarget to target the
+                 * current active tab and the new soon-to-be-active tab, respectively.
+                 */
+                var fn = step.transitions.leave.bind (step.transitions.obj);
+                $ (link).on
+                (
+                    "hide.bs.tab",
+                    function (event)
+                    {
+                        fn (event, data);
+                    }
+                );
+            }
+
+            if (step.transitions && step.transitions.enter)
+            {
+                /*
+                 * show.bs.tab
+                 * This event fires on tab show, but before the
+                 * new tab has been shown.
+                 * Use event.target and event.relatedTarget to target the
+                 * active tab and the previous active tab (if available) respectively.
+                 */
+                var fn = step.transitions.enter.bind (step.transitions.obj);
+                $ (link).on
+                (
+                    "show.bs.tab",
+                    function (event)
+                    {
+                        fn (event, data);
+                    }
+                );
+            }
+
+            // render the page contents
+            item = content.appendChild (document.createElement ("div"));
+            item.className = "tab-pane" + (active ? " active" : "");
+            item.id = step.id;
+            make_page (step, data, active); // ToDo: lazy load wizard pages
         };
 
         /**
@@ -236,14 +263,17 @@ define
          * The wizard is composed of two parts, a nav bar and a tabbed pane page area.
          * The only affordances provided by this basic wizard are Previous and Next buttons.
          * @ToDo i18n
-         * @param {element} left - the DOM element to add nav link items to
+         * @param {element} nav - the DOM element to add nav link items to
          * @param {element} content - the DOM element to add the wizard page to
          * @param {Step[]} steps - the list of steps provided to the wizard
          * @param {*} data - the data used as context for each action
+         * @param {number} start - the initial step, zero if undefined
          * @memberOf module:wizard
          */
-        function wizard (left, content, steps, data)
+        function wizard (nav, content, steps, data, start)
         {
+            if ("undefined" == typeof (start))
+                start = 0;
             var nav_template =
                 "<ul id='navigator' class='nav nav-tabs nav-stacked' role='tablist'>" +
                     /* li */
@@ -265,8 +295,8 @@ define
                     "</div>" +
                 "</div>";
 
-            left.innerHTML = mustache.render (nav_template);
-            var nav = document.getElementById ("navigator");
+            nav.innerHTML = mustache.render (nav_template);
+            var list = document.getElementById ("navigator");
 
             content.innerHTML = mustache.render (content_template);
             data.next_button = document.getElementById ("next");
@@ -275,12 +305,7 @@ define
             data.next_button.onclick = function () { step (steps, data, 1); };
 
             for (var i = 0; i < steps.length; i++)
-                addStep (nav, content, steps, data, i);
-
-            var transitions = steps[0].transitions;
-
-            if (transitions && transitions.enter)
-                transitions.enter.call (transitions.obj);
+                addStep (list, content, steps[i], data, start == i);
         };
 
         var functions =
