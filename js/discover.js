@@ -16,15 +16,46 @@ define
     function (configuration, page, mustache, deluge)
     {
         var trackers_template =
-            "<div><button id='post_my_things'>Post my things</button></div>" +
-            "<button id='info_button' class='btn btn-primary publish_form_button' type='submit'>" +
+            "<h2>Discovery</h2>" +
+            "<p>Start bi-directional replication with a new tracker.</p>" +
+            "<p>This is the step that bootstraps this <em>thing tracker</em> into a cloud of other similar systems.</p>" +
+            "<p>By clicking the <em>Add tracker</em> button, two things are done:</p>" +
+            "<ul>" +
+                "<li>this tracker is added into the thing_tracker database of the other system</li>" +
+                "<li>the new or updated trackers in the database the other system are added to the local thing tracker database</li>" +
+            "</ul>" +
+            "<p>Due to the nature of CouchDB <em>eventual consistency</em>, adding a second tracker will " +
+            "join the two clouds -- so there really is only one global federated database of <em>thing trackers</em> -- " +
+            "and add a redundant connection from this tracker to the cloud.</p>" +
+            "<p>Each tracker is entered under the unique uuid, which can be seen in the CouchDB <b>Welcome</b> " +
+            "message (navigate to the root of the CouchDB web server).</p>" +
+            "<div id='configuration_form' class='form-horizontal'>" +
+                "<div class='form-group'>" +
+                    "<label class='col-sm-3 control-label' for='local_database'>New tracker URL</label>" +
+                    "<div class='col-sm-9'>" +
+                        "<input id='tracker_url' class='form-control' type='text' name='tracker_url' placeholder='http://TheTracker.org'>" +
+                    "</div>" +
+                "</div>" +
+            "</div>" +
+            "<button id='add_tracker_button' class='btn btn-primary'>" +
+                "<i class='glyphicon glyphicon-plus-sign'></i>" +
+                "<span>Add tracker</span>" +
+            "</button>" +
+            "<p>Update the global record for this <em>thing tracker</em> and any federated trackers.</p>" +
+            "<button id='post_my_things' class='btn btn-primary'>" +
+                "<i class='glyphicon glyphicon-star'></i>" +
+                "<span>Post my things</span>" +
+            "</button>" +
+            "<p>Experimental stuff:</p>" +
+            "<button id='info_button' class='btn btn-primary'>" +
                 "<i class='glyphicon glyphicon-info-sign'></i>" +
                 "<span>Info</span>" +
             "</button>" +
-            "<button id='magnet_button' class='btn btn-primary publish_form_button' type='submit'>" +
+            "<button id='magnet_button' class='btn btn-primary'>" +
                 "<i class='glyphicon glyphicon-magnet'></i>" +
                 "<span>Magnet</span>" +
             "</button>" +
+            "<h2>Tracker List</h2>" +
             "<div id='count_of_trackers'>{{#total_rows}}{{total_rows}} trackers{{/total_rows}}{{^total_rows}}no documents{{/total_rows}}</div>" +
             "<ul class='tracker_list'>" +
                 "{{#rows}}" +
@@ -38,6 +69,53 @@ define
                     "{{/value}}" +
                 "{{/rows}}" +
             "</ul>";
+
+        /**
+         * @summary Add a tracker to the tracker database.
+         * @description Adds an entry in the tracker database for the given URL,
+         * and exposes this tracker into the cloud of other trackers.
+         * @function add_tracker
+         * @memberOf module:discover
+         */
+        function add_tracker (event)
+        {
+            var local_tracker_name = configuration.getConfigurationItem ("tracker_database");
+            var remote_tracker_url = document.getElementById ("tracker_url").value.trim ();
+            $.couch.replicate
+            (
+                local_tracker_name,
+                remote_tracker_url,
+                {
+                    success: function (data)
+                    {
+                        console.log (data);
+                        init ();
+                    },
+                    error: function (status) { console.log (status); }
+                },
+                {
+                    create_target: false,
+                    continuous: true
+                }
+            );
+            $.couch.replicate
+            (
+                remote_tracker_url,
+                local_tracker_name,
+                {
+                    success: function (data)
+                    {
+                        console.log (data);
+                        init ();
+                    },
+                    error: function (status) { console.log (status); }
+                },
+                {
+                    create_target: false,
+                    continuous: true
+                }
+            );
+        }
 
         /**
          * @summary Push the URL, version and SHA1 keys in the public database to the tracker database.
@@ -62,7 +140,8 @@ define
                             {
                                 var doc = { _id: welcome.uuid };
                                 doc.version = "1.0";
-                                doc.tracker = configuration.getDocumentRoot () + "/" + public_name + "/";
+                                doc.public = configuration.getDocumentRoot () + "/" + public_name + "/";
+                                doc.tracker = configuration.getDocumentRoot () + "/" + tracker_name + "/";
                                 doc.things = [];
                                 data.rows.forEach
                                 (
@@ -107,7 +186,6 @@ define
                                         }
                                     }
                                 );
-
                             }
                         }
                     );
@@ -135,6 +213,7 @@ define
                         document.getElementById ("post_my_things").onclick = post_my_things;
                         document.getElementById ("info_button").onclick = info;
                         document.getElementById ("magnet_button").onclick = magnet;
+                        document.getElementById ("add_tracker_button").onclick = add_tracker;
                     },
                     error : function (status)
                     {
