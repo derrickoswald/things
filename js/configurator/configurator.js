@@ -6,7 +6,7 @@
  */
 define
 (
-    ["configuration", "page", "mustache", "login"],
+    ["../configuration", "../page", "../mustache", "../login"],
     /**
      * @summary Database setup page and functions for loading and saving configuration data.
      * @description Database setup page, functions for loading and saving
@@ -18,7 +18,10 @@ define
      */
     function (configuration, page, mustache, login)
     {
-        var template = "templates/configuration.mst";
+        var template = "templates/configurator/configuration.mst";
+
+        // current existing database list
+        var databases = null;
 
         var standard_views =
             {
@@ -99,13 +102,41 @@ define
         };
 
         /**
+         * @summary Check if a database is secure.
+         * @description Reads the _security document of a database and compares to empty array.
+         * @param {string} name - the name of the database to check for security
+         * @param {object} options - callback functions for the result, success: fn (boolean) and error: fn ()
+         * @function is_secure
+         * @memberOf module:configurator
+         */
+        function is_secure (name, options)
+        {
+            options = options || {};
+            $.couch.db (name).openDoc
+            (
+                "_security",
+                {
+                    success: function (doc)
+                    {
+                        if (options.success)
+                            if (doc)
+                                options.success (("undefined" != typeof (doc.admins)) && (doc.admins != []));
+                            else
+                                options.success (false);
+                    },
+                    error: options.error
+                }
+            );
+        }
+
+        /**
          * @summary Make the local database secure by adding the _security document.
          * @description Stores a security policy that only allows an admin to
          * read and write the database.
-         * @function make_secure
-         * @memberOf module:configurator
          * @param {string} name - the name of the database to secure
          * @param {object} security - the security document
+         * @function make_secure
+         * @memberOf module:configurator
          */
         function make_secure (name, security)
         {
@@ -116,7 +147,7 @@ define
                 {
                     success: function ()
                     {
-                        alert (name + " _security created");
+                        update_database_state ();
                     },
                     error: function ()
                     {
@@ -130,6 +161,7 @@ define
          * @summary Remove the contents of the _security document from the local database.
          * @description Sets the security policy back to empty arrays
          *  - making the database insecure.
+         * @param {string} name - the name of the database to make insecure
          * @function make_insecure
          * @memberOf module:configurator
          */
@@ -158,7 +190,7 @@ define
                             {
                                 success: function ()
                                 {
-                                    alert (name + " _security deleted");
+                                    update_database_state ();
                                 },
                                 error: function (status)
                                 {
@@ -180,12 +212,12 @@ define
          * @summary Creates the design document.
          * @description Creates the design document in the given database
          * with standard views and logged-in security.
-         * @function make_designdoc
-         * @memberOf module:configurator
          * @param {string} dbname - the name of the database to create the design document in
          * @param {object} options - handlers (success and error) for response
          * @param {object} views - the views to add to the design document
          * @param {string} validation - the validate_doc_update function
+         * @function make_designdoc
+         * @memberOf module:configurator
          */
         function make_designdoc (dbname, options, views, validation)
         {
@@ -209,12 +241,12 @@ define
          * @summary Creates a database.
          * @description Creates the given database and optionally
          * adds standard views and logged-in security.
-         * @function make_database
-         * @memberOf module:configurator
          * @param {string} dbname - the name of the database to create
          * @param {object} options - handlers (success and error) for response
          * @param {object} views - the views to add to the design document
          * @param {string} validation - the validate_doc_update function
+         * @function make_database
+         * @memberOf module:configurator
          */
         function make_database (dbname, options, views, validation)
         {
@@ -230,6 +262,8 @@ define
                     else
                         delete options.success;
                     make_designdoc (dbname, options, views, validation);
+                    databases = null;
+                    update_database_state ();
                 };
             $.couch.db (dbname).create (options);
         }
@@ -239,12 +273,12 @@ define
          * @description Creates the configured database and optionally
          * adds standard views and logged-in security.
          * Used as a generic function by the database creation handlers.
-         * @function create_database
-         * @memberOf module:configurator
          * @param {string} config_id - the configuration key value with the database name.
          * @param {object} views - the views to add to the design document
          * @param {string} validation - the validate_doc_update function
          * @param {boolean} security - <em>optional</em> security document to attach to the database
+         * @function create_database
+         * @memberOf module:configurator
          */
         function create_database (config_id, views, validation, security)
         {
@@ -260,7 +294,6 @@ define
                             {
                                 success: function ()
                                 {
-                                    alert (name + " database created");
                                     if (security)
                                         make_secure (name, security);
                                 },
@@ -281,11 +314,19 @@ define
             );
         }
 
+        function create_local ()   { create_database ("local_database",   standard_views, standard_validation); };
+        function create_secure_local ()   { create_database ("local_database",   standard_views, standard_validation, read_restricted ); };
+        function create_pending () { create_database ("pending_database", standard_views); };
+        function create_public ()  { create_database ("public_database",  standard_views, standard_validation); };
+        function create_tracker () { create_database ("tracker_database", tracker_views); };
+
         /**
          * @summary Save button event handler.
          * @description Saves the form values as the current configuration document.
          * If the configuration database doesn't yet exist it is created.
          * @param {object} event - the save button press event
+         * @function save
+         * @memberOf module:configurator
          */
         function save (event)
         {
@@ -295,17 +336,55 @@ define
             var cb = {};
             cb.success = function (data)
             {
-                console.log (data);
+                var db;
+                var secure;
+
                 alert ("Configuration saved.");
-                window.location.reload (true);
+
+                db = configuration.getConfigurationItem ("local_database");
+                secure = document.getElementById ("local_database_secure").checked;
+                if ("" != db)
+                {
+                    if (-1 == databases.indexOf (db))
+                        if (secure)
+                            create_secure_local ();
+                        else
+                            create_local ();
+                    else
+                        // no name change, change in security only ?
+                        is_secure
+                        (
+                            configuration.getConfigurationItem ("local_database"),
+                            {
+                                success: function (currently_secure)
+                                {
+                                    if (currently_secure && !secure)
+                                        make_insecure (configuration.getConfigurationItem ("local_database"));
+                                    else if (!currently_secure && secure)
+                                        make_secure (configuration.getConfigurationItem ("local_database"), read_restricted);
+                                }
+                            }
+                        );
+                }
+
+                db = configuration.getConfigurationItem ("pending_database");
+                if (("" != db) && (-1 == databases.indexOf (db)))
+                    create_pending ();
+                db = configuration.getConfigurationItem ("public_database");
+                if (("" != db) && (-1 == databases.indexOf (db)))
+                    create_public ();
+                db = configuration.getConfigurationItem ("tracker_database");
+                if (("" != db) && (-1 == databases.indexOf (db)))
+                    create_tracker ();
+
             };
             cb.error = function (status) { console.log (status); alert ("Configuration save failed."); };
 
-            configuration.setConfigurationItem ("local_database", document.getElementById ("local_database").value);
-            configuration.setConfigurationItem ("pending_database", document.getElementById ("pending_database").value);
-            configuration.setConfigurationItem ("public_database", document.getElementById ("public_database").value);
-            configuration.setConfigurationItem ("tracker_database", document.getElementById ("tracker_database").value);
-            configuration.setConfigurationItem ("torrent_directory", document.getElementById ("torrent_directory").value);
+            configuration.setConfigurationItem ("local_database", document.getElementById ("local_database").value.trim ());
+            configuration.setConfigurationItem ("pending_database", document.getElementById ("pending_database").value.trim ());
+            configuration.setConfigurationItem ("public_database", document.getElementById ("public_database").value.trim ());
+            configuration.setConfigurationItem ("tracker_database", document.getElementById ("tracker_database").value.trim ());
+            configuration.setConfigurationItem ("torrent_directory", document.getElementById ("torrent_directory").value.trim ());
 
             login.isLoggedIn
             (
@@ -344,9 +423,11 @@ define
         }
 
         /**
-         * @summary Create proxy entries in the CouchDB local cnfiguration.
+         * @summary Create proxy entries in the CouchDB local configuration event handler.
          * @description Creates http proxy entries for keybase.io and the local deluge-web.
          * @param {object} event - the create proxies button pressed event
+         * @function create_proxies
+         * @memberOf module:configurator
          */
         function create_proxies (event)
         {
@@ -375,6 +456,109 @@ define
         }
 
         /**
+         * @summary Update the checkbox for security of the local database.
+         * @param {string} db - the name of the database to interrogate
+         * @function create_proxies
+         * @memberOf module:configurator
+         */
+        function update_local_security_state (db)
+        {
+            if ("" != db)
+                is_secure
+                (
+                    db,
+                    {
+                        success: function (secure)
+                        {
+                            var element;
+                            element = document.getElementById ("local_database_security");
+                            element.classList.remove ("hidden");
+                            element = document.getElementById ("local_database_secure");
+                            element.removeAttribute ("disabled");
+                            element.checked = secure;
+                        },
+                        error: function ()
+                        {
+                            var element;
+                            element = document.getElementById ("local_database_security");
+                            element.classList.add ("hidden");
+                            element = document.getElementById ("local_database_secure");
+                            element.setAttribute ("disabled", "disabled");
+                        }
+                    }
+                );
+        }
+
+        /**
+         * @summary Update the existence state of a database.
+         * @param {string} id_input - the element id of the user entered name of the database
+         * @param {string} id_addon - the element id of the addon to update
+         * @function update_addon
+         * @memberOf module:configurator
+         */
+        function update_addon (id_input, id_addon)
+        {
+            var addon;
+            var db;
+
+            addon = document.getElementById (id_addon);
+            db = document.getElementById (id_input).value.trim ();
+            addon.innerHTML = "";
+            if ("" == db)
+                addon.classList.add ("invisible");
+            else
+                addon.classList.remove ("invisible");
+            if (-1 != databases.indexOf (db))
+            {
+                addon.innerHTML = "exists";
+                addon.classList.remove ("to_be_created");
+                addon.classList.add ("exists");
+            }
+            else
+            {
+                addon.innerHTML = "will be created";
+                addon.classList.remove ("exists");
+                addon.classList.add ("to_be_created");
+            }
+        }
+
+        /**
+         * @summary Update the form state for creating databases.
+         * @param {object} event - the event that triggered the update request
+         * @function update_database_state
+         * @memberOf module:configurator
+         */
+        function update_database_state (event)
+        {
+            if (null == databases)
+                $.couch.allDbs
+                (
+                    {
+                        success: function (data)
+                        {
+                            databases = data;
+                            update_database_state ();
+                        }
+                    }
+                );
+            else
+                if ("undefined" == typeof (event)) // update all
+                {
+                    update_addon ("local_database", "local_database_state");
+                    update_addon ("pending_database", "pending_database_state");
+                    update_addon ("public_database", "public_database_state");
+                    update_addon ("tracker_database", "tracker_database_state");
+                    update_local_security_state (document.getElementById ("local_database").value.trim ());
+                }
+                else
+                {
+                    update_addon (event.target.id, event.target.getAttribute ("aria-describedby"));
+                    if ("local_database" == event.target.id)
+                        update_local_security_state (document.getElementById (event.target.id).value.trim ());
+                }
+        }
+
+        /**
          * Fills the form with existing configuration data and attaches handlers for the
          * various operations.
          * @summary Initialize the configurator.
@@ -390,26 +574,21 @@ define
                 template,
                 function (template)
                 {
-                    function create_local ()   { create_database ("local_database",   standard_views, standard_validation, read_restricted); };
-                    function create_pending () { create_database ("pending_database", standard_views); };
-                    function create_public ()  { create_database ("public_database",  standard_views, standard_validation); };
-                    function create_tracker () { create_database ("tracker_database", tracker_views); };
-
                     page.layout ().content.innerHTML = mustache.render (template);
 
                     document.getElementById ("local_database").value = configuration.getConfigurationItem ("local_database");
                     document.getElementById ("pending_database").value = configuration.getConfigurationItem ("pending_database");
                     document.getElementById ("public_database").value = configuration.getConfigurationItem ("public_database");
                     document.getElementById ("tracker_database").value = configuration.getConfigurationItem ("tracker_database");
-                    document.getElementById ("torrent_directory").value = configuration.getConfigurationItem ("torrent_directory");
                     document.getElementById ("save_configuration").onclick = save;
 
-                    document.getElementById ("create_local").onclick = create_local;
-                    document.getElementById ("create_pending").onclick = create_pending;
-                    document.getElementById ("create_public").onclick = create_public;
-                    document.getElementById ("create_tracker").onclick = create_tracker;
-                    document.getElementById ("secure").onclick = function (event) { make_secure (configuration.getConfigurationItem ("local_database"), read_restricted); };
-                    document.getElementById ("insecure").onclick = function (event) { make_insecure (configuration.getConfigurationItem ("local_database")); };
+                    document.getElementById ("local_database").oninput = update_database_state;
+                    document.getElementById ("pending_database").oninput = update_database_state;
+                    document.getElementById ("public_database").oninput = update_database_state;
+                    document.getElementById ("tracker_database").oninput = update_database_state;
+                    update_database_state (); // set up initial values
+
+                    document.getElementById ("torrent_directory").value = configuration.getConfigurationItem ("torrent_directory");
                     document.getElementById ("configure_proxies").onclick = create_proxies;
                 }
             );

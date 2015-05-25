@@ -334,3 +334,12 @@ li.database_item span.badge
     margin: 1em;
 }
 
+.exists
+{
+    background-color: #dff0d8 !important; /* green like class bg-success, but override addon grey */
+}
+
+.to_be_created
+{
+    background-color: #f2dede !important; /* red like class bg-danger, but override addon grey */
+}

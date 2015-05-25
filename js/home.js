@@ -293,7 +293,8 @@ define
                 },
                 error : function (status)
                 {
-                    console.log (status);
+                    if (401 == status)
+                        document.getElementById (html_id).innerHTML = "<h1>Unathorized.</h1><p>Login to view this database.</p>";
                 },
                 reduce : false
             });
@@ -313,7 +314,6 @@ define
                 function (db)
                 {
                     var url;
-                    var last;
                     var xmlhttp;
                     var updates;
 

@@ -1,0 +1,89 @@
+{{!
+    <link rel="stylesheet" href="../../css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/static/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../../css/things.css">
+}}
+<h2>Configuration</h2>
+<p>Set up this instance of the <em>things</em> system.</p>
+<p>The configuration is broken up into logical groups:</p>
+<ul>
+    <li>database naming, creation and configuration</li>
+    <li>CouchDB settings necessary for correct operation</li>
+    <li>system specific paths and URLs</li>
+    <li>user names and passwords to access various components</li>
+</ul>
+<p>It is recommended that you perform all the steps before using the system, even though some may not be really
+ required until the later stages of your workflow. At a minimum, you must create the databases used by the system.</p>
+<div id="configuration_form" class="form-horizontal">
+    <div class="configuration_group">
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="local_database">Local database</label>
+            <div class="col-sm-9">
+                <div class="input-group">
+                    <span id="local_database_security" class="input-group-addon">
+                        <input id="local_database_secure" type="checkbox" aria-label="local_secure_label">
+                        <span id="local_secure_label">Secure</span>
+                    </span>
+                    <input id="local_database" class="form-control" type="text" name="local_database" placeholder="my_things" aria-describedby="local_database_state">
+                    <span id="local_database_state" class="input-group-addon"></span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="pending_database">Pending database</label>
+            <div class="col-sm-9">
+                <div class="input-group">
+                    <input id="pending_database" class="form-control" type="text" name="pending_database" placeholder="pending_things" aria-describedby="pending_database_state">
+                    <span id="pending_database_state" class="input-group-addon"></span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="public_database">Public database</label>
+            <div class="col-sm-9">
+                <div class="input-group">
+                    <input id="public_database" class="form-control" type="text" name="public_database" placeholder="public_database" aria-describedby="public_database_state">
+                    <span id="public_database_state" class="input-group-addon"></span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="tracker_database">Tracker database</label>
+            <div class="col-sm-9">
+                <div class="input-group">
+                    <input id="tracker_database" class="form-control" type="text" name="tracker_database" placeholder="tracker_database" aria-describedby="tracker_database_state">
+                    <span id="tracker_database_state" class="input-group-addon"></span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="save_configuration"></label>
+            <div class="col-sm-9">
+                <button id="save_configuration" class="btn btn-primary start">
+                    <i class="glyphicon glyphicon-save"></i>
+                    <span>Save</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="configuration_group">
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="configure_proxies"></label>
+            <div class="col-sm-9">
+                <button id="configure_proxies" class="btn btn-primary start">
+                    <i class="glyphicon glyphicon-sunglasses"></i>
+                    <span>Configure proxies</span>
+                </button>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="torrent_directory">Torrent download directory</label>
+            <div class="col-sm-9">
+                <div class="input-group">
+                    <input id="torrent_directory" class="form-control" type="text" name="torrent_directory" placeholder="torrent_directory">
+                    <span id="local_database_state" class="input-group-addon"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
