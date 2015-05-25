@@ -120,7 +120,7 @@ define
                     {
                         if (options.success)
                             if (doc)
-                                options.success (("undefined" != typeof (doc.admins)) && (doc.admins != []));
+                                options.success (("undefined" != typeof (doc.admins)) && (doc.admins.names.length != 0));
                             else
                                 options.success (false);
                     },

@@ -22,12 +22,12 @@ define
             "<p>By clicking the <em>Add tracker</em> button, two things are done:</p>" +
             "<ul>" +
                 "<li>this tracker is added into the thing_tracker database of the other system</li>" +
-                "<li>the new or updated trackers in the database the other system are added to the local thing tracker database</li>" +
+                "<li>the new or updated trackers in the database of the other system are added to the local thing tracker database</li>" +
             "</ul>" +
             "<p>Due to the nature of CouchDB <em>eventual consistency</em>, adding a second tracker will " +
             "join the two clouds -- so there really is only one global federated database of <em>thing trackers</em> -- " +
             "and add a redundant connection from this tracker to the cloud.</p>" +
-            "<p>Each tracker is entered under the unique uuid, which can be seen in the CouchDB <b>Welcome</b> " +
+            "<p>Each tracker is stored under the unique uuid, which can be seen in the CouchDB <b>Welcome</b> " +
             "message (navigate to the root of the CouchDB web server).</p>" +
             "<div id='configuration_form' class='form-horizontal'>" +
                 "<div class='form-group'>" +
@@ -36,36 +36,51 @@ define
                         "<input id='tracker_url' class='form-control' type='text' name='tracker_url' placeholder='http://TheTracker.org'>" +
                     "</div>" +
                 "</div>" +
+                "<div class='form-group'>" +
+                    "<label class='col-sm-3 control-label' for='add_tracker_button'></label>" +
+                    "<div class='col-sm-9'>" +
+                        "<button id='add_tracker_button' class='btn btn-primary'>" +
+                            "<i class='glyphicon glyphicon-plus-sign'></i>" +
+                            "<span>Add tracker</span>" +
+                        "</button>" +
+                    "</div>" +
+                "</div>" +
             "</div>" +
-            "<button id='add_tracker_button' class='btn btn-primary'>" +
-                "<i class='glyphicon glyphicon-plus-sign'></i>" +
-                "<span>Add tracker</span>" +
-            "</button>" +
             "<p>Update the global record for this <em>thing tracker</em> and any federated trackers.</p>" +
-            "<button id='post_my_things' class='btn btn-primary'>" +
-                "<i class='glyphicon glyphicon-star'></i>" +
-                "<span>Post my things</span>" +
-            "</button>" +
-            "<p>Experimental stuff:</p>" +
-            "<button id='info_button' class='btn btn-primary'>" +
-                "<i class='glyphicon glyphicon-info-sign'></i>" +
-                "<span>Info</span>" +
-            "</button>" +
-            "<button id='magnet_button' class='btn btn-primary'>" +
-                "<i class='glyphicon glyphicon-magnet'></i>" +
-                "<span>Magnet</span>" +
-            "</button>" +
+            "<div id='configuration_form' class='form-horizontal'>" +
+                "<div class='form-group'>" +
+                    "<label class='col-sm-3 control-label' for='post_my_things'></label>" +
+                    "<div class='col-sm-9'>" +
+                        "<button id='post_my_things' class='btn btn-primary'>" +
+                            "<i class='glyphicon glyphicon-star'></i>" +
+                            "<span>Post my things</span>" +
+                        "</button>" +
+                    "</div>" +
+                "</div>" +
+            "</div>" +
+//            "<p>Experimental stuff:</p>" +
+//            "<button id='info_button' class='btn btn-primary'>" +
+//                "<i class='glyphicon glyphicon-info-sign'></i>" +
+//                "<span>Info</span>" +
+//            "</button>" +
+//            "<button id='magnet_button' class='btn btn-primary'>" +
+//                "<i class='glyphicon glyphicon-magnet'></i>" +
+//                "<span>Magnet</span>" +
+//            "</button>" +
             "<h2>Tracker List</h2>" +
             "<div id='count_of_trackers'>{{#total_rows}}{{total_rows}} trackers{{/total_rows}}{{^total_rows}}no documents{{/total_rows}}</div>" +
             "<ul class='tracker_list'>" +
                 "{{#rows}}" +
                     "{{#value}}" +
-                    "<div><h3>{{tracker}} ({{id}})</h3>" +
-                        "<ul>" +
-                            "{{#things}}" +
-                            "<li>{{.}}</li>" +
-                            "{{/things}}" +
-                        "</ul>" +
+                        "<div>" +
+                            "<h3><a href='{{url}}' target='_blank'>{{url}}</a></h3>" +
+                            "(public_url: {{public_url}} tracker_url: {{tracker_url}} {{id}})" +
+                            "<ul>" +
+                                "{{#things}}" +
+                                "<li>{{.}}</li>" +
+                                "{{/things}}" +
+                            "</ul>" +
+                        "</div>" +
                     "{{/value}}" +
                 "{{/rows}}" +
             "</ul>";
@@ -140,8 +155,9 @@ define
                             {
                                 var doc = { _id: welcome.uuid };
                                 doc.version = "1.0";
-                                doc.public = configuration.getDocumentRoot () + "/" + public_name + "/";
-                                doc.tracker = configuration.getDocumentRoot () + "/" + tracker_name + "/";
+                                doc.url = document.location.origin + "/";
+                                doc.public_url = configuration.getDocumentRoot () + "/" + public_name + "/";
+                                doc.tracker_url = configuration.getDocumentRoot () + "/" + tracker_name + "/";
                                 doc.things = [];
                                 data.rows.forEach
                                 (
@@ -211,8 +227,8 @@ define
                         var areas = page.layout ();
                         areas.content.innerHTML = mustache.render (trackers_template, result);
                         document.getElementById ("post_my_things").onclick = post_my_things;
-                        document.getElementById ("info_button").onclick = info;
-                        document.getElementById ("magnet_button").onclick = magnet;
+//                        document.getElementById ("info_button").onclick = info;
+//                        document.getElementById ("magnet_button").onclick = magnet;
                         document.getElementById ("add_tracker_button").onclick = add_tracker;
                     },
                     error : function (status)
@@ -223,49 +239,49 @@ define
             );
         }
 
-        function info (event)
-        {
-            deluge.login (
-                deluge.Password,
-                {
-                    success:
-                        function ()
-                        {
-                            deluge.getTorrentInfo
-                            (
-                                "E5CF08EF3FDA6C8E393F5C30C10CD5718D829973",
-                                {
-                                    success: function (data) { alert (JSON.stringify (data, null, 4)); },
-                                    error: function () { alert ("failed to get info"); }
-                                }
-                            );
-                        },
-                    error: function () { alert ("failed deluge login"); }
-                }
-            );
-        }
-
-        function magnet (event)
-        {
-            deluge.login (
-                deluge.Password,
-                {
-                    success:
-                        function ()
-                        {
-                            deluge.downloadTorrent (
-                                "magnet:?xt=urn:btih:E5CF08EF3FDA6C8E393F5C30C10CD5718D829973", // &dn=american+sniper+2014+dvdscr+xvid+ac3+evo&tr=udp%3A%2F%2Fopen.demonii.com%3A1337%2Fannounce
-                                // 32 bit encoded "magnet:?xt=urn:btih:4XHQR3Z73JWI4OJ7LQYMCDGVOGGYFGLT",
-                                {
-                                    success: function (data) { alert (JSON.stringify (data, null, 4)); },
-                                    error: function () { alert ("failed to add magnet"); }
-                                }
-                            );
-                        },
-                    error: function () { alert ("failed deluge login"); }
-                }
-            );
-        }
+//        function info (event)
+//        {
+//            deluge.login (
+//                deluge.Password,
+//                {
+//                    success:
+//                        function ()
+//                        {
+//                            deluge.getTorrentInfo
+//                            (
+//                                "E5CF08EF3FDA6C8E393F5C30C10CD5718D829973",
+//                                {
+//                                    success: function (data) { alert (JSON.stringify (data, null, 4)); },
+//                                    error: function () { alert ("failed to get info"); }
+//                                }
+//                            );
+//                        },
+//                    error: function () { alert ("failed deluge login"); }
+//                }
+//            );
+//        }
+//
+//        function magnet (event)
+//        {
+//            deluge.login (
+//                deluge.Password,
+//                {
+//                    success:
+//                        function ()
+//                        {
+//                            deluge.downloadTorrent (
+//                                "magnet:?xt=urn:btih:E5CF08EF3FDA6C8E393F5C30C10CD5718D829973", // &dn=american+sniper+2014+dvdscr+xvid+ac3+evo&tr=udp%3A%2F%2Fopen.demonii.com%3A1337%2Fannounce
+//                                // 32 bit encoded "magnet:?xt=urn:btih:4XHQR3Z73JWI4OJ7LQYMCDGVOGGYFGLT",
+//                                {
+//                                    success: function (data) { alert (JSON.stringify (data, null, 4)); },
+//                                    error: function () { alert ("failed to add magnet"); }
+//                                }
+//                            );
+//                        },
+//                    error: function () { alert ("failed deluge login"); }
+//                }
+//            );
+//        }
 
         /**
          * @summary Initialize the discover page.

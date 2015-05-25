@@ -217,6 +217,8 @@ define
          * but <code>http:thingtracker.no-ip.org</code> becomes
          * <code>http:thingtracker.no-ip.org/root</code> when used
          * with a vhost and <code>root</code> rewrite rule.
+         * @function getDocumentRoot
+         * @memberOf module:configuration
          */
         function getDocumentRoot ()
         {
