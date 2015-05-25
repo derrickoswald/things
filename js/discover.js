@@ -40,7 +40,7 @@ define
             "</ul>";
 
         /**
-         * @summary Push the URL and SHA1 keys in the public database to the tracker database.
+         * @summary Push the URL, version and SHA1 keys in the public database to the tracker database.
          * @description Updates the document about the local public database in the tracker database.
          * @function post_my_things
          * @memberOf module:discover
@@ -61,6 +61,7 @@ define
                             success: function (data)
                             {
                                 var doc = { _id: welcome.uuid };
+                                doc.version = "1.0";
                                 doc.tracker = configuration.getDocumentRoot () + "/" + public_name + "/";
                                 doc.things = [];
                                 data.rows.forEach
