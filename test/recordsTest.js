@@ -230,15 +230,27 @@ define
                         "read records",
                         function (callbacks)
                         {
-                            var result = callbacks.add
+                            var ok = callbacks.add
                             (
                                 function (data)
                                 {
-                                    console.log (data);
-                                    assertEquals ([payload], data);
+                                    data.rows.map
+                                    (
+                                        function (item)
+                                        {
+                                            assertEquals ([payload], item.value);
+                                        }
+                                    );
                                 }
                             );
-                            records.read_records (this._Db, result);
+                            var error = callbacks.addErrback ("read records");
+                            $.couch.db (this._Db).view (this._Db + "/OverView",
+                            {
+                                success : ok,
+                                error : error,
+                                reduce : false
+                            });
+
                         }
                     );
                 },

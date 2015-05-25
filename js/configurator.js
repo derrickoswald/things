@@ -67,7 +67,7 @@ define
             // view of only "trackers"
             Trackers:
             {
-                map: "function(doc) { if (doc.tracker) emit (doc._id, doc); }"
+                map: "function(doc) { if (doc.things) emit (doc._id, doc); }"
             }
         };
 

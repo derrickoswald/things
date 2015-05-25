@@ -14,52 +14,6 @@ define (["multipart", ""],
     function (multipart)
     {
         /**
-         * @summary Read the "Overview" view and calls back the given function with the data.
-         * @description Stupid functionality - to be replaced.
-         * @function read_records
-         * @memberOf module:records
-         */
-        function read_records (db, fn)
-        {
-            $.couch.db (db).view (db + "/OverView",
-            {
-                success : function (data)
-                {
-                    fn (data.rows.map (function (element)
-                    {
-                        return (element.value);
-                    }));
-                },
-                error : function (status)
-                {
-                    console.log (status);
-                },
-                reduce : false
-            });
-        };
-
-        /**
-         * @summary Insert a document into the database.
-         * @description Yup, that's all - to be replaced.
-         * @function insert_record
-         * @memberOf module:records
-         */
-        function insert_record (db, doc, fn)
-        {
-            $.couch.db (db).saveDoc (doc,
-            {
-                success : function (data)
-                {
-                    fn (data);
-                },
-                error : function (status)
-                {
-                    console.log (status);
-                }
-            });
-        };
-
-        /**
          * @private
          */
         function encodeDocId (docID)
@@ -418,8 +372,6 @@ define (["multipart", ""],
 
         var functions =
         {
-            "read_records" : read_records,
-            "insert_record" : insert_record,
             "saveDocWithAttachments" : saveDocWithAttachments,
             "read_attachment" : read_attachment,
             "base64toBlob": base64toBlob
