@@ -140,6 +140,342 @@ deluge-web
 
 password: deluge
 
+For autostart see [http://www.onepitwopi.com/raspberry-pi/installing-deluge-1-3-6-on-a-raspberry-pi/](http://www.onepitwopi.com/raspberry-pi/installing-deluge-1-3-6-on-a-raspberry-pi/)
+
+vi \~/.config/deluge/auth
+
+add:
+
+pi:raspberry:10
+
+sudo vi /etc/default/deluge-daemon
+
+\# Configuration for /etc/init.d/deluge-daemon
+
+\# The init.d script will only run if this variable non-empty.
+
+DELUGED\_USER="pi"
+
+\# Should we run at startup?
+
+RUN\_AT\_STARTUP="YES"
+
+sudo vi /etc/init.d/deluge-daemon
+
+\#!/bin/sh
+
+\#\#\# BEGIN INIT INFO
+
+\# Provides: deluge-daemon
+
+\# Required-Start: \$local\_fs \$remote\_fs
+
+\# Required-Stop: \$local\_fs \$remote\_fs
+
+\# Should-Start: \$network
+
+\# Should-Stop: \$network
+
+\# Default-Start: 2 3 4 5
+
+\# Default-Stop: 0 1 6
+
+\# Short-Description: Daemonized version of deluge and webui.
+
+\# Description: Starts the deluge daemon with the user specified in
+
+\# /etc/default/deluge-daemon.
+
+\#\#\# END INIT INFO
+
+\# Author: Adolfo R. Brandes
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+DESC="Deluge Daemon"
+
+NAME1="deluged"
+
+NAME2="deluge"
+
+DAEMON1=/usr/bin/deluged
+
+DAEMON1\_ARGS="-d" \# Consult \`man deluged\` for more options
+
+DAEMON2=/usr/bin/deluge-web
+
+DAEMON2\_ARGS="" \# Consult \`man deluge-web\` for more options
+
+PIDFILE1=/var/run/\$NAME1.pid
+
+PIDFILE2=/var/run/\$NAME2.pid
+
+UMASK=022 \# Change this to 0 if running deluged as its own user
+
+PKGNAME=deluge-daemon
+
+SCRIPTNAME=/etc/init.d/\$PKGNAME
+
+\# Exit if the package is not installed
+
+[ -x "\$DAEMON1" -a -x "\$DAEMON2" ] || exit 0
+
+\# Read configuration variable file if it is present
+
+[ -r /etc/default/\$PKGNAME ] && . /etc/default/\$PKGNAME
+
+\# Load the VERBOSE setting and other rcS variables
+
+[ -f /etc/default/rcS ] && . /etc/default/rcS
+
+\# Define LSB log\_\* functions.
+
+\# Depend on lsb-base (\>= 3.0-6) to ensure that this file is present.
+
+. /lib/lsb/init-functions
+
+if [ -z "\$RUN\_AT\_STARTUP" -o "\$RUN\_AT\_STARTUP" != "YES" ]
+
+then
+
+log\_warning\_msg "Not starting \$PKGNAME, edit /etc/default/\$PKGNAME to start it."
+
+exit 0
+
+fi
+
+if [ -z "\$DELUGED\_USER" ]
+
+then
+
+log\_warning\_msg "Not starting \$PKGNAME, DELUGED\_USER not set in /etc/default/\$PKGNAME."
+
+exit 0
+
+fi
+
+\#
+
+\# Function that starts the daemon/service
+
+\#
+
+do\_start()
+
+{
+
+\# Return
+
+\# 0 if daemon has been started
+
+\# 1 if daemon was already running
+
+\# 2 if daemon could not be started
+
+start-stop-daemon --start --background --quiet --pidfile \$PIDFILE1 --exec \$DAEMON1 \\
+
+--chuid \$DELUGED\_USER --user \$DELUGED\_USER --umask \$UMASK --test \> /dev/null
+
+RETVAL1="\$?"
+
+start-stop-daemon --start --background --quiet --pidfile \$PIDFILE2 --exec \$DAEMON2 \\
+
+--chuid \$DELUGED\_USER --user \$DELUGED\_USER --umask \$UMASK --test \> /dev/null
+
+RETVAL2="\$?"
+
+[ "\$RETVAL1" = "0" -a "\$RETVAL2" = "0" ] || return 1
+
+start-stop-daemon --start --background --quiet --pidfile \$PIDFILE1 --make-pidfile --exec \$DAEMON1 \\
+
+--chuid \$DELUGED\_USER --user \$DELUGED\_USER --umask \$UMASK -- \$DAEMON1\_ARGS
+
+RETVAL1="\$?"
+
+sleep 2
+
+start-stop-daemon --start --background --quiet --pidfile \$PIDFILE2 --make-pidfile --exec \$DAEMON2 \\
+
+--chuid \$DELUGED\_USER --user \$DELUGED\_USER --umask \$UMASK -- \$DAEMON2\_ARGS
+
+RETVAL2="\$?"
+
+[ "\$RETVAL1" = "0" -a "\$RETVAL2" = "0" ] || return 2
+
+}
+
+\#
+
+\# Function that stops the daemon/service
+
+\#
+
+do\_stop()
+
+{
+
+\# Return
+
+\# 0 if daemon has been stopped
+
+\# 1 if daemon was already stopped
+
+\# 2 if daemon could not be stopped
+
+\# other if a failure occurred
+
+start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --user \$DELUGED\_USER --pidfile \$PIDFILE2
+
+RETVAL2="\$?"
+
+start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --user \$DELUGED\_USER --pidfile \$PIDFILE1
+
+RETVAL1="\$?"
+
+[ "\$RETVAL1" = "2" -o "\$RETVAL2" = "2" ] && return 2
+
+rm -f \$PIDFILE1 \$PIDFILE2
+
+[ "\$RETVAL1" = "0" -a "\$RETVAL2" = "0" ] && return 0 || return 1
+
+}
+
+case "\$1" in
+
+start)
+
+[ "\$VERBOSE" != no ] && log\_daemon\_msg "Starting \$DESC" "\$NAME1"
+
+do\_start
+
+case "\$?" in
+
+0|1) [ "\$VERBOSE" != no ] && log\_end\_msg 0 ;;
+
+2) [ "\$VERBOSE" != no ] && log\_end\_msg 1 ;;
+
+esac
+
+;;
+
+stop)
+
+[ "\$VERBOSE" != no ] && log\_daemon\_msg "Stopping \$DESC" "\$NAME1"
+
+do\_stop
+
+case "\$?" in
+
+0|1) [ "\$VERBOSE" != no ] && log\_end\_msg 0 ;;
+
+2) [ "\$VERBOSE" != no ] && log\_end\_msg 1 ;;
+
+esac
+
+;;
+
+restart|force-reload)
+
+log\_daemon\_msg "Restarting \$DESC" "\$NAME1"
+
+do\_stop
+
+case "\$?" in
+
+0|1)
+
+do\_start
+
+case "\$?" in
+
+0) log\_end\_msg 0 ;;
+
+1) log\_end\_msg 1 ;; \# Old process is still running
+
+\*) log\_end\_msg 1 ;; \# Failed to start
+
+esac
+
+;;
+
+\*)
+
+\# Failed to stop
+
+log\_end\_msg 1
+
+;;
+
+esac
+
+;;
+
+\*)
+
+echo "Usage: \$SCRIPTNAME {start|stop|restart|force-reload}" \>&2
+
+exit 3
+
+;;
+
+esac
+
+:
+
+sudo chmod +x /etc/init.d/deluge-daemon
+
+get deluge-web to connect to the daemon automatically
+
+sudo vi \~/.config/deluge/web.conf
+
+{
+
+"file": 1,
+
+"format": 1
+
+}{
+
+"port": 8112,
+
+"enabled\_plugins": [],
+
+"pwd\_sha1": "2ce1a410bcdcc53064129b6d950f2e9fee4edc1e",
+
+"theme": "gray",
+
+"show\_sidebar": true,
+
+"sidebar\_show\_zero": false,
+
+"pkey": "ssl/daemon.pkey",
+
+"https": false,
+
+"sessions": {},
+
+"base": "/",
+
+"pwd\_salt": "c26ab3bbd8b137f99cd83c2c1c0963bcc1a35cad",
+
+"show\_session\_speed": false,
+
+"first\_login": false,
+
+"cert": "ssl/daemon.cert",
+
+"session\_timeout": 3600,
+
+"default\_daemon": "127.0.0.1:58846",
+
+"sidebar\_multiple\_filters": true
+
+}
+
+chmod -w \~/.config/deluge/web.conf
+
+sudo reboot
+
 vhost
 =====
 
