@@ -6,29 +6,69 @@
  */
 define
 (
-    ["configuration", "page", "mustache", "deluge"],
+    ["configuration", "page", "mustache", "deluge", "login"],
     /**
      * @summary Functions for handling the discover page.
      * @name discover
      * @exports discover
      * @version 1.0
      */
-    function (configuration, page, mustache, deluge)
+    function (configuration, page, mustache, deluge, login)
     {
+        // list of persistent replications
+//        [
+//            {
+//                "source":"thing_tracker",
+//                "target":"http://thingtracker.no-ip.org/root/thing_tracker/",
+//                "create_target":false,
+//                "continuous":true
+//            },
+//            {
+//                "source":"http://thingtracker.no-ip.org/root/thing_tracker/",
+//                "target":"thing_tracker",
+//                "create_target":false,
+//                "continuous":true
+//            }
+//        ]
+        var replications = null;
+
+        // mustache template for the display page
         var trackers_template =
             "<h2>Discovery</h2>" +
-            "<p>Start bi-directional replication with a new tracker.</p>" +
+            "<h3>Update the global record for this <em>thing tracker</em></h3>" +
+            "<p>This step creates or updates the record for this local tracker in the <em>thing tracker</em> database." +
+            "If the <em>thing tracker</em> database is joined to other trackers (see below) then these federated trackers " +
+            "will also be updated via CouchDB continuous replication (when they are available online).</p>" +
+            "<div id='configuration_form' class='form-horizontal'>" +
+                "<div class='form-group'>" +
+                    "<label class='col-sm-3 control-label' for='post_my_things'></label>" +
+                    "<div class='col-sm-9'>" +
+                        "<button id='post_my_things' class='btn btn-primary'>" +
+                            "<i class='glyphicon glyphicon-star marginright'></i>" +
+                            "<span>Post my things</span>" +
+                        "</button>" +
+                    "</div>" +
+                "</div>" +
+            "</div>" +
+            "<h3>Start bi-directional replication with a new <em>thing tracker</em>.</h3>" +
             "<p>This is the step that bootstraps this <em>thing tracker</em> into a cloud of other similar systems.</p>" +
-            "<p>By clicking the <em>Add tracker</em> button, two things are done:</p>" +
+            "<p>By clicking the <em>Join tracker</em> button, a bi-directional non-permanent replication " +
+            "is perfomed which does two things:</p>" +
             "<ul>" +
-                "<li>this tracker is added into the thing_tracker database of the other system</li>" +
-                "<li>the new or updated trackers in the database of the other system are added to the local thing tracker database</li>" +
+                "<li>this tracker is added into the <em>thing tracker</em> database of the other system (replication from " +
+                "this system to the specified remote system)</li>" +
+                "<li>any new or updated trackers in the database of the remote system are added to the local " +
+                "<em>thing tracker</em> database (replication from the specified remote system to this system)</li>" +
             "</ul>" +
-            "<p>Due to the nature of CouchDB <em>eventual consistency</em>, adding a second tracker will " +
-            "join the two clouds -- so there really is only one global federated database of <em>thing trackers</em> -- " +
-            "and add a redundant connection from this tracker to the cloud.</p>" +
-            "<p>Each tracker is stored under the unique uuid, which can be seen in the CouchDB <b>Welcome</b> " +
-            "message (navigate to the root of the CouchDB web server).</p>" +
+            "<p>This bi-directional replication is not permanent. In order to create a " +
+            "permanent join, wait until the other system is displayed in the list of trackers below (a page " +
+            "refresh may be required), and then click the \"Join\" icon next to the tracker URL.</p>" +
+            "<p>Due to the nature of CouchDB <em>eventual consistency</em>, joining multiple trackers (permanently) " +
+            "will join their respective clouds together -- because it is a single multi-way replicated CouchDb database " +
+            "there really is only one global federated database of <em>thing trackers</em>" +
+            "<p>Each permanently joined <em>thing tracker</em> adds a redundant connection from this tracker to the cloud. " +
+            "Each tracker is stored under the unique uuid of the CouchDb database (this can be seen in the CouchDB <b>Welcome</b> " +
+            "message by navigating to the root of the CouchDB web server).</p>" +
             "<div id='configuration_form' class='form-horizontal'>" +
                 "<div class='form-group'>" +
                     "<label class='col-sm-3 control-label' for='local_database'>New tracker URL</label>" +
@@ -37,23 +77,11 @@ define
                     "</div>" +
                 "</div>" +
                 "<div class='form-group'>" +
-                    "<label class='col-sm-3 control-label' for='add_tracker_button'></label>" +
+                    "<label class='col-sm-3 control-label' for='join_tracker_button'></label>" +
                     "<div class='col-sm-9'>" +
-                        "<button id='add_tracker_button' class='btn btn-primary'>" +
-                            "<i class='glyphicon glyphicon-plus-sign'></i>" +
-                            "<span>Add tracker</span>" +
-                        "</button>" +
-                    "</div>" +
-                "</div>" +
-            "</div>" +
-            "<p>Update the global record for this <em>thing tracker</em> and any federated trackers.</p>" +
-            "<div id='configuration_form' class='form-horizontal'>" +
-                "<div class='form-group'>" +
-                    "<label class='col-sm-3 control-label' for='post_my_things'></label>" +
-                    "<div class='col-sm-9'>" +
-                        "<button id='post_my_things' class='btn btn-primary'>" +
-                            "<i class='glyphicon glyphicon-star'></i>" +
-                            "<span>Post my things</span>" +
+                        "<button id='join_tracker_button' class='btn btn-primary'>" +
+                            "<i class='glyphicon glyphicon-plus-sign marginright'></i>" +
+                            "<span>Join tracker</span>" +
                         "</button>" +
                     "</div>" +
                 "</div>" +
@@ -73,7 +101,11 @@ define
                 "{{#rows}}" +
                     "{{#value}}" +
                         "<div>" +
-                            "<h3><a href='{{url}}' target='_blank'>{{url}}</a></h3>" +
+                            "<h3>" +
+                                "<a href='{{url}}' target='_blank'>{{url}}</a>" +
+                                "{{{permanent_join}}}" +
+                                "{{{begin_track}}}" +
+                            "</h3>" +
                             "(public_url: {{public_url}} tracker_url: {{tracker_url}} {{id}})" +
                             "<ul>" +
                                 "{{#things}}" +
@@ -86,13 +118,15 @@ define
             "</ul>";
 
         /**
-         * @summary Add a tracker to the tracker database.
-         * @description Adds an entry in the tracker database for the given URL,
-         * and exposes this tracker into the cloud of other trackers.
-         * @function add_tracker
+         * @summary Join another tracker database - one time.
+         * @description Performs a one-time replication with another database which
+         * exposes the local tracker into the cloud of that tracker (from local to remote),
+         * and updates the local tracker database with the contents of the remote system
+         * (from remote to local).
+         * @function join_tracker_once
          * @memberOf module:discover
          */
-        function add_tracker (event)
+        function join_tracker_once (event)
         {
             var local_tracker_name = configuration.getConfigurationItem ("tracker_database");
             var remote_tracker_url = document.getElementById ("tracker_url").value.trim ();
@@ -104,13 +138,12 @@ define
                     success: function (data)
                     {
                         console.log (data);
-                        init ();
+                        initialize ();
                     },
                     error: function (status) { console.log (status); }
                 },
                 {
-                    create_target: false,
-                    continuous: true
+                    create_target: false
                 }
             );
             $.couch.replicate
@@ -121,15 +154,154 @@ define
                     success: function (data)
                     {
                         console.log (data);
-                        init ();
+                        initialize ();
                     },
                     error: function (status) { console.log (status); }
                 },
                 {
-                    create_target: false,
-                    continuous: true
+                    create_target: false
                 }
             );
+        }
+
+        /**
+         * @summary Join another tracker database - continuously.
+         * @description Performs a continuous replication with another database which
+         * does what the one-time join does, but makes it permanent in the _replicator
+         * database, which means the join survives a CouchDb restart.
+         * @function join_tracker_continuous
+         * @memberOf module:discover
+         */
+        function join_tracker_continuous (event)
+        {
+            if (null != replications)
+            {
+                var id = event.target.getAttribute ("data-id");
+                var local_tracker_name = configuration.getConfigurationItem ("tracker_database");
+                var remote_tracker_url = event.target.getAttribute ("data-url");
+                // _replicator documents
+                var from_here_to_there =
+                {
+                    _id: ">" + id,
+                    source: local_tracker_name,
+                    target: remote_tracker_url,
+                    create_target: false,
+                    continuous: true
+                };
+                var from_there_to_here =
+                {
+                    _id: "<" + id,
+                    source: remote_tracker_url,
+                    target: local_tracker_name,
+                    create_target: false,
+                    continuous: true
+                };
+
+                $.couch.db ("_replicator").saveDoc
+                (
+                    from_here_to_there,
+                    {
+                        success: function ()
+                        {
+                            $.couch.db ("_replicator").saveDoc
+                            (
+                                from_there_to_here,
+                                {
+                                    success: function ()
+                                    {
+                                        initialize ();
+                                        alert ("joined " + JSON.stringify ([from_here_to_there, from_there_to_here], null, 4));
+                                    },
+                                    error: function ()
+                                    {
+                                        alert ("error: failed to save " + JSON.stringify (from_there_to_here, null, 4));
+                                    }
+                                }
+                            );
+                        },
+                        error: function ()
+                        {
+                            alert ("error: failed to save " + JSON.stringify (from_here_to_there, null, 4));
+                        }
+                    }
+                );
+            }
+            else
+                alert ("you must be logged in to add a continuous tracker");
+
+        }
+
+        /**
+         * @summary Stop continuous replication to another tracker database.
+         * @description Deletes the _replicator documents.
+         * @function unjoin_tracker_continuous
+         * @memberOf module:discover
+         */
+        function unjoin_tracker_continuous (event)
+        {
+            if (null != replications)
+            {
+                var id = event.target.getAttribute ("data-id");
+                // _replicator documents
+                var from_here_to_there = ">" + id;
+                var from_there_to_here = "<" + id;
+                $.couch.db ("_replicator").openDoc
+                (
+                    from_here_to_there,
+                    {
+                        success: function (data)
+                        {
+                            $.couch.db ("_replicator").removeDoc
+                            (
+                                data,
+                                {
+                                    success: function ()
+                                    {
+                                        $.couch.db ("_replicator").openDoc
+                                        (
+                                            from_there_to_here,
+                                            {
+                                                success: function (data)
+                                                {
+                                                    $.couch.db ("_replicator").removeDoc
+                                                    (
+                                                        data,
+                                                        {
+                                                            success: function ()
+                                                            {
+                                                                initialize ();
+                                                                alert ("unjoined " + from_here_to_there + " and " + from_there_to_here);
+                                                            },
+                                                            error: function (status)
+                                                            {
+                                                                alert ("failed to remove " + from_there_to_here);
+                                                            }
+                                                        }
+                                                    );
+                                                },
+                                                error: function (status)
+                                                {
+                                                    alert ("failed to open " + from_there_to_here);
+                                                }
+                                            }
+                                        );
+                                    },
+                                    error: function (status)
+                                    {
+                                        alert ("failed to remove " + from_here_to_there);
+                                    }
+                                }
+                            );
+                        },
+                        error: function (status)
+                        {
+                            alert ("failed to open " + from_here_to_there);
+                        }
+                    }
+                );
+            }
+            else
+                alert ("you must be logged in to remove a continuous tracker");
         }
 
         /**
@@ -205,9 +377,20 @@ define
                             }
                         }
                     );
-
                 }
             );
+        }
+
+        /**
+         * @summary Handle the event to begin making a tracker locally accessible.
+         * @description Creates a new database named by the id of the tracker.
+         * @function begin_tracking
+         * @memberOf module:discover
+         */
+        function begin_tracking (event)
+        {
+            var id = event.target.getAttribute ("data-id");
+            alert ("now tracking " + id);
         }
 
         /**
@@ -225,11 +408,69 @@ define
                     success : function (result)
                     {
                         var areas = page.layout ();
+                        var lookup = function (id)
+                        {
+                            var to;
+                            var from;
+                            var ret;
+
+                            ret = false;
+
+                            to = ">" + id;
+                            from = "<" + id;
+                            replications.forEach
+                            (
+                                function (item)
+                                {
+                                    if ((item.id == to) || (item.id == from))
+                                        ret = true;
+                                }
+                            );
+
+                            return (ret);
+                        };
+                        result.begin_track = function ()
+                        {
+                            var text;
+
+                            if (document.location.origin + "/" == this.url)
+                                text = "";
+                            else
+                                text = "<span class='track glyphicon glyphicon-screenshot marginleft' data-toggle='tooltip' data-placement='top' title='Track' data-url='" + this.public_url + "' data-id='" + this._id + "'>";
+
+                            return (text);
+                        };
+                        result.permanent_join = function ()
+                        {
+                            var text;
+
+                            if (document.location.origin + "/" == this.url)
+                                text = "";
+                            else
+                                if (lookup (this._id))
+                                    text = "<span class='unjoin glyphicon glyphicon-stop marginleft' data-toggle='tooltip' data-placement='top' title='Stop joining' data-url='" + this.tracker_url + "' data-id='" + this._id + "'>";
+                                else
+                                    text = "<span class='join glyphicon glyphicon-play marginleft' data-toggle='tooltip' data-placement='top' title='Join permanently' data-url='" + this.tracker_url + "' data-id='" + this._id + "'>";
+
+                            return (text);
+                        };
                         areas.content.innerHTML = mustache.render (trackers_template, result);
                         document.getElementById ("post_my_things").onclick = post_my_things;
 //                        document.getElementById ("info_button").onclick = info;
 //                        document.getElementById ("magnet_button").onclick = magnet;
-                        document.getElementById ("add_tracker_button").onclick = add_tracker;
+                        document.getElementById ("join_tracker_button").onclick = join_tracker_once;
+                        // handle the "join permanently" event
+                        var joiners = areas.content.getElementsByClassName ("join");
+                        for (var i = 0; i < joiners.length; i++)
+                            joiners[i].addEventListener ("click", join_tracker_continuous);
+                        // handle the "unjoin permanently" event
+                        var unjoiners = areas.content.getElementsByClassName ("unjoin");
+                        for (var i = 0; i < unjoiners.length; i++)
+                            unjoiners[i].addEventListener ("click", unjoin_tracker_continuous);
+                        // handle the "turn on tracking" event
+                        var trackers = areas.content.getElementsByClassName ("track");
+                        for (var i = 0; i < trackers.length; i++)
+                            trackers[i].addEventListener ("click", begin_tracking);
                     },
                     error : function (status)
                     {
@@ -284,19 +525,69 @@ define
 //        }
 
         /**
+         * @summary Get persistent replication tasks.
+         *
+         */
+        function get_replications (options)
+        {
+            options = options || {};
+            login.isLoggedIn
+            (
+                {
+                    success: function ()
+                    {
+                        $.couch.db ("_replicator").allDocs // http://localhost:5984/_replicator/_all_docs
+                        (
+                            {
+                                success: function (result)
+                                {
+                                    replications = [];
+                                    result.rows.forEach
+                                    (
+                                        function (row)
+                                        {
+                                            if ("_" != row.id.charAt (0))
+                                                replications.push (row);
+                                        }
+                                    );
+                                    if (options.success)
+                                        options.success ();
+                                },
+                                error: function ()
+                                {
+                                    if (options.error)
+                                        options.error ();
+                                }
+                            }
+                        );
+                    },
+                    error: function ()
+                    {
+                        if (options.error)
+                            options.error ();
+                    }
+                }
+            );
+        }
+
+        /**
          * @summary Initialize the discover page.
          * @description Display the discover page.
-         * @function init
+         * @function initialize
          * @memberOf module:discover
          */
-        function init ()
+        function initialize ()
         {
-            display (configuration.getConfigurationItem ("tracker_database"), "Trackers");
+            function fn ()
+            {
+                display (configuration.getConfigurationItem ("tracker_database"), "Trackers");
+            };
+            get_replications ({ success: fn, error: fn });
         }
 
         return (
             {
-                initialize: init,
+                initialize: initialize,
                 post_my_things: post_my_things
             }
         );

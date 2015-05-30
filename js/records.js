@@ -223,6 +223,9 @@ define (["multipart", ""],
          * @param {ajaxSettings}
          *            ajaxOptions <a href="http://api.jquery.com/
          *            jQuery.ajax/#jQuery-ajax-settings">jQuery ajax settings</a>
+         * @function fetchDoc
+         * @memberOf module:record
+
          */
         function fetchDoc (db, docId, attachment, options, ajaxOptions)
         {

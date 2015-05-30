@@ -251,31 +251,35 @@ table.file_list tr:nth-child(even)
 
 .marginleft
 {
-	margin-left: 10px !important;
+    margin-left: 10px !important;
+}
+
+.marginright
+{
+    margin-right: 10px !important;
 }
 
 .edit_id
 {
 	color: orange;
+	cursor: pointer;
 }
 
 .delete_id
 {
 	color: red;
+	cursor: pointer;
 }
 
 .publish_id
 {
 	color: purple;
+	cursor: pointer;
 }
 
 .transfer_id
 {
 	color: blue;
-}
-
-.edit_id,.delete_id,.publish_id,.transfer_id
-{
 	cursor: pointer;
 }
 
@@ -342,4 +346,22 @@ li.database_item span.badge
 .to_be_created
 {
     background-color: #f2dede !important; /* red like class bg-danger, but override addon grey */
+}
+
+/* discovery page */
+.join
+{
+    color: green;
+    cursor: pointer;
+}
+
+.unjoin
+{
+    color: red;
+    cursor: pointer;
+}
+.track
+{
+    color: blue;
+    cursor: pointer;
 }

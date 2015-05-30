@@ -34,23 +34,23 @@ define
                                             "<span class='fineprint hidden-lg'><a href='/_utils/document.html?{{database}}/{{_id}}'>{{short_id}}</a></span>" +
                                             "<span class='fineprint hidden-xs hidden-sm hidden-md'><a href='/_utils/document.html?{{database}}/{{_id}}'>{{_id}}</a></span>" +
                                             "{{#options.edit}}" +
-                                                "<span class='edit_id glyphicon glyphicon-pencil marginleft' data-toggle='tooltip' data-placement='top' title='Edit' data-database={{database}} data-id='{{_id}}' data-rev={{_rev}}>" +
+                                                "<span class='edit_id glyphicon glyphicon-pencil marginleft' data-toggle='tooltip' data-placement='top' title='Edit' data-database='{{database}}' data-id='{{_id}}' data-rev='{{_rev}}'>" +
                                                 "</span>" +
                                             "{{/options.edit}}" +
                                             "{{#options.del}}" +
-                                                "<span class='delete_id glyphicon glyphicon-trash marginleft' data-toggle='tooltip' data-placement='top' title='Delete' data-database={{database}} data-id='{{_id}}' data-rev={{_rev}}>" +
+                                                "<span class='delete_id glyphicon glyphicon-trash marginleft' data-toggle='tooltip' data-placement='top' title='Delete' data-database='{{database}}' data-id='{{_id}}' data-rev='{{_rev}}'>" +
                                                 "</span>" +
                                             "{{/options.del}}" +
                                             "{{#options.publish}}" +
-                                                "<span class='publish_id glyphicon glyphicon-book marginleft' data-toggle='tooltip' data-placement='top' title='Publish' data-database={{database}} data-id='{{_id}}' data-rev={{_rev}}>" +
+                                                "<span class='publish_id glyphicon glyphicon-book marginleft' data-toggle='tooltip' data-placement='top' title='Publish' data-database='{{database}}' data-id='{{_id}}' data-rev='{{_rev}}'>" +
                                                 "</span>" +
                                             "{{/options.publish}}" +
                                             "{{#options.transfer}}" +
-                                                "<span class='transfer_id glyphicon glyphicon-share-alt marginleft' data-toggle='tooltip' data-placement='top' title='Transfer' data-database={{database}} data-id='{{_id}}' data-rev={{_rev}}>" +
+                                                "<span class='transfer_id glyphicon glyphicon-share-alt marginleft' data-toggle='tooltip' data-placement='top' title='Transfer' data-database='{{database}}' data-id='{{_id}}' data-rev='{{_rev}}'>" +
                                                 "</span>" +
                                             "{{/options.transfer}}" +
                                             "{{#options.select}}" +
-                                                "<input class='select_id marginleft' type='checkbox' data-database={{database}} data-id='{{_id}}' data-rev={{_rev}} checked>" +
+                                                "<input class='select_id marginleft' type='checkbox' data-database='{{database}}' data-id='{{_id}}' data-rev='{{_rev}}' checked>" +
                                             "{{/options.select}}" +
                                         "</div>" +
                                     "</div>" +
@@ -465,7 +465,7 @@ define
 
             var next = event.target.parentElement.getAttribute ("data-target");
             set_current (next);
-            draw ();
+            initialize ();
         }
 
         /**
@@ -486,7 +486,7 @@ define
                         success: function (data)
                         {
                              console.log (data);
-                             draw ();
+                             initialize ();
                         },
                         error: function (status)
                         {
@@ -630,10 +630,10 @@ define
         /**
          * @summary Render the home page.
          * @description Uses mustache to create HTML DOM elements that display the document information.
-         * @function draw
+         * @function initialize
          * @memberOf module:home
          */
-        function draw ()
+        function initialize ()
         {
             // get the databases
             if (null == databases)
@@ -644,12 +644,11 @@ define
 
         return (
             {
-                initialize: draw,
+                initialize: initialize,
                 build_content: build_content,
                 build_index: build_index,
                 get_current: get_current,
                 set_current: set_current,
-                draw: draw,
                 delete_document: delete_document,
                 push_to_public: push_to_public,
                 transfer_to_local: transfer_to_local
