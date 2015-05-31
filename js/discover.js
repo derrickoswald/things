@@ -15,22 +15,11 @@ define
      */
     function (configuration, page, mustache, deluge, login)
     {
+        // logged in state
+        var logged_in = false;
+
         // list of persistent replications
-//        [
-//            {
-//                "source":"thing_tracker",
-//                "target":"http://thingtracker.no-ip.org/root/thing_tracker/",
-//                "create_target":false,
-//                "continuous":true
-//            },
-//            {
-//                "source":"http://thingtracker.no-ip.org/root/thing_tracker/",
-//                "target":"thing_tracker",
-//                "create_target":false,
-//                "continuous":true
-//            }
-//        ]
-        var replications = null;
+        var replications = [];
 
         // mustache template for the display page
         var trackers_template =
@@ -174,7 +163,7 @@ define
          */
         function join_tracker_continuous (event)
         {
-            if (null != replications)
+            if (logged_in)
             {
                 var id = event.target.getAttribute ("data-id");
                 var local_tracker_name = configuration.getConfigurationItem ("tracker_database");
@@ -239,7 +228,7 @@ define
          */
         function unjoin_tracker_continuous (event)
         {
-            if (null != replications)
+            if (logged_in)
             {
                 var id = event.target.getAttribute ("data-id");
                 // _replicator documents
@@ -433,10 +422,10 @@ define
                         {
                             var text;
 
-                            if (document.location.origin + "/" == this.url)
+                            if ((document.location.origin + "/" == this.url) || !logged_in)
                                 text = "";
                             else
-                                text = "<span class='track glyphicon glyphicon-screenshot marginleft' data-toggle='tooltip' data-placement='top' title='Track' data-url='" + this.public_url + "' data-id='" + this._id + "'>";
+                                text = "<span class='track glyphicon glyphicon-screenshot marginleft' data-toggle='tooltip' data-placement='top' title='Track' data-url='" + this.public_url + "' data-id='" + this._id + "'></span>";
 
                             return (text);
                         };
@@ -444,13 +433,13 @@ define
                         {
                             var text;
 
-                            if (document.location.origin + "/" == this.url)
+                            if ((document.location.origin + "/" == this.url) || !logged_in)
                                 text = "";
                             else
                                 if (lookup (this._id))
-                                    text = "<span class='unjoin glyphicon glyphicon-stop marginleft' data-toggle='tooltip' data-placement='top' title='Stop joining' data-url='" + this.tracker_url + "' data-id='" + this._id + "'>";
+                                    text = "<span class='unjoin glyphicon glyphicon-stop marginleft' data-toggle='tooltip' data-placement='top' title='Stop joining' data-url='" + this.tracker_url + "' data-id='" + this._id + "'></span>";
                                 else
-                                    text = "<span class='join glyphicon glyphicon-play marginleft' data-toggle='tooltip' data-placement='top' title='Join permanently' data-url='" + this.tracker_url + "' data-id='" + this._id + "'>";
+                                    text = "<span class='join glyphicon glyphicon-play marginleft' data-toggle='tooltip' data-placement='top' title='Join permanently' data-url='" + this.tracker_url + "' data-id='" + this._id + "'></span>";
 
                             return (text);
                         };
@@ -526,22 +515,25 @@ define
 
         /**
          * @summary Get persistent replication tasks.
-         *
+         * @description Populate the replications field with the persistent replications currently in effect.
+         * @function get_replications
+         * @memberOf module:discover
          */
         function get_replications (options)
         {
+            replications = [];
             options = options || {};
             login.isLoggedIn
             (
                 {
                     success: function ()
                     {
+                        logged_in = true;
                         $.couch.db ("_replicator").allDocs // http://localhost:5984/_replicator/_all_docs
                         (
                             {
                                 success: function (result)
                                 {
-                                    replications = [];
                                     result.rows.forEach
                                     (
                                         function (row)
@@ -563,12 +555,40 @@ define
                     },
                     error: function ()
                     {
+                        logged_in = false;
                         if (options.error)
                             options.error ();
                     }
                 }
             );
         }
+
+        // register for login/logout events
+        login.on
+        (
+            "login",
+            function ()
+            {
+                if (!logged_in) // could be set by auto-login
+                {
+                    logged_in = true;
+                    // if Discover Things is the active page, re-initialize
+                    if (document.getElementById ("discover_thing").parentElement.classList.contains ("active"))
+                        initialize ();
+                }
+            }
+        );
+        login.on
+        (
+            "logout",
+            function ()
+            {
+                logged_in = false;
+                // if Discover Things is the active page, re-initialize
+                if (document.getElementById ("discover_thing").parentElement.classList.contains ("active"))
+                    initialize ();
+            }
+        );
 
         /**
          * @summary Initialize the discover page.
@@ -578,6 +598,7 @@ define
          */
         function initialize ()
         {
+            // get the replications (or not) and then display the page
             function fn ()
             {
                 display (configuration.getConfigurationItem ("tracker_database"), "Trackers");

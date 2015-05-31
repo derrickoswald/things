@@ -41,6 +41,54 @@ requirejs
      */
     function (configuration)
     {
+        /**
+         * @summary Define the eventable plugin.
+         * @description Add an eventable jQuery plugin to support events between modules.
+         * @see http://stackoverflow.com/questions/8099767/javascript-module-pattern-events-and-listeners
+         */
+        function define_eventable ()
+        {
+            jQuery.eventable = function (obj)
+            {
+                // allow use of Function.prototype for shorthanding the augmentation of classes
+                obj = jQuery.isFunction (obj) ? obj.prototype : obj;
+                // augment the object (or prototype) with eventable methods
+                return ($.extend (obj, jQuery.eventable.prototype));
+            };
+
+            jQuery.eventable.prototype =
+            {
+                // The trigger event must be augmented separately because it requires a
+                // new Event to prevent unexpected triggering of a method (and possibly
+                // infinite recursion) when the event type matches the method name
+                trigger: function (type, data)
+                {
+                    var event;
+
+                    event = new jQuery.Event (type);
+                    event.preventDefault ();
+                    jQuery.event.trigger (event, data, this);
+
+                    return (this);
+                }
+            };
+
+            // augment the object with jQuery's event methods
+            jQuery.each
+            (
+                ["bind", "one", "unbind", "on", "off"],
+                function (i, method)
+                {
+                    jQuery.eventable.prototype[method] = function (type, data, fn)
+                    {
+                        jQuery (this)[method] (type, data, fn);
+
+                        return (this);
+                    };
+                }
+            );
+        }
+
         function begin ()
         {
             require
@@ -101,6 +149,9 @@ requirejs
                 }
             );
         }
+
+        // set up for custom events
+        define_eventable ();
 
         // to support vhost systems set CouchDB jQuery module base path if main.js is not coming from localhost
         if (-1 == location.host.indexOf ("localhost"))

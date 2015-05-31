@@ -32,3 +32,6 @@
         </form>
     </div>
 </li>
+<li id="logout" class="hidden">
+    <a id="logout_button_link" href="#">Logout</a>
+</li>

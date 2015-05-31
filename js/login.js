@@ -8,15 +8,14 @@ define (
     ["mustache"],
     /**
      * @summary Login dialog for CouchDB access.
+     * @description Handles the UI for login/logout as well as local storage if requested,
+     * and raises login/logout events.
      * @name login
      * @exports login
      * @version 1.0
      */
     function (mustache)
     {
-        var template = "templates/login.mst";
-        var ret;
-
         /**
          * Checks for logged in state.
          * @param {object} options to process the login:
@@ -38,11 +37,10 @@ define (
                     {
                         var credentials;
 
-                        if (data.ok)
+                        if (data.ok) // logged in
                             if (data.userCtx.name)
                             {
-                                // logged in
-                                document.getElementById ("login_button_link").innerHTML = "Logout";
+                                menu_adjust (true);
                                 if (options.success)
                                     options.success (data.userCtx);
                             }
@@ -58,9 +56,11 @@ define (
                                             password: credentials.password,
                                             success: function (result) // { ok: true, name: null, roles: Array[1] }, not sure why name is null
                                             {
-                                                document.getElementById ("login_button_link").innerHTML = "Logout";
+                                                menu_adjust (true);
                                                 if (options.success)
                                                     options.success ( {name: credentials.username, roles: result.roles });
+                                                // let registered listeners know about the login
+                                                _login.trigger ("login");
                                             },
                                             error: function (status)
                                             {
@@ -83,42 +83,27 @@ define (
 
         /**
          * Handler for show.bs.dropdown events.
-         * Checks for logged in state and if so performs a logout and bypass opening the dropdown.
+         * Checks for logged in state and if so performs a logout and bypasses opening the dropdown.
          * @param event the dropdown-is-about-to-happen event from the .dropdown list item
          * @function show
          * @memberOf module:login
          */
         function show (event)
         {
-            var link = document.getElementById ("login_button_link");
-            if ("Logout" == link.innerHTML)
+            var credentials = getCredentials ();
+            if (null != credentials)
             {
-                event.preventDefault ();
-                event.stopPropagation ();
-                $.couch.logout (
-                {
-                    success : function (data)
-                    {
-                        document.getElementById ("login_button_link").innerHTML = "Login";
-                    },
-                    error : function (status)
-                    {
-                        console.log (status);
-                    }
-                });
+                document.getElementById ("username").value = credentials.name;
+                document.getElementById ("password").value = credentials.password;
+                document.getElementById ("remember").checked = true;
+                document.getElementById ("autologin").checked = credentials.autologin;
             }
             else
             {
-                var credentials = getCredentials ();
-                if (null != credentials)
-                {
-                    document.getElementById ("username").value = credentials.name;
-                    document.getElementById ("password").value = credentials.password;
-                    document.getElementById ("remember").checked = true;
-                    document.getElementById ("autologin").checked = credentials.autologin;
-                }
-                else
-                    document.getElementById ("remember").checked = false;
+                document.getElementById ("username").value = "";
+                document.getElementById ("password").value = "";
+                document.getElementById ("remember").checked = false;
+                document.getElementById ("autologin").checked = false;
             }
         }
 
@@ -205,6 +190,8 @@ define (
                 name = localStorage.getItem ("couchdb_user");
                 password = localStorage.getItem ("couchdb_password");
                 autologin = localStorage.getItem ("couchdb_autologin");
+                if (null != autologin)
+                    autologin = JSON.parse (autologin.toLowerCase ());
                 if ((null != name) || (null != password) || (null != autologin))
                     ret = { name: name, password: password, autologin: autologin };
             }
@@ -213,9 +200,7 @@ define (
         }
 
         /**
-         * Handler for submit events.
-         * Performs login and if successful changes the login button text and closes the dropdown,
-         * otherwise just displays an alert.
+         * @summary Handler for submit events.
          * @param event the submit-button-pressed event from the .dropdown list item
          * @function submit
          * @memberOf module:login
@@ -226,28 +211,80 @@ define (
             var password;
             var remember;
             var autologin;
-            var link;
 
             event.preventDefault ();
             event.stopPropagation ();
 
+            // retrieve the form values
             username = document.getElementById ("username").value;
             password = document.getElementById ("password").value;
             remember = document.getElementById ("remember").checked;
             autologin = document.getElementById ("autologin").checked;
+
+            // clear the form
+            document.getElementById ("username").value = "";
+            document.getElementById ("password").value = "";
+            document.getElementById ("remember").checked = false;
+            document.getElementById ("autologin").checked = false;
+
+            // do the login
+            do_login ({username: username, password: password, autologin: autologin}, remember);
+        }
+
+        /**
+         * @summary Swap menu items.
+         * Change the menu from Login to Logout or vice versa.
+         * @param {boolean} logged_in If <em>true</em>, make it say logout, otherwise make it say login.
+         * @function menu_adjust
+         * @memberOf module:login
+         */
+        function menu_adjust (logged_in)
+        {
+            if (logged_in)
+            {
+                // hide the login item
+                document.getElementById ("login").classList.add ("hidden");
+                // show the logout item
+                document.getElementById ("logout").classList.remove ("hidden");
+            }
+            else
+            {
+                // hide the logout item
+                document.getElementById ("logout").classList.add ("hidden");
+                // show the login item
+                document.getElementById ("login").classList.remove ("hidden");
+            }
+        }
+
+        /**
+         * @summary Do the CouchDb login.
+         * Performs login and if successful remembers the credentials if required,
+         * closes the dropdown, changes the menu and notifies listeners;
+         * otherwise just displays an alert of failure.
+         * @param {object} credentials The username, password, and autologin request as a plain object.
+         * @param {boolean} remember If true, store the credentials if possible.
+         * @function do_login
+         * @memberOf module:login
+         */
+        function do_login (credentials, remember)
+        {
+            // try login
             $.couch.login (
             {
-                name: username,
-                password: password,
+                name: credentials.username,
+                password: credentials.password,
                 success: function (data)
                 {
                     if (remember)
-                        storeCredentials (username, password, autologin);
+                        storeCredentials (credentials.username, credentials.password, credentials.autologin);
                     else
                         clearCredentials ();
-                    link = document.getElementById ("login_button_link");
-                    link.innerHTML = "Logout";
-                    $(link).dropdown ("toggle");
+                    // close the dropdown
+                    $(document.getElementById ("login_button_link")).dropdown ("toggle");
+                    // fix the menu
+                    menu_adjust (true);
+                    // let registered listeners know about the login
+                    _login.trigger ("login");
                 },
                 error: function (status)
                 {
@@ -255,21 +292,42 @@ define (
                     alert ("Login failed.");
                 }
             });
+
         }
 
         /**
-         * Add listeners for the login form.
-         * @function hook
+         * @summary Do the CouchDb logout.
+         * Performs logout and if successful changes the menu and notifies listeners;
+         * otherwise just displays an alert of failure.
+         * @param {object} credentials The username, password, and autologin request as a plain object.
+         * @param {boolean} remember If true, store the credentials if possible.
+         * @function do_logout
          * @memberOf module:login
          */
-        function hook ()
+        function do_logout ()
         {
-            var dropdown;
+            var credentials;
 
-            dropdown = document.getElementById ("login");
-            $ (dropdown).on ("show.bs.dropdown", show);
-            $ (dropdown).on ("shown.bs.dropdown", shown);
-            $ ("#login_form").on ("submit", submit);
+            credentials = getCredentials ();
+            if (null != credentials) // the user really wants to logout, so reset autologin
+                storeCredentials (credentials.name, credentials.password, false);
+            $.couch.logout
+            (
+                {
+                    success : function (data)
+                    {
+                        // fix the menu
+                        menu_adjust (false);
+                        // let registered listeners know about the logout
+                        _login.trigger ("logout");
+                    },
+                    error : function (status)
+                    {
+                        console.log (status);
+                        alert ("Logout failed.");
+                    }
+                }
+            );
         }
 
         /**
@@ -283,25 +341,33 @@ define (
         {
             $.get
             (
-                template,
+                "templates/login.mst",
                 function (template)
                 {
                     var wrapper;
+                    var dropdown;
 
                     wrapper = document.createElement ("ul");
                     wrapper.innerHTML = mustache.render (template);
-                    document.getElementById (id).appendChild (wrapper.children[0]);
-                    hook ();
+                    var l = wrapper.children.length;
+                    for (var i = 0; i < l; i++)
+                        document.getElementById (id).appendChild (wrapper.children[0]); // yes, zero
+                    dropdown = document.getElementById ("login");
+                    $ (dropdown).on ("show.bs.dropdown", show);
+                    $ (dropdown).on ("shown.bs.dropdown", shown);
+                    $ ("#login_form").on ("submit", submit);
+                    document.getElementById ("logout_button_link").onclick = do_logout;
                 }
             );
         }
 
-        ret =
-        {
-            "build": build,
-            "isLoggedIn": isLoggedIn
-        };
-
-        return (ret);
+        var _login = $.eventable
+        (
+            {
+                "build": build,
+                "isLoggedIn": isLoggedIn
+            }
+        );
+        return (_login);
     }
 );
