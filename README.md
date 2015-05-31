@@ -13,9 +13,6 @@ These instructions are fairly rough and haven't been tried out on a virgin machi
 * Add the jsTestDriver plugin described at https://code.google.com/p/js-test-driver/wiki/UsingTheEclipsePlugin.
 * Configure browser startup commands in the jsTestDriver properties and open the jsTestDriver window under Javascript.
 * Install couchdb from http://couchdb.apache.org/ and test that futon can access it (after a reboot on Windows) at http://localhost:5984/_utils/index.html.
-* Add the following lines to the local configuration (use command couchdb -c in order to see where the local configuration file is, on linux it's /etc/couchdb/local.ini) under the [httpd_global_handlers] section (which initially has a commented out google proxy):
-  * keybase = {couch_httpd_proxy, handle_proxy_req, <<"https://keybase.io/">>}
-  * json = {couch_httpd_proxy, handle_proxy_req, <<"http://localhost:8112">>}
 * Install erica as described at https://github.com/benoitc/erica (some issues with current git repo, so use prebuilt binaries). The project assumes linux and that erica can be found in /usr/local/bin/erica.
 * Install deluge and deluge-web. Enable the web interface under WebUI in preferences.
 * Clone the things project found at https://github.com/derrickoswald/things.
@@ -24,4 +21,6 @@ These instructions are fairly rough and haven't been tried out on a virgin machi
 * All users will need to modify the build variables for ${couchdb_admin}, ${couchdb_password}, ${couchdb_host} and ${couchdb_port}.
 * Add a "run configuration" for jsTestDriver for the project to run every save.
 * Install JsDoc as described at http://usejsdoc.org.
-* Build the project. This should push it to the local couchdb and run the unit tests. On the first run it will ask you for the couchdb admin password.
+* Build the project. On the first build (and after a clean) it will ask you for the couchdb admin password. This should push it to the local couchdb.
+* Browse to http://localhost:5984/things/_design/things/_rewrite/ and it will detect there is no configuration database, and take you to the configurator.
+* Follow the steps outlined in the configurator
