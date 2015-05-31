@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.eclipse.ant.AntBuilderLaunchConfigurationType">
-<stringAttribute key="org.eclipse.ant.ui.ATTR_ANT_AUTO_TARGETS" value="phase3,"/>
 <stringAttribute key="org.eclipse.ant.ui.ATTR_ANT_CLEAN_TARGETS" value="clean,"/>
 <stringAttribute key="org.eclipse.ant.ui.ATTR_ANT_MANUAL_TARGETS" value="phase3,"/>
 <booleanAttribute key="org.eclipse.ant.ui.ATTR_TARGETS_UPDATED" value="true"/>
@@ -14,7 +13,7 @@
 <booleanAttribute key="org.eclipse.ui.externaltools.ATTR_BUILDER_ENABLED" value="true"/>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_BUILD_SCOPE" value="${working_set:&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&#10;&lt;resources&gt;&#10;&lt;item path=&quot;/things/documentation&quot; type=&quot;2&quot;/&gt;&#10;&lt;item path=&quot;/things/js&quot; type=&quot;2&quot;/&gt;&#10;&lt;item path=&quot;/things/resources&quot; type=&quot;2&quot;/&gt;&#10;&lt;item path=&quot;/things/templates&quot; type=&quot;2&quot;/&gt;&#10;&lt;/resources&gt;}"/>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="${workspace_loc:/things/documentation.xml}"/>
-<stringAttribute key="org.eclipse.ui.externaltools.ATTR_RUN_BUILD_KINDS" value="incremental,auto,clean"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_RUN_BUILD_KINDS" value="incremental,clean"/>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_TOOL_ARGUMENTS" value="-verbose"/>
 <booleanAttribute key="org.eclipse.ui.externaltools.ATTR_TRIGGERS_CONFIGURED" value="true"/>
 </launchConfiguration>

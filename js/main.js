@@ -154,8 +154,10 @@ requirejs
         define_eventable ();
 
         // to support vhost systems set CouchDB jQuery module base path if main.js is not coming from localhost
-        if (-1 == location.host.indexOf ("localhost"))
-            $.couch.urlPrefix = "/root"; // the name must agree with the name in rewrites.json
+        // we assume that an ip address is also not a vhost name
+        if (!((location.hostname == "localhost") ||
+            /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/.test (location.hostname)))
+            $.couch.urlPrefix = "/root"; // the name must agree with the name used in rewrites.json
 
         // ensure that configuration is loaded first, everything else depends on it
         configuration.configuration_setup
