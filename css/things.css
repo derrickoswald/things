@@ -360,8 +360,15 @@ li.database_item span.badge
     color: red;
     cursor: pointer;
 }
+
 .track
 {
     color: blue;
+    cursor: pointer;
+}
+
+.untrack
+{
+    color: purple;
     cursor: pointer;
 }

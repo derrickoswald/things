@@ -408,7 +408,7 @@ define
 
         /**
          * @summary Get the list of databases.
-         * @description Get all documents and filter out non-thing databases.
+         * @description Get all databases and filter out non-thing databases.
          * @param {object} options - options for result handling
          * @function fetch_databases
          * @memberOf module:home
@@ -429,7 +429,7 @@ define
                                 if (!("_" == item.charAt (0))
                                     && ("things" != item)
                                     && ("configuration" != item)
-                                    && ("thing_tracker" != item))
+                                    && (configuration.getConfigurationItem ("tracker_database") != item))
                                 {
                                     var link = { database: item };
                                     if (item == initial)
@@ -446,7 +446,6 @@ define
                         if (options.error)
                             options.error ();
                     }
-
                 }
             );
         }

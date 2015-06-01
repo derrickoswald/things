@@ -18,8 +18,17 @@ define
         // logged in state
         var logged_in = false;
 
-        // list of persistent replications
+        /**
+         * list of persistent replications
+         * @memberOf module:discover
+         */
         var replications = [];
+
+        /**
+         * list of localized remote databases
+         * @memberOf module:discover
+         */
+        var databases = [];
 
         // mustache template for the display page
         var trackers_template =
@@ -75,15 +84,6 @@ define
                     "</div>" +
                 "</div>" +
             "</div>" +
-//            "<p>Experimental stuff:</p>" +
-//            "<button id='info_button' class='btn btn-primary'>" +
-//                "<i class='glyphicon glyphicon-info-sign'></i>" +
-//                "<span>Info</span>" +
-//            "</button>" +
-//            "<button id='magnet_button' class='btn btn-primary'>" +
-//                "<i class='glyphicon glyphicon-magnet'></i>" +
-//                "<span>Magnet</span>" +
-//            "</button>" +
             "<h2>Tracker List</h2>" +
             "<div id='count_of_trackers'>{{#total_rows}}{{total_rows}} trackers{{/total_rows}}{{^total_rows}}no documents{{/total_rows}}</div>" +
             "<ul class='tracker_list'>" +
@@ -198,8 +198,8 @@ define
                                 {
                                     success: function ()
                                     {
-                                        initialize ();
                                         alert ("joined " + JSON.stringify ([from_here_to_there, from_there_to_here], null, 4));
+                                        initialize ();
                                     },
                                     error: function ()
                                     {
@@ -217,7 +217,6 @@ define
             }
             else
                 alert ("you must be logged in to add a continuous tracker");
-
         }
 
         /**
@@ -258,8 +257,8 @@ define
                                                         {
                                                             success: function ()
                                                             {
-                                                                initialize ();
                                                                 alert ("unjoined " + from_here_to_there + " and " + from_there_to_here);
+                                                                initialize ();
                                                             },
                                                             error: function (status)
                                                             {
@@ -378,8 +377,88 @@ define
          */
         function begin_tracking (event)
         {
-            var id = event.target.getAttribute ("data-id");
-            alert ("now tracking " + id);
+            if (logged_in)
+            {
+                var id = event.target.getAttribute ("data-id");
+                var remote_url = event.target.getAttribute ("data-url");
+                id = "z" + id; // Only lowercase characters (a-z), digits (0-9), and any of the characters _, $, (, ), +, -, and / are allowed. Must begin with a letter.
+                // _replicator documents
+                var from_there_to_here =
+                {
+                    _id: id,
+                    source: remote_url,
+                    target: id,
+                    create_target: true,
+                    continuous: true,
+                    user_ctx:
+                    {
+                        roles: ["_admin"]
+                    }
+                };
+
+                $.couch.db ("_replicator").saveDoc
+                (
+                    from_there_to_here,
+                    {
+                        success: function ()
+                        {
+                            alert ("now tracking " + id);
+                            initialize ();
+                        },
+                        error: function ()
+                        {
+                            alert ("error: failed to save " + JSON.stringify (from_there_to_here, null, 4));
+                        }
+                    }
+                );
+            }
+            else
+                alert ("you must be logged in to track");
+        }
+
+        /**
+         * @summary Handle the event to stop making a tracker locally accessible.
+         * @description Stops the replication process and deletes the database.
+         * @function stop_tracking
+         * @memberOf module:discover
+         */
+        function stop_tracking (event)
+        {
+            if (logged_in)
+            {
+                var id = event.target.getAttribute ("data-id");
+                id = "z" + id;
+                $.couch.db ("_replicator").openDoc
+                (
+                    id,
+                    {
+                        success: function (data)
+                        {
+                            $.couch.db ("_replicator").removeDoc
+                            (
+                                data,
+                                {
+                                    success: function ()
+                                    {
+                                        alert ("untracked " + id);
+                                        initialize ();
+                                    },
+                                    error: function (status)
+                                    {
+                                        alert ("failed to remove " + id);
+                                    }
+                                }
+                            );
+                        },
+                        error: function (status)
+                        {
+                            alert ("failed to open " + id);
+                        }
+                    }
+                );
+            }
+            else
+                alert ("you must be logged in to stop tracking");
         }
 
         /**
@@ -397,7 +476,7 @@ define
                     success : function (result)
                     {
                         var areas = page.layout ();
-                        var lookup = function (id)
+                        var lookup_replication = function (id)
                         {
                             var to;
                             var from;
@@ -418,6 +497,24 @@ define
 
                             return (ret);
                         };
+                        var lookup_database = function (id)
+                        {
+                            var ret;
+
+                            ret = false;
+
+                            id = "z" + id;
+                            replications.forEach
+                            (
+                                function (item)
+                                {
+                                    if (item.id == id)
+                                        ret = true;
+                                }
+                            );
+
+                            return (ret);
+                        };
                         result.begin_track = function ()
                         {
                             var text;
@@ -425,7 +522,10 @@ define
                             if ((document.location.origin + "/" == this.url) || !logged_in)
                                 text = "";
                             else
-                                text = "<span class='track glyphicon glyphicon-screenshot marginleft' data-toggle='tooltip' data-placement='top' title='Track' data-url='" + this.public_url + "' data-id='" + this._id + "'></span>";
+                                if (lookup_database (this._id))
+                                    text = "<span class='untrack glyphicon glyphicon-ban-circle marginleft' data-toggle='tooltip' data-placement='top' title='Stop tracking' data-url='" + this.public_url + "' data-id='" + this._id + "'></span>";
+                                else
+                                    text = "<span class='track glyphicon glyphicon-screenshot marginleft' data-toggle='tooltip' data-placement='top' title='Track' data-url='" + this.public_url + "' data-id='" + this._id + "'></span>";
 
                             return (text);
                         };
@@ -436,7 +536,7 @@ define
                             if ((document.location.origin + "/" == this.url) || !logged_in)
                                 text = "";
                             else
-                                if (lookup (this._id))
+                                if (lookup_replication (this._id))
                                     text = "<span class='unjoin glyphicon glyphicon-stop marginleft' data-toggle='tooltip' data-placement='top' title='Stop joining' data-url='" + this.tracker_url + "' data-id='" + this._id + "'></span>";
                                 else
                                     text = "<span class='join glyphicon glyphicon-play marginleft' data-toggle='tooltip' data-placement='top' title='Join permanently' data-url='" + this.tracker_url + "' data-id='" + this._id + "'></span>";
@@ -445,8 +545,6 @@ define
                         };
                         areas.content.innerHTML = mustache.render (trackers_template, result);
                         document.getElementById ("post_my_things").onclick = post_my_things;
-//                        document.getElementById ("info_button").onclick = info;
-//                        document.getElementById ("magnet_button").onclick = magnet;
                         document.getElementById ("join_tracker_button").onclick = join_tracker_once;
                         // handle the "join permanently" event
                         var joiners = areas.content.getElementsByClassName ("join");
@@ -460,6 +558,10 @@ define
                         var trackers = areas.content.getElementsByClassName ("track");
                         for (var i = 0; i < trackers.length; i++)
                             trackers[i].addEventListener ("click", begin_tracking);
+                        // handle the "turn off tracking" event
+                        var untrackers = areas.content.getElementsByClassName ("untrack");
+                        for (var i = 0; i < untrackers.length; i++)
+                            untrackers[i].addEventListener ("click", stop_tracking);
                     },
                     error : function (status)
                     {
@@ -468,50 +570,6 @@ define
                 }
             );
         }
-
-//        function info (event)
-//        {
-//            deluge.login (
-//                deluge.Password,
-//                {
-//                    success:
-//                        function ()
-//                        {
-//                            deluge.getTorrentInfo
-//                            (
-//                                "E5CF08EF3FDA6C8E393F5C30C10CD5718D829973",
-//                                {
-//                                    success: function (data) { alert (JSON.stringify (data, null, 4)); },
-//                                    error: function () { alert ("failed to get info"); }
-//                                }
-//                            );
-//                        },
-//                    error: function () { alert ("failed deluge login"); }
-//                }
-//            );
-//        }
-//
-//        function magnet (event)
-//        {
-//            deluge.login (
-//                deluge.Password,
-//                {
-//                    success:
-//                        function ()
-//                        {
-//                            deluge.downloadTorrent (
-//                                "magnet:?xt=urn:btih:E5CF08EF3FDA6C8E393F5C30C10CD5718D829973", // &dn=american+sniper+2014+dvdscr+xvid+ac3+evo&tr=udp%3A%2F%2Fopen.demonii.com%3A1337%2Fannounce
-//                                // 32 bit encoded "magnet:?xt=urn:btih:4XHQR3Z73JWI4OJ7LQYMCDGVOGGYFGLT",
-//                                {
-//                                    success: function (data) { alert (JSON.stringify (data, null, 4)); },
-//                                    error: function () { alert ("failed to add magnet"); }
-//                                }
-//                            );
-//                        },
-//                    error: function () { alert ("failed deluge login"); }
-//                }
-//            );
-//        }
 
         /**
          * @summary Get persistent replication tasks.
@@ -563,6 +621,49 @@ define
             );
         }
 
+        /**
+         * @summary Get the list of databases.
+         * @description Get all databases and filter out known databases.
+         * @param {object} options - options for result handling
+         * @function fetch_databases
+         * @memberOf module:home
+         */
+        function get_databases (options)
+        {
+            $.couch.allDbs
+            (
+                {
+                    success: function (data)
+                    {
+                        databases = [];
+                        data.forEach
+                        (
+                            function (item)
+                            {
+                                if (!("_" == item.charAt (0))
+                                    && ("things" != item)
+                                    && ("configuration" != item)
+                                    && (configuration.getConfigurationItem ("local_database") != item)
+                                    && (configuration.getConfigurationItem ("pending_database") != item)
+                                    && (configuration.getConfigurationItem ("public_database") != item)
+                                    && (configuration.getConfigurationItem ("tracker_database") != item))
+                                {
+                                    databases.push (item);
+                                }
+                            }
+                        );
+                        if (options.success)
+                            options.success (databases);
+                    },
+                    error: function ()
+                    {
+                        if (options.error)
+                            options.error ();
+                    }
+                }
+            );
+        }
+
         // register for login/logout events
         login.on
         (
@@ -598,12 +699,16 @@ define
          */
         function initialize ()
         {
-            // get the replications (or not) and then display the page
+            // get the replications (or not), databases (or not), and then display the page
             function fn ()
             {
                 display (configuration.getConfigurationItem ("tracker_database"), "Trackers");
             };
-            get_replications ({ success: fn, error: fn });
+            function gn ()
+            {
+                get_databases ({ success: fn, error: fn });
+            };
+            get_replications ({ success: gn, error: gn });
         }
 
         return (
