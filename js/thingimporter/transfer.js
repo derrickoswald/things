@@ -21,16 +21,15 @@ define
         /**
          * @summary Initialize the transfer page.
          * @description Sets up the DOM elements for the transfer page
-         * by calling home.build_content and home.build_index.
+         * by calling home.build_content.
          * @function init
          * @memberOf module:thingimporter/transfer
          * @return <em>nothing</em>
          */
         function init ()
         {
-            home.set_current (db);
+            page.set_current (db);
             home.build_content (db, view_name, "listing", { del: home.delete_document, transfer: home.transfer_to_local });
-            home.build_index (page.get_layout ().right.id);
         }
 
         return (

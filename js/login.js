@@ -364,8 +364,8 @@ define (
         var _login = $.eventable
         (
             {
-                "build": build,
-                "isLoggedIn": isLoggedIn
+                build: build,
+                isLoggedIn: isLoggedIn
             }
         );
         return (_login);
