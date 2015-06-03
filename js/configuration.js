@@ -27,7 +27,9 @@ define
             pending_database: "pending_things",
             public_database: "public_things",
             tracker_database: "thing_tracker",
-            torrent_directory: "/home/derrick/Torrents"
+            torrent_directory: "/home/derrick/Torrents",
+            instance_name: "",
+            keybase_username: ""
         };
 
         /**
@@ -174,7 +176,7 @@ define
                                 copy[property] = configuration[property];
                         // delete any items present in db configuration that are not in in-memory configuration
                         for (var property in copy)
-                            if (copy.hasOwnProperty (property) && !(configuration[property]))
+                            if (copy.hasOwnProperty (property) && !(configuration.hasOwnProperty (property)))
                                 delete copy[property];
                         configuration = copy;
                         options.success (configuration);

@@ -603,20 +603,22 @@ define
                 fetch_databases ({ success: function () { set_current (database); } });
         }
 
-        /**
-         * @summary Render the parts of the home page.
-         * @function render
-         * @memberOf module:home
-         */
-        function render ()
+        function draw_right ()
+        {
+            var areas;
+
+            areas = page.get_layout ();
+            build_index (areas.right.id);
+        }
+
+        function draw_content ()
         {
             var areas;
             var database;
             var options;
 
-            // layout the page
-            areas = page.layout ();
-            build_index (areas.right.id);
+
+            areas = page.get_layout ();
             database = get_current ();
             options = { del: delete_document };
             if (database == configuration.getConfigurationItem ("local_database"))
@@ -624,6 +626,19 @@ define
             if (database == configuration.getConfigurationItem ("pending_database"))
                 options.transfer = transfer_to_local;
             build_content (database, "Things", areas.content.id, options);
+        }
+
+        /**
+         * @summary Render the parts of the home page.
+         * @function render
+         * @memberOf module:home
+         */
+        function draw ()
+        {
+            // layout the page
+            page.layout ();
+            draw_right ();
+            draw_content ();
         }
 
         /**
@@ -636,9 +651,9 @@ define
         {
             // get the databases
             if (null == databases)
-                fetch_databases ({ success: render });
+                fetch_databases ({ success: draw });
             else
-                render ();
+                draw ();
         }
 
         return (

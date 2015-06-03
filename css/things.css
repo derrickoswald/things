@@ -372,3 +372,8 @@ li.database_item span.badge
     color: purple;
     cursor: pointer;
 }
+
+ul.thinglist
+{
+	font-family: monospace;
+}

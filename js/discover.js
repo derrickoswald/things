@@ -91,12 +91,12 @@ define
                     "{{#value}}" +
                         "<div>" +
                             "<h3>" +
-                                "<a href='{{url}}' target='_blank'>{{url}}</a>" +
+                                "<a href='{{url}}' target='_blank'>{{name}}</a>" +
                                 "{{{permanent_join}}}" +
                                 "{{{begin_track}}}" +
                             "</h3>" +
-                            "(public_url: {{public_url}} tracker_url: {{tracker_url}} {{id}})" +
-                            "<ul>" +
+                            "(owner: {{owner}} public_url: {{public_url}} tracker_url: {{tracker_url}} {{id}})" +
+                            "<ul class='thinglist'>" +
                                 "{{#things}}" +
                                 "<li>{{.}}</li>" +
                                 "{{/things}}" +
@@ -318,6 +318,8 @@ define
                                 doc.url = document.location.origin + "/";
                                 doc.public_url = configuration.getDocumentRoot () + "/" + public_name + "/";
                                 doc.tracker_url = configuration.getDocumentRoot () + "/" + tracker_name + "/";
+                                doc.name = configuration.getConfigurationItem ("instance_name");
+                                doc.owner = configuration.getConfigurationItem ("keybase_username");
                                 doc.things = [];
                                 data.rows.forEach
                                 (
@@ -626,7 +628,7 @@ define
          * @description Get all databases and filter out known databases.
          * @param {object} options - options for result handling
          * @function fetch_databases
-         * @memberOf module:home
+         * @memberOf module:discover
          */
         function get_databases (options)
         {

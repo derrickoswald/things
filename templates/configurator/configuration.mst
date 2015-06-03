@@ -81,7 +81,22 @@
             <div class="col-sm-9">
                 <div class="input-group">
                     <input id="torrent_directory" class="form-control" type="text" name="torrent_directory" placeholder="torrent_directory">
-                    <span id="local_database_state" class="input-group-addon"></span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="instance_name">Instance name</label>
+            <div class="col-sm-9">
+                <div class="input-group">
+                    <input id="instance_name" class="form-control" type="text" name="instance_name" placeholder="this_things_instance_name">
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="keybase_username">Keybase.io user name</label>
+            <div class="col-sm-9">
+                <div class="input-group">
+                    <input id="keybase_username" class="form-control" type="text" name="keybase_username" placeholder="user name from https://keybase.io">
                 </div>
             </div>
         </div>

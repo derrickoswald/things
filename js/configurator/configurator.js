@@ -385,6 +385,8 @@ define
             configuration.setConfigurationItem ("public_database", document.getElementById ("public_database").value.trim ());
             configuration.setConfigurationItem ("tracker_database", document.getElementById ("tracker_database").value.trim ());
             configuration.setConfigurationItem ("torrent_directory", document.getElementById ("torrent_directory").value.trim ());
+            configuration.setConfigurationItem ("instance_name", document.getElementById ("instance_name").value.trim ());
+            configuration.setConfigurationItem ("keybase_username", document.getElementById ("keybase_username").value.trim ());
 
             login.isLoggedIn
             (
@@ -589,6 +591,8 @@ define
                     update_database_state (); // set up initial values
 
                     document.getElementById ("torrent_directory").value = configuration.getConfigurationItem ("torrent_directory");
+                    document.getElementById ("instance_name").value = configuration.getConfigurationItem ("instance_name");
+                    document.getElementById ("keybase_username").value = configuration.getConfigurationItem ("keybase_username");
                     document.getElementById ("configure_proxies").onclick = create_proxies;
                 }
             );

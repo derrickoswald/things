@@ -153,11 +153,15 @@ requirejs
         // set up for custom events
         define_eventable ();
 
-        // to support vhost systems set CouchDB jQuery module base path if main.js is not coming from localhost
-        // or an ip address (which is also not a vhost name)
-        if (!((location.hostname == "localhost") ||
-            /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/.test (location.hostname)))
-            $.couch.urlPrefix = "/root"; // the name must agree with the name used in rewrites.json
+        // to support vhost systems set CouchDB jQuery module base path if main.js is not coming from
+        // some path with the word _rewite in it, e.g. "/things/_design/things/_rewrite
+        if (-1 == location.pathname.indexOf ("_rewrite"))
+        {
+            $.couch.urlPrefix = "/root"; // this name must agree with the name used in rewrites.json
+            // stupid Futon just doesn't work with vhosts, so set it to localhost (means it doesn't work for remote Futons)
+            document.getElementById ("futon_link").setAttribute ("href", location.protocol + "//localhost" +
+                (("" != location.port) ? ":" + location.port : "") + "/_utils/");
+        }
 
         // ensure that configuration is loaded first, everything else depends on it
         configuration.configuration_setup
