@@ -6,14 +6,14 @@
  */
 define
 (
-    ["../login", "../configuration"],
+    ["../login", "../configuration", "../database"],
     /**
      * @summary Perform setup operations for the thingimporter.
      * @name thingimporter/setup
      * @exports thingimporter/setup
      * @version 1.0
      */
-    function (login, configuration)
+    function (login, configuration, database)
     {
         var pending = configuration.getConfigurationItem ("pending_database");
 
@@ -48,7 +48,7 @@ define
          */
         function make_view ()
         {
-            configuration.make_designdoc
+            database.make_designdoc
             (
                 $ ("#database_name").val (),
                 {
@@ -65,7 +65,7 @@ define
          */
         function make_db ()
         {
-            configuration.make_database ($ ("#database_name").val (), { success: make_view, error: function () { alert ("database creation failed"); } });
+            database.make_database ($ ("#database_name").val (), { success: make_view, error: function () { alert ("database creation failed"); } });
         }
 
         /**

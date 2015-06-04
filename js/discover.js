@@ -6,14 +6,14 @@
  */
 define
 (
-    ["configuration", "page", "mustache", "deluge", "login"],
+    ["configuration", "page", "mustache", "deluge", "login", "database"],
     /**
      * @summary Functions for handling the discover page.
      * @name discover
      * @exports discover
      * @version 1.0
      */
-    function (configuration, page, mustache, deluge, login)
+    function (configuration, page, mustache, deluge, login, database)
     {
         // logged in state
         var logged_in = false;
@@ -384,34 +384,45 @@ define
                 var id = event.target.getAttribute ("data-id");
                 var remote_url = event.target.getAttribute ("data-url");
                 id = "z" + id; // Only lowercase characters (a-z), digits (0-9), and any of the characters _, $, (, ), +, -, and / are allowed. Must begin with a letter.
-                // _replicator documents
-                var from_there_to_here =
-                {
-                    _id: id,
-                    source: remote_url,
-                    target: id,
-                    create_target: true,
-                    continuous: true,
-                    user_ctx:
-                    {
-                        roles: ["_admin"]
-                    }
-                };
 
-                $.couch.db ("_replicator").saveDoc
+                database.make_database
                 (
-                    from_there_to_here,
+                    id,
                     {
                         success: function ()
                         {
-                            alert ("now tracking " + id);
-                            initialize ();
+                            // _replicator documents
+                            var from_there_to_here =
+                            {
+                                _id: id,
+                                source: remote_url,
+                                target: id,
+                                create_target: false,
+                                continuous: true
+                            };
+                            $.couch.db ("_replicator").saveDoc
+                            (
+                                from_there_to_here,
+                                {
+                                    success: function ()
+                                    {
+                                        alert ("now tracking " + id);
+                                        initialize ();
+                                    },
+                                    error: function ()
+                                    {
+                                        alert ("error: failed to save " + JSON.stringify (from_there_to_here, null, 4));
+                                    }
+                                }
+                            );
                         },
                         error: function ()
                         {
-                            alert ("error: failed to save " + JSON.stringify (from_there_to_here, null, 4));
+                            alert (name + " database creation failed");
                         }
-                    }
+                    },
+                    database.standard_views,
+                    database.standard_validation
                 );
             }
             else

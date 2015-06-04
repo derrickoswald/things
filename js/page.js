@@ -28,7 +28,7 @@ define
                 "<ul class='database_list'>" +
                     "{{#.}}" +
                         "<li class='database_item{{#current}} current{{/current}}' data-target={{database}}>" +
-                            "<a href={{database}}>{{database}}</a>" +
+                            "<a href={{database}}>{{name}}</a>" +
                         "</li>" +
                     "{{/.}}" +
                 "</ul>" +
@@ -230,15 +230,63 @@ define
                                     && ("configuration" != item)
                                     && (configuration.getConfigurationItem ("tracker_database") != item))
                                 {
-                                    var link = { database: item };
+                                    var link = { database: item, name: item, url: item };
                                     if (item == initial)
                                         link.current = true;
                                     databases.push (link);
                                 }
                             }
                         );
+                        fetch_aliases (options)
+                    },
+                    error: function ()
+                    {
+                        if (options.error)
+                            options.error ();
+                    }
+                }
+            );
+        }
+
+        /**
+         * @summary Get any database aliases.
+         * @description Get all foreign databases and set their names in the lookup list.
+         * @param {object} options - options for result handling
+         * @function fetch_aliases
+         * @memberOf module:page
+         */
+        function fetch_aliases (options)
+        {
+            var database = configuration.getConfigurationItem ("tracker_database");
+            var view = "Trackers";
+            $.couch.db (database).view
+            (
+                database + "/" + view,
+                {
+                    success : function (result)
+                    {
+                        result.rows.forEach
+                        (
+                            function (row)
+                            {
+                                var localname = "z" + row.value._id;
+                                var name = row.value.name;
+                                var url = row.value.url;
+                                databases.forEach
+                                (
+                                    function (item)
+                                    {
+                                        if (item.name == localname)
+                                        {
+                                            item.name = name;
+                                            item.url = url;
+                                        }
+                                    }
+                                );
+                            }
+                        );
                         if (options.success)
-                            options.success (databases);
+                            options.success ();
                     },
                     error: function ()
                     {
