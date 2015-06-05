@@ -370,7 +370,7 @@ define (["multipart", ""],
                 array.push (new Uint8Array (bytes));
             }
 
-            return (new Blob (bytes, { type: type }));
+            return (new Blob (array, { type: type }));
         }
 
         var functions =

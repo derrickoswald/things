@@ -64,7 +64,7 @@ define
                         if (callbacks && callbacks.error)
                             callbacks.error ();
             };
-            xmlhttp.timeout = 500; // half a second - the number of milliseconds a request can take before automatically being terminated. A value of 0 (which is the default) means there is no timeout.
+//            xmlhttp.timeout = 500; // half a second - the number of milliseconds a request can take before automatically being terminated. A value of 0 (which is the default) means there is no timeout.
             xmlhttp.send (JSON.stringify ({"method": "auth.login", "params": [password], "id": 1}));
         }
 
@@ -144,7 +144,7 @@ define
                             callbacks.error ();
 
             };
-            xmlhttp.timeout = 500; // half a second - the number of milliseconds a request can take before automatically being terminated. A value of 0 (which is the default) means there is no timeout.
+//            xmlhttp.timeout = 500; // half a second - the number of milliseconds a request can take before automatically being terminated. A value of 0 (which is the default) means there is no timeout.
 //            xmlhttp.ontimeout = function () // whenever the request times out
 //            {
 //                alert ("ready state = " +  xmlhttp.readyState + " status = " + xmlhttp.status);
@@ -191,7 +191,7 @@ define
                         if (callbacks && callbacks.error)
                             callbacks.error ();
             };
-            xmlhttp.timeout = 500; // half a second - the number of milliseconds a request can take before automatically being terminated. A value of 0 (which is the default) means there is no timeout.
+//            xmlhttp.timeout = 500; // half a second - the number of milliseconds a request can take before automatically being terminated. A value of 0 (which is the default) means there is no timeout.
 
             // note to self, this also handles magnet uri as well as file paths
             // , options: { download_location: "/home/derrick/Torrents" }
@@ -256,7 +256,7 @@ define
                         if (callbacks && callbacks.error)
                             callbacks.error ();
             };
-            xmlhttp.timeout = 500; // half a second - the number of milliseconds a request can take before automatically being terminated. A value of 0 (which is the default) means there is no timeout.
+//            xmlhttp.timeout = 500; // half a second - the number of milliseconds a request can take before automatically being terminated. A value of 0 (which is the default) means there is no timeout.
             xmlhttp.send (JSON.stringify ({"method": "web.download_torrent_from_url", "params": [url /*, cookies */], "id": 3}));
         }
 
@@ -301,7 +301,7 @@ define
                         if (callbacks && callbacks.error)
                             callbacks.error ();
             };
-            xmlhttp.timeout = 500; // half a second - the number of milliseconds a request can take before automatically being terminated. A value of 0 (which is the default) means there is no timeout.
+//            xmlhttp.timeout = 500; // half a second - the number of milliseconds a request can take before automatically being terminated. A value of 0 (which is the default) means there is no timeout.
 
             // note to self, this also handles magnet uri as well as file paths
             // , options: { download_location: "/home/derrick/Torrents" }

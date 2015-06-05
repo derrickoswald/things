@@ -67,7 +67,7 @@ define
 
                         // re-hydrate the attachments
                         attachments = [];
-                        for (attachment in doc._attachments)
+                        for (var attachment in doc._attachments)
                         {
                             if (doc._attachments.hasOwnProperty (attachment))
                             {
@@ -97,7 +97,7 @@ define
                         // add the webseed
                         doc["url-list"] =
                             configuration.getDocumentRoot () + "/" +
-                            configuration.getConfigurationItem ("local_database") + // the attachment only exists locally
+                            configuration.getConfigurationItem ("public_database") +
                             "/" + primary_key + "/";
                         if (!doc.info.files)
                             doc["url-list"] += doc.info.name;

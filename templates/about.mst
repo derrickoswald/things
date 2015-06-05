@@ -1,0 +1,14 @@
+{{!
+    <link rel="stylesheet" href="../../css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/static/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../../css/things.css">
+}}
+<h2>About</h2>
+<p>The <em>things</em> system is a <a href="https://en.wikipedia.org/wiki/Bittorrent" target="_blank">distributed</a>
+repository -- like a lot of little libraries sharing a common book pool.
+Each system stores and exchanges electronic files of design and construction information for the home
+hobbyist. The primary use case is for a designer to be able to share designs among
+other people in their global community.</p>
+<p>At the heart of each <em>things</em> system is a set of databases. One database is the one maintained
+by the owner/operator of the system, while all others are clones of other people's systems.</p>
+A very old overview of the orginal idea can be found <a href="http://my.brainshark.com/Distributed-Thing-Tracker-767853647" target="_blank">here</a>. 
