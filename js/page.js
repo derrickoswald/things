@@ -102,7 +102,7 @@ define
         /**
          * @summary Get the changes for all databases.
          * @description Uses the CouchDB _changes API to get the changes since the last time the database was queried.
-         * @param {String} html_id the id of the element with datbase names to badge
+         * @param {String} html_id the id of the element with database names to badge
          * @function changes
          * @memberOf module:page
          */
@@ -202,7 +202,7 @@ define
                 links[i].addEventListener ("click", switch_database);
 
             // check for changes
-            changes (html_id, databases);
+            changes (html_id);
         }
 
         /**
@@ -371,6 +371,9 @@ define
                     if (list[i].getAttribute ("data-target") == database)
                         list[i].classList.add ("current");
                 }
+
+                // check for changes
+                changes (document.getElementById ("databases").parentElement.id);
 
                 // let registered listeners know about the database change
                 _page.trigger ("change");

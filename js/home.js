@@ -29,8 +29,8 @@ define
                                     "</div>" +
                                     "<div class='col-xs-6'>" +
                                         "<div class='pull-right'>" +
-                                            "<span class='fineprint hidden-lg'><a href='/_utils/document.html?{{database}}/{{_id}}'>{{short_id}}</a></span>" +
-                                            "<span class='fineprint hidden-xs hidden-sm hidden-md'><a href='/_utils/document.html?{{database}}/{{_id}}'>{{_id}}</a></span>" +
+                                            "<span class='fineprint hidden-lg'><a href='{{doc_root}}{{_id}}'>{{short_id}}</a></span>" +
+                                            "<span class='fineprint hidden-xs hidden-sm hidden-md'><a href='{{doc_root}}{{_id}}'>{{_id}}</a></span>" +
                                             "{{#options.edit}}" +
                                                 "<span class='edit_id glyphicon glyphicon-pencil marginleft' data-toggle='tooltip' data-placement='top' title='Edit' data-database='{{database}}' data-id='{{_id}}' data-rev='{{_rev}}'>" +
                                                 "</span>" +
@@ -207,7 +207,7 @@ define
 
         /**
          * Just here because the outline in eclipse is stupid
-         * @function crap
+         * @function dummmy
          * @memberOf module:home
          */
         function dummmy ()
@@ -236,13 +236,13 @@ define
                 success : function (result)
                 {
                     options = options || {};
-                    var prefix = configuration.getDocumentRoot () + "/" + database + "/";
+                    result.doc_root = configuration.getDocumentRoot () + "/" + database + "/";
                     result.rows.forEach (function (item)
                     {
                         var list = [];
                         for (var property in item.value._attachments)
                             if (item.value._attachments.hasOwnProperty (property))
-                                list.push ({name: property, url: (prefix + item.id + "/" + encodeURIComponent (property))});
+                                list.push ({name: property, url: (result.doc_root + item.id + "/" + encodeURIComponent (property))});
                         item.value.filelist = list;
                         list = [];
                         if (item.value.info.thing.thumbnails)
@@ -295,22 +295,34 @@ define
          */
         function delete_document (ids)
         {
-            ids.forEach
+            login.isLoggedIn
             (
-                function (doc)
                 {
-                    $.couch.db (doc.database).removeDoc ({ _id: doc._id, _rev: doc._rev },
+                    success: function (userCtx)
                     {
-                        success: function (data)
-                        {
-                             console.log (data);
-                             initialize ();
-                        },
-                        error: function (status)
-                        {
-                            console.log (status);
-                        }
-                    });
+                        ids.forEach
+                        (
+                            function (doc)
+                            {
+                                $.couch.db (doc.database).removeDoc ({ _id: doc._id, _rev: doc._rev },
+                                {
+                                    success: function (data)
+                                    {
+                                         console.log (data);
+                                         initialize ();
+                                    },
+                                    error: function (status)
+                                    {
+                                        console.log (status);
+                                    }
+                                });
+                            }
+                        );
+                    },
+                    error: function (userCtx)
+                    {
+                        alert ("You must be logged in to delete a thing");
+                    }
                 }
             );
         }
@@ -415,6 +427,38 @@ define
             function (event)
             {
                 draw_content ();
+            }
+        );
+
+        // register for login/logout events
+        login.on
+        (
+            "login",
+            function ()
+            {
+                // if nothing is active, then re-initialize
+                var active = false;
+                var list = document.getElementById ("navigator_menu").getElementsByTagName ("ul")[0].children;
+                for (var i = 0; i < list.length; i++)
+                    if (list[i].classList.contains ("active"))
+                        active = true;
+                if (!active)
+                    initialize ();
+            }
+        );
+        login.on
+        (
+            "logout",
+            function ()
+            {
+                // if nothing is active, then re-initialize
+                var active = false;
+                var list = document.getElementById ("navigator_menu").getElementsByTagName ("ul")[0].children;
+                for (var i = 0; i < list.length; i++)
+                    if (list[i].classList.contains ("active"))
+                        active = true;
+                if (!active)
+                    initialize ();
             }
         );
 
