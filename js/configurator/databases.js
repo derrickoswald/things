@@ -1,6 +1,6 @@
 /**
- * @fileOverview Initial system configuration user interface.
- * @name configurator
+ * @fileOverview Set up system databases.
+ * @name databases
  * @author Derrick Oswald
  * @version 1.0
  */
@@ -12,8 +12,8 @@ define
      * @description Database setup page, functions for loading and saving
      * configuration data to the configuration database and programatic
      * access to the configuration settings.
-     * @name configurator
-     * @exports configurator
+     * @name databases
+     * @exports databases
      * @version 1.0
      */
     function (configuration, page, mustache, login, database)
@@ -21,11 +21,9 @@ define
         /**
          * list of current existing databases
          * @type {string[]}
-         * @memberOf module:configurator
+         * @memberOf module:databases
          */
-        var databases = null;
-
-        var template = "templates/configurator/configuration.mst";
+        var list = null;
 
         /**
          * @summary Creates a database.
@@ -37,7 +35,7 @@ define
          * @param {string} validation - the validate_doc_update function
          * @param {boolean} security - <em>optional</em> security document to attach to the database
          * @function create_database
-         * @memberOf module:configurator
+         * @memberOf module:databases
          */
         function create_database (name, views, validation, security)
         {
@@ -92,7 +90,7 @@ define
          * If the configuration database doesn't yet exist it is created.
          * @param {object} event - the save button press event
          * @function save
-         * @memberOf module:configurator
+         * @memberOf module:databases
          */
         function save (event)
         {
@@ -111,7 +109,7 @@ define
                 secure = document.getElementById ("local_database_secure").checked;
                 if ("" != db)
                 {
-                    if (-1 == databases.indexOf (db))
+                    if (-1 == list.indexOf (db))
                         if (secure)
                             create_secure_local ();
                         else
@@ -155,13 +153,13 @@ define
                 }
 
                 db = configuration.getConfigurationItem ("pending_database");
-                if (("" != db) && (-1 == databases.indexOf (db)))
+                if (("" != db) && (-1 == list.indexOf (db)))
                     create_pending ();
                 db = configuration.getConfigurationItem ("public_database");
-                if (("" != db) && (-1 == databases.indexOf (db)))
+                if (("" != db) && (-1 == list.indexOf (db)))
                     create_public ();
                 db = configuration.getConfigurationItem ("tracker_database");
-                if (("" != db) && (-1 == databases.indexOf (db)))
+                if (("" != db) && (-1 == list.indexOf (db)))
                     create_tracker ();
 
             };
@@ -212,43 +210,10 @@ define
         }
 
         /**
-         * @summary Create proxy entries in the CouchDB local configuration event handler.
-         * @description Creates http proxy entries for keybase.io and the local deluge-web.
-         * @param {object} event - the create proxies button pressed event
-         * @function create_proxies
-         * @memberOf module:configurator
-         */
-        function create_proxies (event)
-        {
-            $.couch.config
-            (
-                {
-                    success: function ()
-                    {
-                        $.couch.config
-                        (
-                            {
-                                success: function () { alert ("proxies configured"); },
-                                error: function () { alert ("proxy configuration failed"); }
-                            },
-                            "httpd_global_handlers",
-                            "keybase",
-                            "{couch_httpd_proxy, handle_proxy_req, <<\"https://keybase.io/\">>}"
-                        );
-                    },
-                    error: function () { alert ("proxy configuration failed"); }
-                },
-                "httpd_global_handlers",
-                "json",
-                "{couch_httpd_proxy, handle_proxy_req, <<\"http://localhost:8112\">>}"
-            );
-        }
-
-        /**
          * @summary Update the checkbox for security of the local database.
          * @param {string} db - the name of the database to interrogate
          * @function create_proxies
-         * @memberOf module:configurator
+         * @memberOf module:databases
          */
         function update_local_security_state (db)
         {
@@ -283,7 +248,7 @@ define
          * @param {string} id_input - the element id of the user entered name of the database
          * @param {string} id_addon - the element id of the addon to update
          * @function update_addon
-         * @memberOf module:configurator
+         * @memberOf module:databases
          */
         function update_addon (id_input, id_addon)
         {
@@ -297,7 +262,7 @@ define
                 addon.classList.add ("invisible");
             else
                 addon.classList.remove ("invisible");
-            if (-1 != databases.indexOf (db))
+            if (-1 != list.indexOf (db))
             {
                 addon.innerHTML = "exists";
                 addon.classList.remove ("to_be_created");
@@ -315,17 +280,17 @@ define
          * @summary Update the form state for creating databases.
          * @param {object} event - the event that triggered the update request
          * @function update_database_state
-         * @memberOf module:configurator
+         * @memberOf module:databases
          */
         function update_database_state (event)
         {
-            if (null == databases)
+            if (null == list)
                 $.couch.allDbs
                 (
                     {
                         success: function (data)
                         {
-                            databases = data;
+                            list = data;
                             update_database_state ();
                         }
                     }
@@ -350,45 +315,47 @@ define
         /**
          * Fills the form with existing configuration data and attaches handlers for the
          * various operations.
-         * @summary Initialize the configurator.
+         * @summary Initialize the database setup UI.
          * @description Fills the form with existing configuration data and attaches handlers for the
          * various operations.
          * @function init
-         * @memberOf module:configurator
+         * @memberOf module:databases
          */
         function init ()
         {
-            $.get
-            (
-                template,
-                function (template)
-                {
-                    page.layout ().content.innerHTML = mustache.render (template);
+            document.getElementById ("local_database").value = configuration.getConfigurationItem ("local_database");
+            document.getElementById ("pending_database").value = configuration.getConfigurationItem ("pending_database");
+            document.getElementById ("public_database").value = configuration.getConfigurationItem ("public_database");
+            document.getElementById ("tracker_database").value = configuration.getConfigurationItem ("tracker_database");
 
-                    document.getElementById ("local_database").value = configuration.getConfigurationItem ("local_database");
-                    document.getElementById ("pending_database").value = configuration.getConfigurationItem ("pending_database");
-                    document.getElementById ("public_database").value = configuration.getConfigurationItem ("public_database");
-                    document.getElementById ("tracker_database").value = configuration.getConfigurationItem ("tracker_database");
-                    document.getElementById ("save_configuration").onclick = save;
-
-                    document.getElementById ("local_database").oninput = update_database_state;
-                    document.getElementById ("pending_database").oninput = update_database_state;
-                    document.getElementById ("public_database").oninput = update_database_state;
-                    document.getElementById ("tracker_database").oninput = update_database_state;
-                    update_database_state (); // set up initial values
-
-                    document.getElementById ("torrent_directory").value = configuration.getConfigurationItem ("torrent_directory");
-                    document.getElementById ("instance_name").value = configuration.getConfigurationItem ("instance_name");
-                    document.getElementById ("keybase_username").value = configuration.getConfigurationItem ("keybase_username");
-                    document.getElementById ("configure_proxies").onclick = create_proxies;
-                }
-            );
+            document.getElementById ("local_database").oninput = update_database_state;
+            document.getElementById ("pending_database").oninput = update_database_state;
+            document.getElementById ("public_database").oninput = update_database_state;
+            document.getElementById ("tracker_database").oninput = update_database_state;
+            update_database_state (); // set up initial values
         }
 
         return (
             {
-                initialize: init,
-                create_database: create_database
+                getStep: function ()
+                {
+                    return (
+                        {
+                            id: "create_db",
+                            title: "Databases",
+                            template: "templates/configurator/databases.mst",
+                            hooks:
+                            [
+                                { id: "save_databases", event: "click", code: save, obj: this }
+                            ],
+                            transitions:
+                            {
+                                enter: init,
+                                obj: this
+                            }
+                        }
+                    );
+                }
             }
         );
     }

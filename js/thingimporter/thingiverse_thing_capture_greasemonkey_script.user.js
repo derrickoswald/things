@@ -11,17 +11,17 @@
 // In order for this to work, you need to enable CORS in CouchDB by editing /etc/couchdb/default.ini in the httpd section:
 //     [httpd]
 //     enable_cors = true
-// specify thingiver.com as the source and also add PUT as a legal method, same file as above in the cors section:
+// specify thingiverse.com as the source and also add PUT as a legal method, same file as above in the cors section:
 //     [cors]
 //     origins = http://www.thingiverse.com
 //     methods = GET,POST,PUT
-// and create a database with no authentication needed to upload to.
+// and create a database that requires no authentication to POST new documents to.
 
 // import
 // a little help in deciphering the code...
 // code that immediately follows the variable declarations is imported modules from things
 // https://github.com/derrickoswald/things
-// at the bottom, starting with createCORSRequest, is the actual user script.
+// at the bottom, starting with make_file_name, is the actual user script.
 
 // variables
 var protocol = "http";

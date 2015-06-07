@@ -37,7 +37,7 @@ define
             "<p>This step creates or updates the record for this local tracker in the <em>thing tracker</em> database." +
             "If the <em>thing tracker</em> database is joined to other trackers (see below) then these federated trackers " +
             "will also be updated via CouchDB continuous replication (when they are available online).</p>" +
-            "<div id='configuration_form' class='form-horizontal'>" +
+            "<div class='form-horizontal'>" +
                 "<div class='form-group'>" +
                     "<label class='col-sm-3 control-label' for='post_my_things'></label>" +
                     "<div class='col-sm-9'>" +
@@ -67,7 +67,7 @@ define
             "<p>Each permanently joined <em>thing tracker</em> adds a redundant connection from this tracker to the cloud. " +
             "Each tracker is stored under the unique uuid of the CouchDb database (this can be seen in the CouchDB <b>Welcome</b> " +
             "message by navigating to the root of the CouchDB web server).</p>" +
-            "<div id='configuration_form' class='form-horizontal'>" +
+            "<div class='form-horizontal'>" +
                 "<div class='form-group'>" +
                     "<label class='col-sm-3 control-label' for='local_database'>New tracker URL</label>" +
                     "<div class='col-sm-9'>" +

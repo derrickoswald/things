@@ -14,7 +14,7 @@
 </ul>
 <p>It is recommended that you perform all the steps before using the system, even though some may not be really
  required until the later stages of your workflow. At a minimum, you must create the databases used by the system.</p>
-<div id="configuration_form" class="form-horizontal">
+<div class="form-horizontal">
     <div class="configuration_group">
         <div class="form-group">
             <label class="col-sm-3 control-label" for="local_database">Local database</label>
@@ -59,45 +59,10 @@
         <div class="form-group">
             <label class="col-sm-3 control-label" for="save_configuration"></label>
             <div class="col-sm-9">
-                <button id="save_configuration" class="btn btn-primary start">
+                <button id="save_databases" class="btn btn-primary start">
                     <i class="glyphicon glyphicon-save"></i>
                     <span>Save</span>
                 </button>
-            </div>
-        </div>
-    </div>
-    <div class="configuration_group">
-        <div class="form-group">
-            <label class="col-sm-3 control-label" for="configure_proxies"></label>
-            <div class="col-sm-9">
-                <button id="configure_proxies" class="btn btn-primary start">
-                    <i class="glyphicon glyphicon-sunglasses"></i>
-                    <span>Configure proxies</span>
-                </button>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-3 control-label" for="torrent_directory">Torrent download directory</label>
-            <div class="col-sm-9">
-                <div class="input-group">
-                    <input id="torrent_directory" class="form-control" type="text" name="torrent_directory" placeholder="torrent_directory">
-                </div>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-3 control-label" for="instance_name">Instance name</label>
-            <div class="col-sm-9">
-                <div class="input-group">
-                    <input id="instance_name" class="form-control" type="text" name="instance_name" placeholder="this_things_instance_name">
-                </div>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-3 control-label" for="keybase_username">Keybase.io user name</label>
-            <div class="col-sm-9">
-                <div class="input-group">
-                    <input id="keybase_username" class="form-control" type="text" name="keybase_username" placeholder="user name from https://keybase.io">
-                </div>
             </div>
         </div>
     </div>

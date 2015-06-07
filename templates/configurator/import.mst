@@ -11,15 +11,14 @@ visiting the page on Thingiverse and performing the actual import.</p>
 <ul>
     <li>Create the <em>pending</em> things database, with unencumbered write access.</li>
     <li>Enable CORS support in the local CouchDB, with the PUT accept method and Thingiverse as an allowed site.</li>
-    <li>Install a user script in your browser (either Chrome or Firefox) that performs the import.</li>
 </ul>
 
-<div id="import_setup_form" class="form-horizontal">
+<div class="form-horizontal">
 
     <div class="form-group">
         <label class="col-sm-3 control-label" for="database_name">Name of import database</label>
         <div class="col-sm-9">
-            <input id="database_name" class="form-control" type="text" form="import_setup_form" name="database_name" placeholder="{{database}}" value="{{database}}" disabled>
+            <input id="database_name" class="form-control" type="text" name="database_name" placeholder="{{database}}" value="{{database}}" disabled>
             <div class="thing_form_right">(currently fixed, because it gets hard-coded in the user script)</div>
         </div>
     </div>
@@ -65,26 +64,5 @@ visiting the page on Thingiverse and performing the actual import.</p>
         </div>
     </div>
 
-    <div class="form-group">
-        <label class="col-sm-3 control-label" for="thingiverse_user_scripted">User script installed</label>
-        <div class="col-sm-9"><span id="thingiverse_user_scripted" class="form-control"></span></div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-3 control-label" for="download_user_script_button">
-        </label>
-        <div class="col-sm-9">
-            <a id="script_link" href="TBD">
-                <button id="download_user_script_button" class="btn btn-primary start">
-                    <span class="glyphicon glyphicon-download" aria-hidden="true"></span>
-                    <span>Download user script</span>
-                </button>
-            </a>
-            <span id="scripted" class="hidden">
-                <span class="glyphicon glyphicon-ok ok" aria-hidden="true"></span>
-                <span>User script for http://thingiverse.com is installed correctly.</span>
-            </span>
-        </div>
-    </div>
 </div>
-<div id="thingiverse_section"></div>
 

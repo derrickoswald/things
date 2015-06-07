@@ -6,7 +6,7 @@
  */
 define
 (
-    ["../page", "wizard", "thingimporter/setup", "thingimporter/transfer", "configuration"],
+    ["../page", "wizard", "configuration", "thingimporter/userscript", "thingimporter/transfer"],
     /**
      * @summary Import things.
      * @description Imports things from Thingiverse by setting up the database,
@@ -15,7 +15,7 @@ define
      * @exports thingimporter/importwizard
      * @version 1.0
      */
-    function (page, wiz, setup, transfer, configuration)
+    function (page, wiz, configuration, userscript, transfer)
     {
         /**
          * @summary Create the wizard.
@@ -29,14 +29,13 @@ define
             var steps =
             [
                 { id: "overview", title: "Overview", template: "templates/thingimporter/overview.html"},
-                setup.getStep (), // { id: "setup", title: "Setup", template: "templates/thingimporter/setup.html"},
-                transfer.getStep (),
+                userscript.getStep (),
+                transfer.getStep ()
             ];
 
             /**
              * @summary Wizard data.
              * @description The object passed around to maintain state.
-             * The aim is to have this eventually filled in from user storage.
              */
             var data =
             {
