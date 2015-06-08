@@ -117,57 +117,6 @@ table.file_list tr:nth-child(even)
     text-align: center;
 }
 
-.thing_form
-{
-    min-width: 100%;
-    display: inline-block;
-}
-
-.thing_form_list
-{
-	list-style: none;
-	padding: 0;
-	margin: 20px;
-}
-
-.thing_form_item
-{
-    line-height: 20px;
-    margin: 5px;
-}
-
-#thing_form input
-{
-    background-color: #e3edf9;
-}
-.thing_form_input
-{
-    background-color: #e3edf9;
-    box-shadow: 1px 1px 0 #cccccc inset;
-    display: inline-block;
-    width: 75%;
-    float: right;
-}
-
-.thing_form_label
-{
-    display: inline-block;
-    min-width: 25%;
-    padding-right: 8px;
-    text-align: right;
-    width: auto;
-}
-
-.thing_form_left
-{
-    display: inline-block;
-    min-width: 25%;
-    padding-right: 8px;
-    padding-bottom: 5px;
-    text-align: right;
-    width: auto;
-}
-
 .thing_form_right
 {
     display: inline-block;
@@ -346,6 +295,13 @@ li.database_item span.badge
 .to_be_created
 {
     background-color: #f2dede !important; /* red like class bg-danger, but override addon grey */
+}
+
+.form-control-result
+{
+	border-color: rgba(0,0,0,0);
+	box-shadow: none;
+	padding-left: 0px;
 }
 
 /* discovery page */

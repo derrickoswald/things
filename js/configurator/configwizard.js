@@ -6,7 +6,7 @@
  */
 define
 (
-    ["page", "wizard", "configuration", "configurator/databases", "configurator/personalization", "configurator/import"],
+    ["page", "wizard", "configuration", "login", "mustache", "configurator/databases", "configurator/personalization", "configurator/import"],
     /**
      * @summary Set up the system with one-time or custom configuration.
      * @description Step by step configuration of the system.
@@ -14,8 +14,30 @@ define
      * @exports configurator/configwizard
      * @version 1.0
      */
-    function (page, wiz, configuration, databases, personalization, imp) // note: "import" is a keyword or something, so "imp" it is
+    function (page, wiz, configuration, login, mustache, databases, personalization, imp) // note: "import" is a keyword or something, so "imp" it is
     {
+        // register for login/logout events
+        login.on
+        (
+            "login",
+            function ()
+            {
+                // if Discover Things is the active page, re-initialize
+                if (document.getElementById ("configurator").parentElement.classList.contains ("active"))
+                    initialize ();
+            }
+        );
+        login.on
+        (
+            "logout",
+            function ()
+            {
+                // if Discover Things is the active page, re-initialize
+                if (document.getElementById ("configurator").parentElement.classList.contains ("active"))
+                    initialize ();
+            }
+        );
+
         /**
          * @summary Create the wizard.
          * @description Builds on the generic wizard module and adds specific html id values and
@@ -25,24 +47,41 @@ define
          */
         function initialize ()
         {
-            var steps =
-            [
-                databases.getStep (),
-                personalization.getStep (),
-                imp.getStep ()
-            ];
+            var areas;
 
-            /**
-             * @summary Wizard data.
-             * @description The object passed around to maintain state.
-             */
-            var data =
-            {
-                // everything is in the configuration database
-            };
+            areas = page.layout ();
+            login.isLoggedIn
+            (
+                {
+                    success: function ()
+                    {
+                        wiz.wizard
+                        (
+                            areas.left,
+                            areas.content,
+                            [
+                                personalization.getStep (),
+                                databases.getStep (),
+                                imp.getStep ()
+                            ],
+                            {}
+                        );
 
-            var areas = page.layout ();
-            wiz.wizard (areas.left, areas.content, steps, data);
+                    },
+                    error: function ()
+                    {
+                        //alert ("You must be logged in to do configuration.");
+                        $.get
+                        (
+                            "templates/configurator/introduction.mst",
+                            function (template)
+                            {
+                                areas.content.innerHTML = mustache.render (template);
+                            }
+                        );
+                    }
+                }
+            );
         };
 
         var functions =

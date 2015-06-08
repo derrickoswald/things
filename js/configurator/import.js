@@ -6,68 +6,15 @@
  */
 define
 (
-    ["../login", "../configuration", "../database"],
+    ["../configuration"],
     /**
      * @summary Perform setup operations for the thingimporter.
      * @name configurator/import
      * @exports configurator/import
      * @version 1.0
      */
-    function (login, configuration, database)
+    function (configuration)
     {
-        var pending = configuration.getConfigurationItem ("pending_database");
-
-        /**
-         * Check for the existence of the database.
-         * @memberOf module:configurator/import
-         */
-        function check_db ()
-        {
-            var dbname = $ ("#database_name").val ();
-            function db_list_receiver (list)
-            {
-                var exists = (-1 != list.indexOf (dbname));
-                document.getElementById ("create_import_database_button").disabled = exists;
-                var details = $ ("#import_database_created");
-                if (exists)
-                    details.removeClass ("hidden");
-                else
-                    details.addClass ("hidden");
-            }
-            $.couch.allDbs
-            (
-                {
-                    success: db_list_receiver
-                }
-            );
-        }
-
-        /**
-         * Make the view.
-         * @memberOf module:configurator/import
-         */
-        function make_view ()
-        {
-            database.make_designdoc
-            (
-                $ ("#database_name").val (),
-                {
-                    success: check_db,
-                    error: function () { alert ("make view failed"); }
-                },
-                true
-            );
-        }
-
-        /**
-         * Make the database.
-         * @memberOf module:configurator/import
-         */
-        function make_db ()
-        {
-            database.make_database ($ ("#database_name").val (), { success: make_view, error: function () { alert ("database creation failed"); } });
-        }
-
         /**
          * Check that CORS is set up accordingly.
          * @memberOf module:configurator/import
@@ -187,35 +134,34 @@ define
          */
         function init (event, data)
         {
-            var parameters;
-
-            // set the pending database name
-            $ ("#database_name").val (pending);
-            parameters =
-            {
-                success: function ()
-                {
-                    check_db ();
-                    check_CORS ();
-                },
-                error: function ()
-                {
-                    alert ("You must login as an admin user");
-                }
-            };
-            login.isLoggedIn (parameters);
+            check_CORS ();
         }
 
         return (
             {
                 getStep: function ()
                 {
-                    var setup_hooks =
-                    [
-                        { id: "create_import_database_button", event: "click", code: make_db, obj: this },
-                        { id: "configure_cors_button", event: "click", code: setup_cors, obj: this }
-                    ];
-                    return ({ id: "import", title: "Importing", template: "templates/configurator/import.mst", hooks: setup_hooks, transitions: { enter: init, obj: this } });
+                    return (
+                        {
+                            id: "import",
+                            title: "Importing",
+                            template: "templates/configurator/import.mst",
+                            hooks:
+                            [
+                                {
+                                    id: "configure_cors_button",
+                                    event: "click",
+                                    code: setup_cors,
+                                    obj: this
+                                }
+                            ],
+                            transitions:
+                            {
+                                enter: init,
+                                obj: this
+                            }
+                        }
+                    );
                 }
             }
         );

@@ -39,42 +39,30 @@ define
          */
         function create_database (name, views, validation, security)
         {
-            login.isLoggedIn
+            database.make_database
             (
+                name,
                 {
                     success: function ()
                     {
-                        database.make_database
-                        (
-                            name,
-                            {
-                                success: function ()
+                        if (security)
+                            database.make_secure
+                            (
+                                name,
                                 {
-                                    if (security)
-                                        database.make_secure
-                                        (
-                                            name,
-                                            {
-                                                success: update_database_state,
-                                                error: function () { alert (name + " _security creation failed"); }
-                                            },
-                                            security
-                                        );
+                                    success: update_database_state,
+                                    error: function () { alert (name + " _security creation failed"); }
                                 },
-                                error: function ()
-                                {
-                                    alert (name + " database creation failed");
-                                }
-                            },
-                            views,
-                            validation
-                        );
+                                security
+                            );
                     },
                     error: function ()
                     {
-                        alert ("You must be logged in to create a database.");
+                        alert (name + " database creation failed");
                     }
-                }
+                },
+                views,
+                validation
             );
         }
 
@@ -173,37 +161,25 @@ define
             configuration.setConfigurationItem ("instance_name", document.getElementById ("instance_name").value.trim ());
             configuration.setConfigurationItem ("keybase_username", document.getElementById ("keybase_username").value.trim ());
 
-            login.isLoggedIn
+            configuration.configuration_exists
             (
                 {
                     success: function ()
                     {
-                        configuration.configuration_exists
-                        (
-                            {
-                                success: function ()
-                                {
-                                    configuration.saveConfiguration (cb);
-                                },
-                                error: function ()
-                                {
-                                    database.make_database
-                                    (
-                                        configuration.getConfigurationDatabase (),
-                                        {
-                                            success: function () { configuration.saveConfiguration (cb); },
-                                            error: cb.error
-                                        },
-                                        null,
-                                        database.standard_validation
-                                    );
-                                }
-                            }
-                        );
+                        configuration.saveConfiguration (cb);
                     },
                     error: function ()
                     {
-                        alert ("You must be logged in to save the configuration.");
+                        database.make_database
+                        (
+                            configuration.getConfigurationDatabase (),
+                            {
+                                success: function () { configuration.saveConfiguration (cb); },
+                                error: cb.error
+                            },
+                            null,
+                            database.standard_validation
+                        );
                     }
                 }
             );

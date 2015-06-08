@@ -3,17 +3,17 @@
     <link rel="stylesheet" href="../../css/static/bootstrap-theme.min.css">
     <link rel="stylesheet" href="../../css/things.css">
 }}
-<h2>Configuration</h2>
-<p>Set up this instance of the <em>things</em> system.</p>
-<p>The configuration is broken up into logical groups:</p>
-<ul>
-    <li>database naming, creation and configuration</li>
-    <li>CouchDB settings necessary for correct operation</li>
-    <li>system specific paths and URLs</li>
-    <li>user names and passwords to access various components</li>
-</ul>
-<p>It is recommended that you perform all the steps before using the system, even though some may not be really
- required until the later stages of your workflow. At a minimum, you must create the databases used by the system.</p>
+<h2>Database naming, creation and configuration</h2>
+<p>The local database is your private database, and should have added security - that is,
+only logged in users can perform CRUD (Create, Read, Update and Delete) operations. It is used for pre-publish
+things and as the repository for things that you decide should not be public.</p>
+<p>The pending database on the other hand is the database that should have no restrictions.
+It is used by the import operation, for example, to write things captured from other sites.</p>
+<p>The public database contains the things that are visible to the <em>Thing Tracker Network</em>.
+The items in this database should also be seeded by the BitTorrent client.</p>
+<p>The tracker database is the list of <em>Thing Trackers</em> and the things that they are tracking.
+As such, it is largely an internally used database, but one that should be replicated between 
+nodes on the <em>Thing Tracker Network</em>.
 <div class="form-horizontal">
     <div class="configuration_group">
         <div class="form-group">

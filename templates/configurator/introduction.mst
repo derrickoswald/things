@@ -1,0 +1,23 @@
+{{!
+    <link rel="stylesheet" href="../../css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/static/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../../css/things.css">
+}}
+<h2>Configuration</h2>
+<p>Set up this instance of the <em>things</em> system.</p>
+<p>The configuration is broken up into logical groups:</p>
+<ul>
+    <li>personalization and identification</li>
+    <li>database naming, creation and configuration</li>
+    <li>BitTorrent client setup</li>
+    <li>CouchDB CORS settings necessary for import operations</li>
+
+    <li>system specific paths and URLs</li>
+    <li>user names and passwords to access various components</li>
+</ul>
+<p>It is highly recommended that you perform all the steps before using the system, even though some steps are not 
+really required until the later stages of your workflow. At a minimum, you must create the databases used by the system.</p>
+<p></p>
+<p>However, <b><em>you must log in to proceed</em></b>.
+Use the login menu item on the navigation bar (above) to
+login as an administrator of the CouchDB instance.</p>

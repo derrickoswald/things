@@ -307,7 +307,7 @@ define
             // , options: { download_location: "/home/derrick/Torrents" }
             xmlhttp.send (JSON.stringify ({"method": "web.add_torrents", "params":
                 // from here: http://forum.deluge-torrent.org/viewtopic.php?f=8&t=41333
-                [[{"path":filename, "options": { download_location: "/home/derrick/Torrents", add_paused: true }}]], "id": 4}));
+                [[{"path":filename, "options": { download_location: configuration.getConfigurationItem ("download_directory"), add_paused: true }}]], "id": 4}));
                // not this like it says in the documentation [{path: filename , options: { download_location: "/home/derrick/Torrents" }}], "id": 4}));
         }
 
