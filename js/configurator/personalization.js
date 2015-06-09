@@ -46,28 +46,6 @@ define
         }
 
         /**
-         * @summary Create proxy entries in the CouchDB local configuration event handler.
-         * @description Creates http proxy entries for keybase.io and the local deluge-web.
-         * @param {object} event - the create proxies button pressed event
-         * @function create_proxies
-         * @memberOf module:personalization
-         */
-        function create_proxies (event)
-        {
-            var options =
-            {
-                success: get_proxies,
-                error: function () { alert ("proxy configuration failed"); get_proxies (); }
-            };
-            var options2 =
-            {
-                success: function () { create_keybase_proxy (options); },
-                error: function () { alert ("proxy configuration failed"); get_proxies (); }
-            };
-            create_deluge_proxy (options2);
-        }
-
-        /**
          * @summary Create a proxy entry.
          * @description Creates an http proxy entry for the provided name and url.
          * @param {object} options - functions for success and error callback
@@ -83,7 +61,6 @@ define
                 name,
                 "{couch_httpd_proxy, handle_proxy_req, <<\"" + url + "\">>}"
             );
-
         }
 
         /**
@@ -99,6 +76,25 @@ define
         }
 
         /**
+         * @summary Create the Keybase.io proxy and restart the CouchDB server.
+         * @description Event handler for the Keybase button.
+         * @function keybase
+         * @memberOf module:personalization
+         */
+        function keybase (event)
+        {
+            create_keybase_proxy
+            (
+                {
+                    success: function ()
+                    {
+                        $ ("#restart_required").modal ();
+                    }
+                }
+            );
+        }
+
+        /**
          * @summary Create proxy entry for deluge in the CouchDB local configuration.
          * @description Creates an http proxy entry for deluge.
          * @param {object} options - functions for success and error callback
@@ -108,6 +104,169 @@ define
         function create_deluge_proxy (options)
         {
             create_proxy ("json", "http://localhost:8112", options);
+        }
+
+        /**
+         * @summary Create the deluge proxy and restart the CouchDB server.
+         * @description Event handler for the Deluge button.
+         * @function deluge
+         * @memberOf module:personalization
+         */
+        function deluge (event)
+        {
+            create_deluge_proxy
+            (
+                {
+                    success: function ()
+                    {
+                        $ ("#restart_required").modal ();
+                    }
+                }
+            );
+        }
+
+        /**
+         * @summary Event handler for the restart CouchDB button.
+         * @description Restarts the CouchDB server and closes the dialog box.
+         * @function restart
+         * @memberOf module:personalization
+         */
+        function restart (event)
+        {
+            // issue the HTTP request to restart
+            restart_couch
+            (
+                {
+                    success: function ()
+                    {
+                        console.log ("restart successful");
+                        var dialog = document.getElementById ("restart_required");
+                        var title = dialog.getElementsByClassName ("modal-title")[0].innerHTML;
+                        var body = dialog.getElementsByClassName ("modal-body")[0].innerHTML;
+                        dialog.getElementsByClassName ("modal-footer")[0].classList.add ("hidden");
+                        dialog.getElementsByClassName ("modal-title")[0].innerHTML = "CouchDB Restarted...";
+                        dialog.getElementsByClassName ("modal-body")[0].innerHTML = "Waiting 25...";
+
+                        // wait for couch to come back
+                        wait_for_couch
+                        (
+                            {
+                                count: 25,
+                                success: function ()
+                                {
+                                    console.log ("couchdb is back");
+                                    // close the modal dialog
+                                    $ ("#restart_required").modal ("hide");
+                                    // put it back the way it was
+                                    dialog.getElementsByClassName ("modal-title")[0].innerHTML = title;
+                                    dialog.getElementsByClassName ("modal-body")[0].innerHTML = body;
+                                    dialog.getElementsByClassName ("modal-footer")[0].classList.remove ("hidden");
+                                    // update the display
+                                    get_proxies ();
+                                },
+                                error: function ()
+                                {
+                                    console.log ("couchdb is down and out");
+                                    // close the modal dialog
+                                    $ ("#restart_required").modal ("hide");
+                                    // put it back the way it was
+                                    dialog.getElementsByClassName ("modal-title")[0].innerHTML = title;
+                                    dialog.getElementsByClassName ("modal-body")[0].innerHTML = body;
+                                    dialog.getElementsByClassName ("modal-footer")[0].classList.remove ("hidden");
+                                }
+                            }
+                        );
+                    },
+                    error: function ()
+                    {
+                        console.log ("restart failed");
+                    }
+                }
+            );
+        }
+
+        /**
+         * @summary Restarts the CouchDB server.
+         * @description Calls the /_restart HTTP API. Assumes the user is logged in as an administrator.
+         * @function restart_couch
+         * @memberOf module:personalization
+         */
+        function restart_couch (options)
+        {
+            var url;
+            var xmlhttp;
+
+            options = options || {};
+            url = configuration.getDocumentRoot () + "/_restart";
+            xmlhttp = new XMLHttpRequest ();
+            xmlhttp.open ("POST", url, true);
+            xmlhttp.setRequestHeader ("Content-Type", "application/json");
+            xmlhttp.setRequestHeader ("Accept", "application/json");
+            xmlhttp.onreadystatechange = function ()
+            {
+                if (4 == xmlhttp.readyState)
+                    if (202 == xmlhttp.status)
+                    {
+                        if (options.success)
+                            options.success ();
+                    }
+                    else
+                        if (options.error)
+                            options.error ();
+            };
+            xmlhttp.send ();
+        }
+
+        /**
+         * @summary Waits for the CouchDB server.
+         * @description Calls the / HTTP API until there is an answer.
+         * @function wait_for_couch
+         * @memberOf module:personalization
+         */
+        function wait_for_couch (options)
+        {
+            var url;
+            var xmlhttp;
+
+            options = options || {};
+            if ("undefined" == typeof (options.count))
+                options.count = 1;
+            url = configuration.getDocumentRoot () + "/";
+            xmlhttp = new XMLHttpRequest ();
+            xmlhttp.open ("GET", url, true);
+            xmlhttp.setRequestHeader ("Content-Type", "application/json");
+            xmlhttp.setRequestHeader ("Accept", "application/json");
+            xmlhttp.timeout = 50;
+            xmlhttp.ontimeout = function () // whenever the request times out
+            {
+                options.count--;
+                document.getElementById ("restart_required").getElementsByClassName ("modal-body")[0].innerHTML = "Waiting " + options.count + "...";
+                if (0 < options.count)
+                    setTimeout (function () { wait_for_couch (options); }, 5000);
+                else
+                    if (options.error)
+                        options.error ();
+            },
+            xmlhttp.onreadystatechange = function ()
+            {
+                if (4 == xmlhttp.readyState)
+                    if (200 == xmlhttp.status)
+                    {
+                        if (options.success)
+                            options.success ();
+                    }
+                    else
+                    {
+                        options.count--;
+                        document.getElementById ("restart_required").getElementsByClassName ("modal-body")[0].innerHTML = "Waiting " + options.count + "...";
+                        if (0 < options.count)
+                            setTimeout (function () { wait_for_couch (options); }, 5000);
+                        else
+                            if (options.error)
+                                options.error ();
+                    }
+            };
+            xmlhttp.send ();
         }
 
         /**
@@ -185,7 +344,9 @@ define
                             hooks:
                             [
                                 { id: "save_personalization", event: "click", code: save, obj: this },
-                                { id: "configure_proxies", event: "click", code: create_proxies, obj: this }
+                                { id: "configure_keybase_proxy", event: "click", code: keybase, obj: this },
+                                { id: "configure_deluge_proxy", event: "click", code: deluge, obj: this },
+                                { id: "restart", event: "click", code: restart, obj: this }
                             ],
                             transitions:
                             {

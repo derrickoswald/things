@@ -34,15 +34,24 @@
             <div class="col-sm-9"><span id="keybase_proxy" class="form-control form-control-result"></span></div>
         </div>
         <div class="form-group">
+            <label class="col-sm-3 control-label" for="configure_keybase_proxy"></label>
+            <div class="col-sm-9">
+                <button id="configure_keybase_proxy" class="btn btn-primary start">
+                    <i class="glyphicon glyphicon-sunglasses"></i>
+                    <span>Configure Keybase.io proxy</span>
+                </button>
+            </div>
+        </div>
+        <div class="form-group">
             <label class="col-sm-3 control-label" for="deluge_proxy">Deluge proxy</label>
             <div class="col-sm-9"><span id="deluge_proxy" class="form-control form-control-result"></span></div>
         </div>
         <div class="form-group">
             <label class="col-sm-3 control-label" for="configure_proxies"></label>
             <div class="col-sm-9">
-                <button id="configure_proxies" class="btn btn-primary start">
+                <button id="configure_deluge_proxy" class="btn btn-primary start">
                     <i class="glyphicon glyphicon-sunglasses"></i>
-                    <span>Configure proxies</span>
+                    <span>Configure Deluge proxy</span>
                 </button>
             </div>
         </div>
@@ -56,3 +65,22 @@
 
     </div>
 </div>
+<div class="modal fade" id="restart_required" tabindex="-1" role="dialog" aria-labelledby="couchdb_restart" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="couchdb_restart">CouchDB Restart Required</h4>
+      </div>
+      <div class="modal-body">
+      <p>In order for changes to the configuration to take effect, CouchDB needs to be restarted.</p>
+      <p>You can choose to do it later if you don't need that configuration functionality immediately. 
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Later</button>
+        <button id="restart" type="button" class="btn btn-primary">Restart</button>
+      </div>
+    </div>
+  </div>
+</div>
+
