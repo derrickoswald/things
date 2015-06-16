@@ -106,6 +106,7 @@ define
                 success: function (data) { console.log (data); alert ("Configuration saved."); },
                 error: function (status) { console.log (status); alert ("Configuration save failed."); }
             };
+            configuration.setConfigurationItem ("deluge_password", document.getElementById ("deluge_password").value.trim ());
             configuration.setConfigurationItem ("torrent_directory", document.getElementById ("torrent_directory").value.trim ());
 
             configuration.configuration_exists
@@ -141,6 +142,7 @@ define
          */
         function init ()
         {
+            document.getElementById ("deluge_password").value = configuration.getConfigurationItem ("deluge_password");
             document.getElementById ("torrent_directory").value = configuration.getConfigurationItem ("torrent_directory");
             get_proxy ();
         }

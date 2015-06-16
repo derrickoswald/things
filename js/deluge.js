@@ -27,12 +27,6 @@ define
         var URL = "/json/json";
 
         /**
-         * Password
-         * @memberOf module:deluge
-         */
-        var Password = "deluge"; // default
-
-        /**
          * Get the magic cookie from the deluge-web API.
          * @param {string} password secret password
          * @param {object} options to process the login:
@@ -313,7 +307,6 @@ define
 
         var exported =
         {
-            "Password" : Password,
             "login" : login,
             "getTorrentInfo" : getTorrentInfo,
             "addTorrentFile" : addTorrentFile,

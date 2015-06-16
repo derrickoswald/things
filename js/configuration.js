@@ -27,6 +27,7 @@ define
             pending_database: "pending_things",
             public_database: "public_things",
             tracker_database: "thing_tracker",
+            deluge_password: "deluge",
             torrent_directory: "/home/derrick/Torrents",
             instance_name: "",
             keybase_username: ""

@@ -159,7 +159,7 @@ define
         function post_to_deluge (primary_key, options)
         {
             deluge.login (
-                deluge.Password,
+                configuration.getConfigurationItem ("deluge_password"),
                 {
                     success:
                         function ()

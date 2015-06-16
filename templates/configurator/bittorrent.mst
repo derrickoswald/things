@@ -8,9 +8,9 @@
 <div class="form-horizontal">
     <div class="configuration_group">
         <div class="form-group">
-            <label class="col-sm-3 control-label" for="torrent_directory">Torrent download directory</label>
+            <label class="col-sm-3 control-label" for="deluge_password">Deluge password</label>
             <div class="col-sm-9">
-                <input id="torrent_directory" class="form-control" type="text" name="torrent_directory" placeholder="torrent_directory">
+                <input id="deluge_password" class="form-control" type="text" name="deluge_password" placeholder="deluge">
             </div>
         </div>
         <div class="form-group">
@@ -24,6 +24,12 @@
                     <i class="glyphicon glyphicon-sunglasses"></i>
                     <span>Configure Deluge proxy</span>
                 </button>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="torrent_directory">Torrent download directory</label>
+            <div class="col-sm-9">
+                <input id="torrent_directory" class="form-control" type="text" name="torrent_directory" placeholder="torrent_directory">
             </div>
         </div>
         <div class="form-group">

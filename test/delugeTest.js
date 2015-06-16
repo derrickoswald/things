@@ -129,7 +129,7 @@ define
                         function (callbacks)
                         {
                             deluge.login (
-                                deluge.Password,
+                                configuration.getConfigurationItem ("deluge_password"),
                                 {
                                     success: callbacks.noop (),
                                     error: callbacks.addErrback ("login deluge")
