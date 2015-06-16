@@ -3,30 +3,28 @@
     <link rel="stylesheet" href="../../css/static/bootstrap-theme.min.css">
     <link rel="stylesheet" href="../../css/things.css">
 }}
-                    <h2>Select Files</h2>
-                    Identify the files to be included in your <em>Thing</em>.<br>
-                    You can either select a single file or multiple files by clicking on the <b>Add files</b> button below and using the dialog to navigate to and identify the file(s),
-                    or you can drag and drop one or more files onto the <b>Drop files here...</b> area,
-                    or (TBD) you can paste files onto this form.
-                    Note that if you specify multiple files, you must then also specify the directory for the files.
+<h2>Select Files</h2>
+Identify the files to be included in your <em>Thing</em>.<br>
+You can either select a single file or multiple files by clicking on the <b>Add files</b> button below and using the dialog to navigate to and identify the file(s),
+or you can drag and drop one or more files onto the <b>Drop files here...</b> area,
+or (TBD) you can paste files onto this form.
+Note that if you specify multiple files, you must then also specify the directory for the files.
 
-                    <div id="choose_thing_directory" class="directoryinput-field">
-                        Directory: <input id="thing_directory" type="text" name="directory" />
-                    </div>
-					<div id="files_drop_zone">
-					Drop files here...
-                    </div>
-                    <span id="choose_thing_form" class="btn btn-success fileinput-button">
-	                    <i class="glyphicon glyphicon-plus"></i>
-	                    <span>Add files...</span>
-	                    <input id="thing_files" type="file" name="files[]" multiple>
-                    </span>
-                    
-                    <table id="file_table" class="file_list">
-						<tr><td></td><td>No files selected</td><td class="right"></td></tr>
-					</table>
-					<div id="total_size">{{total}}</div>
-                    <div id="info_hash"></div>
-                    <div id="file_content"></div>
+<div id="choose_thing_directory" class="directoryinput-field">
+    Directory: <input id="thing_directory" type="text" name="directory" />
+</div>
+<div id="files_drop_zone">
+Drop files here...
+</div>
+<span id="choose_thing_form" class="btn btn-success fileinput-button">
+    <i class="glyphicon glyphicon-plus"></i>
+    <span>Add files...</span>
+    <input id="thing_files" type="file" name="files[]" multiple>
+</span>
 
-    
+<table id="file_table" class="file_list">
+	<tr><td></td><td>No files selected</td><td class="right"></td></tr>
+</table>
+<div id="total_size">{{total}}</div>
+<div id="info_hash"></div>
+<div id="file_content"></div>

@@ -1,0 +1,40 @@
+{{!
+    <link rel="stylesheet" href="../../css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/static/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../../css/things.css">
+}}
+<h2>BitTorrent</h2>
+<p>Set up Deluge.</p>
+<div class="form-horizontal">
+    <div class="configuration_group">
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="torrent_directory">Torrent download directory</label>
+            <div class="col-sm-9">
+                <input id="torrent_directory" class="form-control" type="text" name="torrent_directory" placeholder="torrent_directory">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="deluge_proxy">Deluge proxy</label>
+            <div class="col-sm-9"><span id="deluge_proxy" class="form-control form-control-result"></span></div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="configure_proxies"></label>
+            <div class="col-sm-9">
+                <button id="configure_deluge_proxy" class="btn btn-primary start">
+                    <i class="glyphicon glyphicon-sunglasses"></i>
+                    <span>Configure Deluge proxy</span>
+                </button>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="save_bittorrent"></label>
+            <div class="col-sm-9">
+                <button id="save_bittorrent" class="btn btn-primary start">
+                    <i class="glyphicon glyphicon-save"></i>
+                    <span>Save</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+

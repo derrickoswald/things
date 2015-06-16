@@ -5,6 +5,19 @@
 }}
 <h2>Personalization</h2>
 <p>Set this <em>things</em> instance unique identifiers.</p>
+<p>The instance name is the user visible name for this <em>things</em> installation.
+It appears in the discovery listing and the index of tracked databases at the right or top of the screen.
+Normally it will be a name of significance to you.</p>
+<p>The Keybase user name is your unique handle in <a href="https://keybase.io" target="_blank">Keybase</a>,
+which provides access to the publicly visible information about you. (TBD) The private key stored on the Keybase
+server is used within the system for signing things and making version inheritance chains. (end TBD).</p>
+<p>The CouchDB uuid is the unique key for this things instance. If you have cloned this <em>things</em> installation,
+for example by duplicating a Raspberry Pi SD Card or starting an AMI on Amazon, you will need to generate a new
+uuid by clicking the button.</p>
+<p>The keybase proxy is the CouchDB configuration entry that allows this client side program to access the Keybase
+site without using CORS (cross site scripting). It needs to be created on new installations.
+Normally this should be set to <a href="https://keybase.io" target="_blank">https://keybase.io</a>.
+(TBD) See if we still need this since some API calls on keybase.io offer CORS support. (end TBD)</p>    
 <div class="form-horizontal">
     <div class="configuration_group">
         <div class="form-group">
@@ -14,21 +27,25 @@
             </div>
         </div>
         <div class="form-group">
-            <label class="col-sm-3 control-label" for="keybase_username">Keybase.io user name</label>
+            <label class="col-sm-3 control-label" for="keybase_username">Keybase user name</label>
             <div class="col-sm-9">
                 <input id="keybase_username" class="form-control" type="text" name="keybase_username" placeholder="user name from https://keybase.io">
             </div>
         </div>
         <div class="form-group">
-            <label class="col-sm-3 control-label" for="save_configuration"></label>
+            <label class="col-sm-3 control-label" for="couchdb_uuid">CouchDB instance UUID</label>
             <div class="col-sm-9">
-                <button id="save_personalization" class="btn btn-primary start">
-                    <i class="glyphicon glyphicon-save"></i>
-                    <span>Save</span>
-                </button>
+                <div class="input-group">
+                    <input id="couchdb_uuid" class="form-control" type="text" name="couchdb_uuid" placeholder="uuid">
+                    <span class="input-group-btn">
+                        <button id="generate_uuid" class="btn btn-default" type="button">
+                            <i class="glyphicon glyphicon-save"></i>
+                            <span>Generate UUID</span>
+                        </button>
+                    </span>
+                </div>
             </div>
         </div>
-
         <div class="form-group">
             <label class="col-sm-3 control-label" for="keybase_proxy">Keybase.io proxy</label>
             <div class="col-sm-9"><span id="keybase_proxy" class="form-control form-control-result"></span></div>
@@ -43,44 +60,13 @@
             </div>
         </div>
         <div class="form-group">
-            <label class="col-sm-3 control-label" for="deluge_proxy">Deluge proxy</label>
-            <div class="col-sm-9"><span id="deluge_proxy" class="form-control form-control-result"></span></div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-3 control-label" for="configure_proxies"></label>
+            <label class="col-sm-3 control-label" for="save_personalization"></label>
             <div class="col-sm-9">
-                <button id="configure_deluge_proxy" class="btn btn-primary start">
-                    <i class="glyphicon glyphicon-sunglasses"></i>
-                    <span>Configure Deluge proxy</span>
+                <button id="save_personalization" class="btn btn-primary start">
+                    <i class="glyphicon glyphicon-save"></i>
+                    <span>Save</span>
                 </button>
             </div>
         </div>
-        <div class="form-group">
-            <label class="col-sm-3 control-label" for="torrent_directory">Torrent download directory</label>
-            <div class="col-sm-9">
-                <input id="torrent_directory" class="form-control" type="text" name="torrent_directory" placeholder="torrent_directory">
-            </div>
-        </div>
-
-
     </div>
 </div>
-<div class="modal fade" id="restart_required" tabindex="-1" role="dialog" aria-labelledby="couchdb_restart" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="couchdb_restart">CouchDB Restart Required</h4>
-      </div>
-      <div class="modal-body">
-      <p>In order for changes to the configuration to take effect, CouchDB needs to be restarted.</p>
-      <p>You can choose to do it later if you don't need that configuration functionality immediately. 
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Later</button>
-        <button id="restart" type="button" class="btn btn-primary">Restart</button>
-      </div>
-    </div>
-  </div>
-</div>
-

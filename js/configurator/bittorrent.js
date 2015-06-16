@@ -1,6 +1,6 @@
 /**
- * @fileOverview System personalization step.
- * @name personalization
+ * @fileOverview BitTorrent configuration step.
+ * @name bittorrent
  * @author Derrick Oswald
  * @version 1.0
  */
@@ -8,30 +8,31 @@ define
 (
     ["../configuration", "../page", "../mustache", "../login", "../database", "../restart"],
     /**
-     * @summary Instance personalization step.
-     * @name personalization
-     * @exports personalization
+     * @summary BitTorrent setup page.
+     * @description Configure download directory, host, port and password for Deluge.
+     * @name bittorrent
+     * @exports bittorrent
      * @version 1.0
      */
     function (configuration, page, mustache, login, database, restart)
     {
         /**
-         * @summary Get the current proxies from the CouchDB local configuration.
+         * @summary Get the current proxy from the CouchDB local configuration.
          * @description Gets all options from the httpd_global_handlers section.
          * @function get_proxy
-         * @memberOf module:personalization
+         * @memberOf module:bittorrent
          */
         function get_proxy ()
         {
-            var keybase = document.getElementById ("keybase_proxy");
-            keybase.innerHTML = "";
+            var deluge = document.getElementById ("deluge_proxy");
+            deluge.innerHTML = "";
             $.couch.config
             (
                 {
                     success: function (data)
                     {
-                        if (data.keybase)
-                            keybase.innerHTML = data.keybase;
+                        if (data.json)
+                            deluge.innerHTML = data.json;
                     },
                 },
                 "httpd_global_handlers"
@@ -57,26 +58,26 @@ define
         }
 
         /**
-         * @summary Create proxy entry for keybase.io in the CouchDB local configuration.
-         * @description Creates an http proxy entry for keybase.io.
+         * @summary Create proxy entry for deluge in the CouchDB local configuration.
+         * @description Creates an http proxy entry for deluge.
          * @param {object} options - functions for success and error callback
-         * @function create_keybase_proxy
+         * @function create_deluge_proxy
          * @memberOf module:personalization
          */
-        function create_keybase_proxy (options)
+        function create_deluge_proxy (options)
         {
-            create_proxy ("keybase", "https://keybase.io", options);
+            create_proxy ("json", "http://localhost:8112", options);
         }
 
         /**
-         * @summary Create the Keybase.io proxy and restart the CouchDB server.
-         * @description Event handler for the Keybase button.
-         * @function keybase
+         * @summary Create the deluge proxy and restart the CouchDB server.
+         * @description Event handler for the Deluge button.
+         * @function deluge
          * @memberOf module:personalization
          */
-        function keybase (event)
+        function deluge (event)
         {
-            create_keybase_proxy
+            create_deluge_proxy
             (
                 {
                     success: function ()
@@ -105,8 +106,7 @@ define
                 success: function (data) { console.log (data); alert ("Configuration saved."); },
                 error: function (status) { console.log (status); alert ("Configuration save failed."); }
             };
-            configuration.setConfigurationItem ("instance_name", document.getElementById ("instance_name").value.trim ());
-            configuration.setConfigurationItem ("keybase_username", document.getElementById ("keybase_username").value.trim ());
+            configuration.setConfigurationItem ("torrent_directory", document.getElementById ("torrent_directory").value.trim ());
 
             configuration.configuration_exists
             (
@@ -133,44 +133,6 @@ define
         }
 
         /**
-         * @summary Get the current CouchDB unique uuid.
-         * @description Fills the form's uuid input element with the current value of the uuid.
-         * @function get_uuid
-         * @memberOf module:personalization
-         */
-        function get_uuid ()
-        {
-            $.get
-            (
-                configuration.getDocumentRoot (),
-                function (welcome) // {"couchdb":"Welcome","uuid":"fe736197b3e3e543fdba84b1c2385111","version":"1.6.1","vendor":{"version":"14.04","name":"Ubuntu"}}
-                {
-                    welcome = JSON.parse (welcome);
-                    document.getElementById ("couchdb_uuid").value = welcome.uuid;
-                }
-            );
-        }
-
-        /**
-         * @summary Create a new CouchDB unique uuid.
-         * @description Fills the form's uuid input element with a new value of the uuid.
-         * @function create_uuid
-         * @memberOf module:personalization
-         */
-        function create_uuid ()
-        {
-            $.get
-            (
-                configuration.getDocumentRoot () + "/_uuids",
-                function (uuids) // {"uuids": ["75480ca477454894678e22eec6002413"]}
-                {
-                    uuids = JSON.parse (uuids);
-                    document.getElementById ("couchdb_uuid").value = uuids.uuids[0];
-                }
-            );
-        }
-
-        /**
          * @summary Initialize the personalization page of the configurator wizard.
          * @description Fills the form with existing configuration data and attaches handlers for the
          * various operations.
@@ -179,10 +141,8 @@ define
          */
         function init ()
         {
-            document.getElementById ("instance_name").value = configuration.getConfigurationItem ("instance_name");
-            document.getElementById ("keybase_username").value = configuration.getConfigurationItem ("keybase_username");
+            document.getElementById ("torrent_directory").value = configuration.getConfigurationItem ("torrent_directory");
             get_proxy ();
-            get_uuid ();
         }
 
         return (
@@ -191,14 +151,13 @@ define
                 {
                     return (
                         {
-                            id: "personalize",
-                            title: "Personalization",
-                            template: "templates/configurator/personalization.mst",
+                            id: "bittorent",
+                            title: "BitTorrent",
+                            template: "templates/configurator/bittorrent.mst",
                             hooks:
                             [
-                                { id: "save_personalization", event: "click", code: save, obj: this },
-                                { id: "configure_keybase_proxy", event: "click", code: keybase, obj: this },
-                                { id: "generate_uuid", event: "click", code: create_uuid, obj: this }
+                                { id: "save_bittorrent", event: "click", code: save, obj: this },
+                                { id: "configure_deluge_proxy", event: "click", code: deluge, obj: this },
                             ],
                             transitions:
                             {
