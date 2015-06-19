@@ -13,7 +13,8 @@ which provides access to the publicly visible information about you. (TBD) The p
 server is used within the system for signing things and making version inheritance chains. (end TBD).</p>
 <p>The CouchDB uuid is the unique key for this things instance. If you have cloned this <em>things</em> installation,
 for example by duplicating a Raspberry Pi SD Card or starting an AMI on Amazon, you will need to generate a new
-uuid by clicking the button.</p>
+uuid by clicking the button. The uuid is created, if possible, as the SHA1 hash of the concatenation of the
+instance name, Keybase username, and public key. Otherwise it is a random uuid from CouchDB.</p>
 <p>The keybase proxy is the CouchDB configuration entry that allows this client side program to access the Keybase
 site without using CORS (cross site scripting). It needs to be created on new installations.
 Normally this should be set to <a href="https://keybase.io" target="_blank">https://keybase.io</a>.
@@ -70,6 +71,8 @@ Normally this should be set to <a href="https://keybase.io" target="_blank">http
         </div>
     </div>
     <div class="configuration_group">
+        <div id="fullname"></div>
+        <div id="location"></div>
         <div id="picture"></div>
         <div id="public_key"></div>
     </div>

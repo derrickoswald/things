@@ -6,7 +6,7 @@
  */
 define
 (
-    ["../configuration", "../page", "../mustache", "../login", "../database", "../restart", "../keybase"],
+    ["../configuration", "../page", "../mustache", "../login", "../database", "../restart", "../keybase", "../sha1"],
     /**
      * @summary Instance personalization step.
      * @description Sets the identifying information for this instance of the <em>things</em> system.
@@ -14,8 +14,10 @@ define
      * @exports configurator/personalization
      * @version 1.0
      */
-    function (configuration, page, mustache, login, database, restart, keybase)
+    function (configuration, page, mustache, login, database, restart, keybase, sha1)
     {
+        var userdata = null;
+
         /**
          * @summary Get the current proxies from the CouchDB local configuration.
          * @description Gets all options from the httpd_global_handlers section.
@@ -34,7 +36,7 @@ define
                         if (data.keybase)
                         {
                             proxy.innerHTML = data.keybase;
-                            fill_user_data ();
+                            get_user_data ();
                         }
                     },
                 },
@@ -158,23 +160,78 @@ define
         /**
          * @summary Create a new CouchDB unique uuid.
          * @description Fills the form's uuid input element with a new value of the uuid.
+         * The uid is either computed from the instance name, user's Keybase name and public key
+         * or fetched from CouchDb as the next uuid.
          * @function create_uuid
          * @memberOf module:configurator/personalization
          */
         function create_uuid ()
         {
-            $.get
-            (
-                configuration.getDocumentRoot () + "/_uuids",
-                function (uuids) // {"uuids": ["75480ca477454894678e22eec6002413"]}
-                {
-                    uuids = JSON.parse (uuids);
-                    document.getElementById ("couchdb_uuid").value = uuids.uuids[0];
-                }
-            );
+            var instance_name = document.getElementById ("instance_name").value.trim ();
+            var keybase_username = document.getElementById ("keybase_username").value.trim ();
+            var public_key = "";
+            if (null != userdata)
+                if (userdata.them[0].public_keys)
+                    if (userdata.them[0].public_keys.primary)
+                        if (userdata.them[0].public_keys.primary.bundle)
+                            public_key = userdata.them[0].public_keys.primary.bundle;
+            if (("" != instance_name) && ("" != keybase_username) && ("" != public_key))
+            {
+                var plaintext =
+                    instance_name + "\n" +
+                    keybase_username + "\n" +
+                    public_key;
+                document.getElementById ("couchdb_uuid").value = sha1.sha1 (plaintext, false);
+            }
+            else
+                $.get
+                (
+                    configuration.getDocumentRoot () + "/_uuids",
+                    function (uuids) // {"uuids": ["75480ca477454894678e22eec6002413"]}
+                    {
+                        uuids = JSON.parse (uuids);
+                        document.getElementById ("couchdb_uuid").value = uuids.uuids[0];
+                    }
+                );
         }
 
-        function fill_user_data ()
+        /**
+         * @summary Fill in the elements with the Keybase information.
+         * @description Fill in full name, location, picture and public key if available.
+         * @param {object} data the data object from Keybase
+         */
+        function fill_user_data (data)
+        {
+            document.getElementById ("fullname").innerHTML = "";
+            document.getElementById ("location").innerHTML = "";
+            document.getElementById ("picture").innerHTML = "";
+            document.getElementById ("public_key").innerHTML = "";
+            if (null != data)
+            {
+                if (data.them[0].profile)
+                {
+                    if (data.them[0].profile.full_name)
+                        document.getElementById ("fullname").innerHTML = data.them[0].profile.full_name;
+                    if (data.them[0].profile.location)
+                        document.getElementById ("location").innerHTML = data.them[0].profile.location;
+                }
+                if (data.them[0].pictures)
+                    if (data.them[0].pictures.primary)
+                        if (data.them[0].pictures.primary.url)
+                            document.getElementById ("picture").innerHTML = "<img src='" + data.them[0].pictures.primary.url + "'>";
+                if (data.them[0].public_keys)
+                    if (data.them[0].public_keys.primary)
+                        if (data.them[0].public_keys.primary.bundle)
+                            document.getElementById ("public_key").innerHTML = "<pre>" + data.them[0].public_keys.primary.bundle + "</pre>";
+            }
+        }
+
+        /**
+         * @summary Get the Keybase information for the current user.
+         * @description Query the Keybase lookup API with the keybase_username.
+         * @param {object} event that triggered the lookup.
+         */
+        function get_user_data (event)
         {
             var username = document.getElementById ("keybase_username").value;
             if (("" != username) && ("" != document.getElementById ("keybase_proxy").innerHTML))
@@ -184,15 +241,25 @@ define
                     {
                         success: function (data)
                         {
-                            document.getElementById ("picture").innerHTML = "<img src='" + data.them[0].pictures.primary.url + "'>";
-                            document.getElementById ("public_key").innerHTML = data.them[0].public_keys.primary.bundle;
+                            userdata = null;
+                            if (data.them)
+                                if (Array.isArray (data.them))
+                                    if (0 != data.them.length && (null != data.them[0]))
+                                        userdata = data;
+                            fill_user_data (userdata);
                         },
                         error: function ()
                         {
-                            document.getElementById ("public_key").innerHTML = "";
+                            userdata = null;
+                            fill_user_data (userdata);
                         }
                     }
                 );
+            else
+            {
+                userdata = null;
+                fill_user_data (userdata);
+            }
         }
 
         /**
@@ -224,7 +291,7 @@ define
                                 { id: "save_personalization", event: "click", code: save, obj: this },
                                 { id: "configure_keybase_proxy", event: "click", code: keybase_click, obj: this },
                                 { id: "generate_uuid", event: "click", code: create_uuid, obj: this },
-                                { id: "keybase_username", event: "changed", code: fill_user_data, obj: this }
+                                { id: "keybase_username", event: "input", code: get_user_data, obj: this }
                             ],
                             transitions:
                             {
