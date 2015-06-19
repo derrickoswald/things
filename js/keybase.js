@@ -26,6 +26,34 @@ define
         // i.e. add this line under the [httpd_global_handlers] section:
         // keybase = {couch_httpd_proxy, handle_proxy_req, <<"https://keybase.io/">>}
 
+        var CORS_URL = "https://keybase.io/_/api/1.0/";
+
+
+        /**
+         * @summary Make CORS request object.
+         * @description Cross browser handler for CORS requests.
+         * @param {string} method the type of request to be made
+         * @param {string} url the URL for the request
+         * @returns {object} the CORS capable object or <code>null</code> if the browser doesn't support CORS.
+         */
+        function createCORSRequest (method, url)
+        {
+            var ret;
+
+            ret = new XMLHttpRequest ();
+            if ("withCredentials" in ret) // "withCredentials" only exists on XMLHTTPRequest2 objects
+                ret.open (method, url, true);
+            else if ("undefined" != typeof (XDomainRequest)) // XDomainRequest only in IE
+            {
+                ret = new XDomainRequest ();
+                ret.open (method, url);
+            }
+            else // CORS is not supported
+                ret = null;
+
+            return (ret);
+        }
+
         // https://keybase.io/_/api/1.0/user/lookup.json?usernames=derrickoswald
 //        derrick :
 //        {
@@ -235,15 +263,25 @@ define
 //            "csrf_token" : "lgHZIDNlY2IwNmRlYmNlM2NjNGJlOTlmN2QyZjE3YzQ4YTA4zlVuCGDOAAFRgMDEIDc9oG1jDvBw/CfIt+W4jqsavzCh4krASQ+iAQdbyau8"
 //        },
 
+        /**
+         * @summary Lookup someone in Keybase.
+         * @description Tries to get information about the username.
+         */
         function lookup (username, options)
         {
             var url;
             var xmlhttp;
 
             options = options || {};
-            url = URL + "user/lookup.json" + "?usernames=" + username;
-            xmlhttp = new XMLHttpRequest ();
-            xmlhttp.open ("GET", url, true);
+            url = CORS_URL + "user/lookup.json" + "?usernames=" + username;
+            xmlhttp = createCORSRequest('GET', url);
+            if (null == xmlhttp)
+            {
+                // fall back to non-CORS assuming an appropriate proxy is set up
+                url = URL + "user/lookup.json" + "?usernames=" + username;
+                xmlhttp = new XMLHttpRequest ();
+                xmlhttp.open ("GET", url, true);
+            }
             xmlhttp.onreadystatechange = function ()
             {
                 if (4 == xmlhttp.readyState)
