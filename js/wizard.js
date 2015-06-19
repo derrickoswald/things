@@ -27,7 +27,7 @@ define
 
             ret = -1;
 
-            navs = document.getElementById ("navigator").getElementsByTagName ("li");
+            navs = document.getElementById ("wizard_navigator").getElementsByTagName ("li");
             for (var i = 0; (i < navs.length) && (0 > ret); i++)
                 if (-1 != navs[i].className.split (" ").indexOf ("active"))
                     ret = i;
@@ -48,7 +48,7 @@ define
 
             ret = -1;
 
-            navs = document.getElementById ("navigator").getElementsByTagName ("li");
+            navs = document.getElementById ("wizard_navigator").getElementsByTagName ("li");
             for (var i = 0; (i < navs.length) && (0 > ret); i++)
                 if (id == navs[i].getAttribute ("data-tab-id"))
                     ret = i;
@@ -63,7 +63,7 @@ define
          */
         function stepCount ()
         {
-            return (document.getElementById ("navigator").getElementsByTagName ("li").length + 1);
+            return (document.getElementById ("wizard_navigator").getElementsByTagName ("li").length + 1);
         };
 
         /**
@@ -275,7 +275,7 @@ define
             if ("undefined" == typeof (start))
                 start = 0;
             var nav_template =
-                "<ul id='navigator' class='nav nav-tabs nav-stacked' role='tablist'>" +
+                "<ul id='wizard_navigator' class='nav nav-tabs nav-stacked' role='tablist'>" +
                     /* li */
                 "</ul>";
 
@@ -296,7 +296,7 @@ define
                 "</div>";
 
             nav.innerHTML = mustache.render (nav_template);
-            var list = document.getElementById ("navigator");
+            var list = document.getElementById ("wizard_navigator");
 
             content.innerHTML = mustache.render (content_template);
             data.next_button = document.getElementById ("next");

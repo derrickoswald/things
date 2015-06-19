@@ -138,6 +138,23 @@ define
 //                                    ],
 //                                    "last_seq":35
 //                                }
+
+                                // get the element of interest
+                                var element = null;
+                                var items = document.getElementById (html_id).getElementsByTagName ("li");
+                                for (var i = 0; (null == element) && (i < items.length); i++)
+                                {
+                                    var target = items[i].getAttribute ("data-target");
+                                    if (target && (target == db.database))
+                                        element = items[i];
+                                }
+
+                                // delete any existing badge
+                                var badges = element.getElementsByClassName ("badge");
+                                var l = badges.length;
+                                for (var j = 0; j < l; j++)
+                                    element.removeChild (badges[0]);
+
                                 if (null == db.last)
                                     configuration.storeProperty (db.database + ".last", reply.last_seq);
                                 else if (db.last != reply.last_seq)
@@ -154,23 +171,16 @@ define
                                                     updates++;
                                         }
                                     );
+
                                     if (0 == updates) // no substantive changes
                                         configuration.storeProperty (db.database + ".last", reply.last_seq);
                                     else
                                     {
-                                        var items = document.getElementById (html_id).getElementsByTagName ("li");
-                                        for (var i = 0; i < items.length; i++)
-                                        {
-                                            var target = items[i].getAttribute ("data-target");
-                                            if (target && (target == db.database))
-                                            {
-                                                // <span class="badge">42</span>
-                                                var badge = document.createElement ("span");
-                                                badge.setAttribute ("class", "badge");
-                                                badge.innerHTML = String (updates);
-                                                items[i].appendChild (badge);
-                                            }
-                                        }
+                                        // <span class="badge">42</span>
+                                        var badge = document.createElement ("span");
+                                        badge.setAttribute ("class", "badge");
+                                        badge.innerHTML = String (updates);
+                                        element.appendChild (badge);
                                     }
                                 }
                             }

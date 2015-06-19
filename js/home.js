@@ -398,6 +398,7 @@ define
 
 
             areas = page.get_layout ();
+            areas.left.innerHTML = ""; // ToDo: find a better way for wizards to clean up after themselves
             database = page.get_current ();
             options = { del: delete_document };
             if (database == configuration.getConfigurationItem ("local_database"))
@@ -424,10 +425,7 @@ define
         page.on
         (
             "change",
-            function (event)
-            {
-                draw_content ();
-            }
+            draw_content // discard event parameter
         );
 
         // register for login/logout events

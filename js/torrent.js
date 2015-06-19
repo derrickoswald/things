@@ -133,7 +133,7 @@ define
             var infohash;
             var torrent;
 
-            // javascript date is number of millisconds since epoch
+            // JavaScript date is number of milliseconds since epoch
             timestamp = Math.round ((new Date ()).getTime () / 1000.0);
             if (1 == files.length)
                 infohash = {
@@ -224,6 +224,28 @@ define
         }
 
         /**
+         * @summary Read a torrent file and create a JavaScript object.
+         * @description Read the File object and convert it into an object.
+         * @param {File} file the .torrent file
+         * @param {object} options the options and callbacks,
+         * currently only the function success (filename, javascript_object) is used.
+         * @memberOf module:torrent
+         */
+        function ReadTorrentAsync (file, options)
+        {
+            var reader;
+
+            reader = new FileReader ();
+            reader.onloadend = function (event)
+            {
+                if (event.target.readyState == FileReader.DONE)
+                    if (options.success)
+                        options.success (file.name, ReadTorrent (event.target.result));
+            };
+            reader.readAsArrayBuffer (file);
+        }
+
+        /**
          * @summary Create an object from bencoded data.
          * @description Convert the bencoded ArrayBuffer into a JavaScript object.
          * @param {ArrayBuffer} torrent_file contents of the .torrent file
@@ -247,28 +269,18 @@ define
             return (ret);
         }
 
-        /**
-         * @summary Read a torrent file and create a JavaScript object.
-         * @description Read the File object and convert it into an object.
-         * @param {File} file the .torrent file
-         * @param {object} options the options and callbacks,
-         * currently only the function success (filename, javascript_object) is used.
-         * @memberOf module:torrent
-         */
-        function ReadTorrentAsync (file, options)
+        function dummy () // just here so Eclipse's brain dead outline mode works
         {
-            var reader;
-
-            reader = new FileReader ();
-            reader.onloadend = function (event)
-            {
-                if (event.target.readyState == FileReader.DONE)
-                    if (options.success)
-                        options.success (file.name, ReadTorrent (event.target.result));
-            };
-            reader.readAsArrayBuffer (file);
         }
 
+        /**
+         * @summary Make a string from the certificate.
+         * @description Convert the certificate into readable form.
+         * @param {ArrayBuffer} cert slice of the torrent containing the certificate
+         * @param {number} tabspace number of spaces for a tab
+         * @return {string} a string with the certificate
+         * @memberOf module:torrent
+         */
         function printCertificate (cert, tabspace)
         {
             var br;
@@ -299,6 +311,15 @@ define
             return (ret);
         }
 
+
+        /**
+         * @summary Make a string from the signatures.
+         * @description Convert the signatures into readable form.
+         * @param {ArrayBuffer} signature slice of the torrent containing the signatures
+         * @param {number} tabspace number of spaces for a tab
+         * @return {string} a string with the signature
+         * @memberOf module:torrent
+         */
         function printSignature (signature, tabspace)
         {
             var view;
@@ -323,6 +344,13 @@ define
             return (ret);
         }
 
+        /**
+         * @summary Make an array from the binary pieces (block hashes).
+         * @description Convert the pieces blob into an array of strings.
+         * @param {ArrayBuffer} pieces slice of the torrent containing the pieces
+         * @return {string[]} an array of strings representing the array of pieces hashes
+         * @memberOf module:torrent
+         */
         function PiecesToArray (pieces)
         {
             var view;
@@ -350,6 +378,13 @@ define
             return (ret);
         }
 
+        /**
+         * @summary Make a pieces blob from the array of string of pieces.
+         * @description Convert the array of strings into a pieces blob.
+         * @param {string[]} array the pieces as an array of strings
+         * @return {ArrayBuffer} the array of pieces hashes
+         * @memberOf module:torrent
+         */
         function ArrayToPieces (array)
         {
             var view;
@@ -367,6 +402,13 @@ define
             return (ret);
         }
 
+        /**
+         * @summary Make a string for display out of a torrent.
+         * @description The toString() method of the torrent object.
+         * @param {object} The torrent as a JavaScript object.
+         * @return {string} the string representation of the torrent
+         * @memberOf module:torrent
+         */
         function PrintTorrent (torrent)
         {
             var pieces;

@@ -28,7 +28,6 @@ define
          */
         function init ()
         {
-            page.set_current (db);
             home.build_content (db, view_name, "listing", { del: home.delete_document, transfer: home.transfer_to_local });
         }
 
