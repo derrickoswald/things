@@ -69,4 +69,8 @@ Normally this should be set to <a href="https://keybase.io" target="_blank">http
             </div>
         </div>
     </div>
+    <div class="configuration_group">
+        <div id="picture"></div>
+        <div id="public_key"></div>
+    </div>
 </div>

@@ -7,8 +7,22 @@
  */
 define
 (
+    ["configuration"],
+    /**
+     * @summary Functions for interacting with keybase.io.
+     * @description User profile and security credentials.
+     * @name keybase
+     * @exports keybase
+     * @version 1.0
+     */
+    function (configuration)
     {
-        URL: "/keybase/_/api/1.0/", // corresponds to https://keybase.io/_/api/1.0/ as proxied by couchdb
+
+        /**
+         * Keybase URL with proxy prefix.
+         * corresponds to https://keybase.io/_/api/1.0/ as proxied by couchdb
+         */
+        var URL = configuration.getDocumentRoot () + "/keybase/_/api/1.0/";
         // i.e. add this line under the [httpd_global_handlers] section:
         // keybase = {couch_httpd_proxy, handle_proxy_req, <<"https://keybase.io/">>}
 
@@ -221,13 +235,13 @@ define
 //            "csrf_token" : "lgHZIDNlY2IwNmRlYmNlM2NjNGJlOTlmN2QyZjE3YzQ4YTA4zlVuCGDOAAFRgMDEIDc9oG1jDvBw/CfIt+W4jqsavzCh4krASQ+iAQdbyau8"
 //        },
 
-        lookup: function (username, options)
+        function lookup (username, options)
         {
             var url;
             var xmlhttp;
 
             options = options || {};
-            url = this.URL + "user/lookup.json" + "?usernames=" + username;
+            url = URL + "user/lookup.json" + "?usernames=" + username;
             xmlhttp = new XMLHttpRequest ();
             xmlhttp.open ("GET", url, true);
             xmlhttp.onreadystatechange = function ()
@@ -243,7 +257,7 @@ define
                             options.error ();
             };
             xmlhttp.send ();
-        },
+        }
 
         /**
          * Some basic functionality test to get the salt value for a name
@@ -252,13 +266,13 @@ define
          * @function getsalt
          * @memberOf module:keybase
          */
-        getsalt: function (name)
+        function getsalt (name)
         {
             var url;
             var xmlhttp;
             var ret = null;
 
-            url = this.URL + "getsalt.json" + "?email_or_username=" + name;
+            url = URL + "getsalt.json" + "?email_or_username=" + name;
             xmlhttp = new XMLHttpRequest ();
             xmlhttp.open ("GET", url, false);
             xmlhttp.onreadystatechange = function ()
@@ -270,5 +284,12 @@ define
 
             return (ret);
         }
+
+        return (
+            {
+                lookup: lookup,
+                getsalt: getsalt
+            }
+        );
     }
 );
