@@ -6,6 +6,7 @@
  */
 define
 (
+    [],
     /**
      * @summary Support for packing and unpacking multipart/related (mime) data.
      * @name multipart

@@ -82,6 +82,22 @@ curl http://127.0.0.1:5984/
 
 cd ..
 
+Query Servers
+
+There is a problem in storing large JSON files (actually indexing them is the problem). After hunting around [this fix](http://stackoverflow.com/questions/21273736/couchdb-views-os-process-error-big-documents) seemed to work. Edit the couchdb default.ini, and add the -S parameter for 128 Mbytes:
+
+sudo vi /usr/local/etc/couchdb/default.ini
+
+...
+
+[query\_servers]
+
+javascript = /usr/local/bin/couchjs **-S 134217728** /usr/local/share/couchdb/server/main.js
+
+coffeescript = /usr/local/bin/couchjs /usr/local/share/couchdb/server/main-coffee.js
+
+...
+
 Futon
 =====
 

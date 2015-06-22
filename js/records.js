@@ -4,14 +4,16 @@
  * @author Derrick Oswald
  * @version 1.0
  */
-define (["multipart", ""],
+define
+(
+    ["multipart", "configuration"],
     /**
      * @summary Support for reading and writing things and their attachments.
      * @name records
      * @exports records
      * @version 1.0
      */
-    function (multipart)
+    function (multipart, configuration)
     {
         /**
          * @private
@@ -91,6 +93,32 @@ define (["multipart", ""],
         };
 
         /**
+         * @summary Browser independent CORS setup.
+         * @description Creates the CORS request and opens it.
+         * @param {string} method The method type, e.g. "GET" or "POST"
+         * @param {string} url the URL to open the request on
+         * @returns {object} the request object or <code>null</code> if CORS isn't supported
+         * @memberOf module:records
+         */
+        function createCORSRequest (method, url)
+        {
+            var ret;
+
+            ret = new XMLHttpRequest ();
+            if ('withCredentials' in ret) // "withCredentials" only exists on XMLHTTPRequest2 objects
+                ret.open (method, url, true);
+            else if (typeof XDomainRequest != 'undefined') // IE
+            {
+                ret = new XDomainRequest ();
+                ret.open (method, url);
+            }
+            else
+                ret = null; // CORS is not supported by the browser
+
+            return (ret);
+        }
+
+        /**
          * Create a new document in the specified database, using the supplied
          * JSON document structure. If the JSON structure includes the _id
          * field, then the document will be created with the specified document
@@ -116,14 +144,16 @@ define (["multipart", ""],
             if (doc._id === undefined)
             {
                 method = "POST";
-                uri = $.couch.urlPrefix + "/" + db + "/";
+                uri = configuration.getPrefix () + "/" + db + "/";
             }
             else
             {
                 method = "PUT";
-                uri = $.couch.urlPrefix + "/" + db + "/" + encodeDocId (doc._id);
+                uri = configuration.getPrefix () + "/" + db + "/" + encodeDocId (doc._id);
                 delete (doc._id);
             }
+            if (options.CORS)
+                uri = options.CORS + uri;
             versioned = maybeApplyVersion (doc);
             function decodeUtf8 (arrayBuffer)
             {
@@ -172,8 +202,19 @@ define (["multipart", ""],
             multipart.pack (files, doc, "abc123",
                 function (ab)
                 {
-                    var xmlhttp = new XMLHttpRequest ();
-                    xmlhttp.open (method, uri + encodeOptions (options), true);
+                    var xmlhttp;
+                    if (options.CORS)
+                    {
+                        delete options.CORS;
+                        var use_put = options.USE_PUT;
+                        delete options.USE_PUT;
+                        xmlhttp = createCORSRequest ((use_put ? 'PUT' : 'POST'), uri + encodeOptions (options));
+                    }
+                    else
+                    {
+                        xmlhttp = new XMLHttpRequest ();
+                        xmlhttp.open (method, uri + encodeOptions (options), false);
+                    }
                     xmlhttp.setRequestHeader ("Content-Type", "multipart/related;boundary=\"abc123\"");
                     xmlhttp.setRequestHeader ("Accept", "application/json");
                     // beforeSend ?
@@ -276,40 +317,47 @@ define (["multipart", ""],
                     }
                 });
             }
-            return $.ajax (
-            {
-                url : // ToDo: configuration.getDocumentRoot () +
-                                "/" + db + "/" + encodeDocId (docId) + "/" + attachment + encodeOptions (options),
+            return (
+                $.ajax
+                (
+                    {
+                        url : configuration.getDocumentRoot () +
+                                        "/" + db + "/" + encodeDocId (docId) + "/" + attachment + encodeOptions (options),
 
-                complete : function (req, outcome)
-                {
-                    if (req.status == 200 || req.status == 201 || req.status == 202)
-                    {
-                        if (options.success)
-                            options.success (resp);
-                    }
-                    else if (options.error)
-                    {
-                        var msg;
-                        var reason;
-                        if (null == resp)
+                        complete : function (req, outcome)
                         {
-                            msg = req.responseText;
-                            reason = "unknown reason";
+                            if (req.status == 200 || req.status == 201 || req.status == 202)
+                            {
+                                if (options.success)
+                                    options.success (resp);
+                            }
+                            else if (options.error)
+                            {
+                                var msg;
+                                var reason;
+                                if (null == resp)
+                                {
+                                    msg = req.responseText;
+                                    reason = "unknown reason";
+                                }
+                                else
+                                {
+                                    msg = resp.error;
+                                    reason = resp.reason;
+                                }
+                                options.error (req.status, msg, reason);
+                            }
+                            else
+                            {
+                                throw "The document could not be saved: " + resp.reason;
+                            }
                         }
-                        else
-                        {
-                            msg = resp.error;
-                            reason = resp.reason;
-                        }
-                        options.error (req.status, msg, reason);
-                    }
-                    else
-                    {
-                        throw "The document could not be saved: " + resp.reason;
-                    }
-                }
-            }, options, "The document could not be retrieved", ajaxOptions);
+                    },
+                    options,
+                    "The document could not be retrieved",
+                    ajaxOptions
+                )
+            );
         };
 
         /**
@@ -324,18 +372,23 @@ define (["multipart", ""],
          */
         function read_attachment (db, id, name, fn)
         {
-            fetchDoc (db, // $.couch.db (db).openDoc(
-            id, name, null,
-            {
-                success : function (data)
+            fetchDoc
+            (
+                db,
+                id,
+                name,
+                null,
                 {
-                    fn (data);
-                },
-                error : function (status)
-                {
-                    console.log (status);
+                    success : function (data)
+                    {
+                        fn (data);
+                    },
+                    error : function (status)
+                    {
+                        console.log (status);
+                    }
                 }
-            });
+            );
         };
 
         /**
@@ -375,9 +428,10 @@ define (["multipart", ""],
 
         var functions =
         {
-            "saveDocWithAttachments" : saveDocWithAttachments,
-            "read_attachment" : read_attachment,
-            "base64toBlob": base64toBlob
+            createCORSRequest: createCORSRequest,
+            saveDocWithAttachments : saveDocWithAttachments,
+            read_attachment : read_attachment,
+            base64toBlob: base64toBlob
         };
 
         return (functions);

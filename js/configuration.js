@@ -213,6 +213,17 @@ define
         }
 
         /**
+         * @summary Get the prefix used by the jQuery CouchDB addon.
+         * @description For a vhosted system, the prefix is usually an entry
+         * in the rewrites that accesses the CouchDB api, rather than the
+         * vhosted document root at _design/{db}/_rewrite.
+         */
+        function getPrefix ()
+        {
+            return ($.couch.urlPrefix);
+        }
+
+        /**
          * @summary Get the web page root.
          * @description Like <code>document.location.origin</code> but also adds
          * the necessary rewrite prefix for the virtual host (if any).
@@ -225,7 +236,7 @@ define
          */
         function getDocumentRoot ()
         {
-            return (document.location.origin + $.couch.urlPrefix);
+            return (document.location.origin + getPrefix ());
         }
 
         /**
@@ -288,6 +299,7 @@ define
                 storeProperty: storeProperty,
                 loadProperty: loadProperty,
                 clearProperty: clearProperty,
+                getPrefix: getPrefix,
                 getDocumentRoot: getDocumentRoot,
                 configuration_exists: configuration_exists,
                 configuration_setup: configuration_setup

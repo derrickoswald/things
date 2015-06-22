@@ -106,6 +106,69 @@ define
             return (ret);
         }
 
+        function get_script (name, options)
+        {
+            var script;
+
+            options = options || {};
+            script = configuration.getDocumentRoot () +
+                "/things/_design/things/" + name;
+            xmlhttp = new XMLHttpRequest ();
+            xmlhttp.open ("GET", script, true);
+            xmlhttp.onreadystatechange = function ()
+            {
+                if (4 == xmlhttp.readyState)
+                    if (200 == xmlhttp.status)
+                    {
+                        if (options.success)
+                            options.success (xmlhttp.responseText);
+                    }
+                    else
+                    {
+                        if (options.error)
+                            options.error ();
+                    }
+
+            };
+            xmlhttp.send ();
+        }
+
+        function replace_placeholders (text, options)
+        {
+            var regexp;
+            var match;
+            var javascript;
+
+            regexp = /("%%.*%%")/;
+            match = regexp.exec (text);
+            if (match)
+            {
+                javascript = match[0].substring (3, match[0].length - 3);
+                get_script
+                (
+                    javascript,
+                    {
+                        success: function (script)
+                        {
+                            var newtext;
+
+                            newtext = text.replace (match[0], script);
+                            replace_placeholders (newtext, options); // recursive
+                        },
+                        error: function ()
+                        {
+                            if (options.error)
+                                options.error ();
+                        }
+
+                    }
+                );
+            }
+            else
+                if (options.success)
+                    options.success (text);
+        }
+
         /**
          * Set up the "download user script" button.
          * @memberOf module:thingimporter/setup
@@ -118,28 +181,39 @@ define
             var a;
 
             // get the user script
-            script = configuration.getDocumentRoot () + "/" +
-                "things/_design/things/js/thingimporter/thingiverse_thing_capture_greasemonkey_script.user.js";
-            xmlhttp = new XMLHttpRequest ();
-            xmlhttp.open ("GET", script, true);
-            xmlhttp.onreadystatechange = function ()
-            {
-                if (4 == xmlhttp.readyState)
-                    if (200 == xmlhttp.status)
+            get_script
+            (
+                "js/thingimporter/thingiverse_import.user.js",
+                {
+                    success: function (text)
                     {
-                        text = xmlhttp.responseText;
                         text = customize_user_script (text);
-                        text = encodeURIComponent (text);
-                        text = unescape (text);
-                        text = btoa (text);
-                        a = document.getElementById ('script_link');
-                        a.setAttribute ("href", "data:application/octet-stream;base64," + text);
-                        a.setAttribute ("download", "thingiverse_thing_capture_greasemonkey_script.user.js");
-                    }
-                    else
+                        replace_placeholders
+                        (
+                            text,
+                            {
+                                success: function (text)
+                                {
+                                    text = encodeURIComponent (text);
+                                    text = unescape (text);
+                                    text = btoa (text);
+                                    a = document.getElementById ('script_link');
+                                    a.setAttribute ("href", "data:application/octet-stream;base64," + text);
+                                    a.setAttribute ("download", "thingiverse_import.user.js");
+                                },
+                                error: function ()
+                                {
+                                    alert ("failed to generate user script");
+                                }
+                            }
+                        );
+                    },
+                    error: function ()
+                    {
                         alert ("user script " + script + " not found");
-            };
-            xmlhttp.send ();
+                    }
+                }
+            );
         }
 
 

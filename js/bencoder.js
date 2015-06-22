@@ -22,6 +22,7 @@
  */
 define
 (
+    [],
     /**
      * @summary Functions for encoding and decoding bencoded data.
      * @name bencoder
