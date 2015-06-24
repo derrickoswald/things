@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        thingiverse_import
+// @name        ThingiverseImport
 // @namespace   thingiverse_import
 // @description Import thing from Thingiverse into CouchDB
 // @include     http://www.thingiverse.com/*
@@ -36,6 +36,10 @@ var host = "localhost";
 var port =  "5984";
 var prefix = "";
 var database = "pending_things";
+
+// content
+var thing_metadata;
+var thing_files;
 
 /**
  * @summary Replacement for the configuration module of things.
@@ -99,6 +103,13 @@ multipart = "%%js/multipart.js%%"
 records = "%%js/records.js%%"
 
 // *************** end of modules from things *****************
+
+function console_log (message)
+{
+    document.getElementById ("console_panel").innerHTML =
+        document.getElementById ("console_panel").innerHTML +
+        message + "\n";
+}
 
 // Change string to be a valid filename without needing quotes.
 // Avoid using the following characters from appearing in file names:
@@ -272,41 +283,82 @@ function convertImagesToDataURLs (blobs, width, height, fn)
     }
 }
 
+function extract_text (id)
+{
+    var paragraphs;
+    var ret;
+
+    ret = "";
+
+    paragraphs = document.getElementById (id).getElementsByTagName ("p");
+    for (var i = 0; i < paragraphs.length; i++)
+    {
+        if ("" != ret)
+            ret += "\n";
+        ret += paragraphs[i].childNodes[0].nodeValue;
+    }
+
+    return (ret);
+}
+
 /**
  * @summary Create a JavaScript object representation of the thing on this page.
  * @returns {object} the created thing
  */
-function thing ()
+function thing (callback)
 {
-    var title = get_title ();
+    var as;
+    var thumbs;
+    var ret;
 
-    var author = document.getElementsByClassName ("thing-header-data")[0].getElementsByTagName ("h2")[0].getElementsByTagName ("a")[0].innerHTML;
+    ret = {};
 
-    var license = document.getElementsByClassName ("thing-license")[0].getAttribute ("title");
-
-    var tags = [];
-    var tagdiv = document.getElementsByClassName ("tags")[0];
-    var as = tagdiv.getElementsByTagName ("a");
+    ret.title = get_title ();
+    ret.url = [location.protocol, '//', location.host, location.pathname].join ('');
+    ret.authors = [ document.getElementsByClassName ("thing-header-data")[0].getElementsByTagName ("h2")[0].getElementsByTagName ("a")[0].innerHTML ];
+    ret.licenses = [ document.getElementsByClassName ("thing-license")[0].getAttribute ("title") ];
+    ret.tags = [];
+    as = document.getElementsByClassName ("tags")[0].getElementsByTagName ("a");
     for (var i = 0; i < as.length; i++)
-        tags.push (as[i].innerHTML.trim ());
-
-    var images = [];
-    var thumbs = document.getElementsByClassName ("thing-gallery-thumb");
+        ret.tags.push (as[i].innerHTML.trim ());
+    ret.thumbnailURL = [];
+    thumbs = document.getElementsByClassName ("thing-gallery-thumb");
     for (var i = 0; i < thumbs.length; i++)
-        images.push (thumbs[i].getAttribute ("data-large-url"));
+        ret.thumbnailURL.push (thumbs[i].getAttribute ("data-large-url"));
+    ret.description = extract_text ("description");
+    //ret.instructions = extract_text ("instructions");
 
-    var description = document.getElementById ("description").getElementsByTagName ("p")[0].innerHTML;
+    // try and fill in the author's real name
+    get_author
+    (
+        ret.authors[0],
+        function (full_name)
+        {
+            if (full_name != ret.authors[0])
+                ret.authors[0] = full_name + " (" + ret.authors[0] + ")";
+            callback (ret);
+        }
+    );
+}
 
-    return (
-    {
-        "title" : title,
-        "url" : document.URL,
-        "authors" : [ author ],
-        "licenses" : [ license ],
-        "tags" : tags,
-        "thumbnailURL" : images,
-        "description" : description
-    });
+function get_files ()
+{
+    var links;
+    var ret;
+
+    ret = [];
+
+    links = document.getElementsByClassName ("thing-file-download-link");
+    for (var i = 0; i < links.length; i++)
+        ret.push
+        (
+            {
+                name : links[i].getAttribute ("data-file-name"),
+                url : links[i].getAttribute ("href")
+            }
+        );
+
+    return (ret);
 }
 
 /**
@@ -314,25 +366,11 @@ function thing ()
  */
 function capture ()
 {
-    var title = get_title ();
-    var files = [];
-    var links = document.getElementsByClassName ("thing-file-download-link");
-    for (var i = 0; i < links.length; i++)
-        files.push (
-        {
-            name : links[i].getAttribute ("data-file-name"),
-            url : links[i].getAttribute ("href")
-        });
-    console.log (title + ' ' + JSON.stringify (files, null, 4));
-
-    downloadAllFiles (files, function (files)
+    downloadAllFiles (thing_files, function (files)
     {
         console.log ("files downloaded: " + files.length);
-
-        var thing_metadata = thing ();
-
         var blobs = [];
-        downloadAllImages (thing_metadata["thumbnailURL"], function (blobs)
+        downloadAllImages (thing_metadata.thumbnailURL, function (blobs)
         {
             console.log ("images downloaded: " + blobs.length);
 
@@ -340,7 +378,7 @@ function capture ()
             {
                 console.log ("images converted: " + urls.length);
 
-                thing_metadata["thumbnails"] = urls;
+                thing_metadata.thumbnails = urls;
                 var directory = encodeURIComponent (make_file_name (get_title ()));
                 var filelist = [];
                 files.forEach (function (file) { file.data.name = file.name; filelist.push (file.data); });
@@ -354,8 +392,9 @@ function capture ()
                     date = date.replace (" GMT", "Z").replace (" ", "T");
 
                     tor["creation date"] = new Date (date).valueOf ();
-                    tor["info"]["thing"] = thing_metadata;
-                    tor["_id"] = torrent.InfoHash (tor["info"]); // setting _id triggers the PUT method instead of POST
+                    tor["created by"] = "ThingiverseImport v2.0";
+                    tor.info.thing = thing_metadata;
+                    tor._id = torrent.InfoHash (tor.info); // setting _id triggers the PUT method instead of POST
 
                     // make the list of files for attachment with names adjusted for directory
                     var uploadfiles = [];
@@ -369,7 +408,7 @@ function capture ()
                         });
 
                     // add the torrent to a copy of the list of files to be saved
-                    uploadfiles.push (new File ([bencoder.str2ab (bencoder.encode (tor))], tor["_id"] + ".torrent", { type: "application/octet-stream" }));
+                    uploadfiles.push (new File ([bencoder.str2ab (bencoder.encode (tor))], tor._id + ".torrent", { type: "application/octet-stream" }));
 
                     // convert the pieces into an array (CouchDB doesn't store ArrayBuffers)
                     tor.info.pieces = torrent.PiecesToArray (tor.info.pieces);
@@ -381,11 +420,36 @@ function capture ()
                         CORS: configuration.getServer (),
                         USE_PUT: true
                     };
+                    var id = tor._id;
                     records.saveDocWithAttachments (database, tor, options, uploadfiles);
+                    console.log ("document " + id + " saved");
+                    console_log ("Uploaded thing " + id);
                 });
             });
         });
     });
+}
+
+function get_author (name, callback)
+{
+    var xmlhttp = new XMLHttpRequest ();
+    xmlhttp.open ('GET', "http://www.thingiverse.com/" + name + "/about", true);
+    xmlhttp.onreadystatechange = function ()
+    {
+        if (4 == xmlhttp.readyState)
+        {
+            var html = xmlhttp.responseText;
+            // the name is the only thing with an h1 tag
+            var h1 = html.indexOf ("<h1>");
+            if (-1 != h1)
+            {
+                var h2 = html.indexOf ("</h1>", h1 + 4);
+                if (-1 != h2)
+                    callback (html.substring (h1 + 4, h2));
+            }
+        }
+    };
+    xmlhttp.send ();
 }
 
 /**
@@ -393,7 +457,7 @@ function capture ()
  * @description Exchange data with the CouchDB database as a sanity check and to assist
  * in configuration checks.
  */
-function ping ()
+function ping (callback)
 {
     var xmlhttp;
     var payload;
@@ -404,55 +468,96 @@ function ping ()
     {
         if (4 == xmlhttp.readyState)
         {
-            payload = { _id: "ping", time: (new Date ()).valueOf (), version: "2.0" }; // ToDo: keep this version string matched to script version
+            payload =
+            {
+                _id: "ping",
+                time: (new Date ()).valueOf (),
+                version: "2.0" // ToDo: keep this version string matched to script version
+            };
+            console.log ("ping status: " + xmlhttp.status);
+            console_log ("Server " + configuration.getCouchDB () + " is online");
             if (200 == xmlhttp.status || 201 == xmlhttp.status || 202 == xmlhttp.status)
             {
                 var resp = JSON.parse (xmlhttp.responseText);
+                if (resp.version && (Number(resp.version) > Number (payload.version)))
+                    console_log ("A newer version (" + resp.version + ") of this user script (thingiverse_import_user.js " + payload.version + ") exists.");
                 payload._rev = resp._rev;
-            }
-            xmlhttp = records.createCORSRequest ("PUT", configuration.getCouchDB  () + "/ping");
-            xmlhttp.setRequestHeader ("Accept", "application/json");
-            xmlhttp.onreadystatechange = function ()
-            {
-                if (4 == xmlhttp.readyState)
+                xmlhttp = records.createCORSRequest ("PUT", configuration.getCouchDB () + "/ping");
+                xmlhttp.setRequestHeader ("Accept", "application/json");
+                xmlhttp.onreadystatechange = function ()
                 {
-                    console.log ("pinged status: " + xmlhttp.status);
-                    var pinged = (200 == xmlhttp.status || 201 == xmlhttp.status || 202 == xmlhttp.status);
-                    document.getElementById ("import_thing_button").disabled = !pinged;
-                }
-            };
-            console.log ("PUT:\n" + JSON.stringify (payload, null, 4));
-            xmlhttp.send (JSON.stringify (payload, null, 4));
+                    if (4 == xmlhttp.readyState)
+                    {
+                        console.log ("pong status: " + xmlhttp.status);
+                        var pinged = (200 == xmlhttp.status || 201 == xmlhttp.status || 202 == xmlhttp.status);
+                        console_log ("Database is " + (pinged ? "accessible" : "read-only"));
+                        document.getElementById ("import_thing_button").disabled = !pinged;
+                        callback ();
+                    }
+                };
+                xmlhttp.send (JSON.stringify (payload, null, 4));
+            }
         }
     };
-    console.log ("GET: " + configuration.getCouchDB  () + "/ping");
     xmlhttp.send ();
 }
 
-/**
- * Run once function to set up the capture.
- */
-(function initialize ()
+function display_contents (callback)
 {
-    if (!document.getElementsByClassName ("thingiverse_test")[0])
-    {
-        var trigger1 = "http://www.thingiverse.com/thing:";
-        var trigger2 = "https://www.thingiverse.com/thing:";
-        if ((document.URL.substring (0, trigger1.length) == trigger1) || (document.URL.substring (0, trigger2.length) == trigger2))
+    thing_files = get_files ();
+    thing
+    (
+        function (metadata)
         {
-            console.log ("initializing thingiverse_import");
-            var ff = document.createElement ("div");
-            ff.setAttribute ("style", "position: relative;");
-            var template = "<div style='position: absolute; top: 100px; left: 20px;'>" +
-            "<button id='import_thing_button' type='button' class='btn btn-lg btn-primary' disabled>Import to things</button>" +
-            "</div>";
-            ff.innerHTML = template;
-            var body = document.getElementsByTagName ("body")[0];
-            body.appendChild (ff);
-            var button = document.getElementById ("import_thing_button");
-            button.addEventListener ("click", capture);
-            ping ();
+            thing_metadata = metadata;
+            document.getElementById ("info_panel").innerHTML =
+                "Thing Metadata:\n" + JSON.stringify (thing_metadata, null, 4) + "\n" +
+                "Thing Files:\n" + JSON.stringify (thing_files, null, 4) + "\n";
+            callback ();
+        }
+    );
+}
+
+/**
+ * Run once function to set up the thing capture.
+ */
+(
+    function initialize ()
+    {
+        if (!document.getElementsByClassName ("thingiverse_test")[0])
+        {
+            var trigger1 = "http://www.thingiverse.com/thing:";
+            var trigger2 = "https://www.thingiverse.com/thing:";
+            if ((document.URL.substring (0, trigger1.length) == trigger1) || (document.URL.substring (0, trigger2.length) == trigger2))
+            {
+                console.log ("initializing thingiverse_import");
+                var ff = document.createElement ("div");
+                ff.setAttribute ("style", "position: relative;");
+                var template =
+                    "<div style='position: absolute; top: 100px; left: 20px;'>" +
+                        "<pre id='info_panel' style='max-width: 500px; overflow-x: hidden; overflow-y: auto;'></pre>" +
+                        "<button id='import_thing_button' type='button' class='btn btn-lg btn-primary' disabled>Import to things</button>" +
+                        "<pre id='console_panel' style='max-width: 500px; overflow-x: hidden; overflow-y: auto;'></pre>" +
+                    "</div>";
+                ff.innerHTML = template;
+                document.getElementsByTagName ("body")[0].appendChild (ff);
+                var button = document.getElementById ("import_thing_button");
+                button.addEventListener ("click", capture);
+                display_contents
+                (
+                    function ()
+                    {
+                        ping
+                        (
+                            function ()
+                            {
+                                console.log ("done initializing thingiverse_import");
+                            }
+                        );
+                    }
+                );
+            }
         }
     }
-})();
+)();
 

@@ -213,7 +213,7 @@ define
                     else
                     {
                         xmlhttp = new XMLHttpRequest ();
-                        xmlhttp.open (method, uri + encodeOptions (options), false);
+                        xmlhttp.open (method, uri + encodeOptions (options), true);
                     }
                     xmlhttp.setRequestHeader ("Content-Type", "multipart/related;boundary=\"abc123\"");
                     xmlhttp.setRequestHeader ("Accept", "application/json");
