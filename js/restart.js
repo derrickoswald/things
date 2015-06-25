@@ -158,7 +158,7 @@ define
                 else
                     if (options.error)
                         options.error ();
-            },
+            };
             xmlhttp.onreadystatechange = function ()
             {
                 if (4 == xmlhttp.readyState)

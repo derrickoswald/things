@@ -68,7 +68,7 @@ define
                     {
                         success: function (userCtx)
                         {
-                            var primary_key = data.torrent["_id"];
+                            var primary_key = data.torrent._id;
 
                             // convert the pieces into an array (CouchDB doesn't store ArrayBuffers)
                             data.torrent.info.pieces = torrent.PiecesToArray (data.torrent.info.pieces);
@@ -101,7 +101,7 @@ define
                                     {
                                         console.log (result);
                                         // remove added _rev field for now
-                                        delete data.torrent["_rev"];
+                                        delete data.torrent._rev;
                                         // put the pieces back
                                         data.torrent.info.pieces = torrent.ArrayToPieces (data.torrent.info.pieces);
                                         alert ("upload succeeded");
@@ -126,7 +126,7 @@ define
             else
                 alert ("You must make a thing first before uploading");
 
-        };
+        }
 
         return (
             {

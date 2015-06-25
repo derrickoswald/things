@@ -54,7 +54,7 @@ define
         function encode_utf8 (str)
         {
             return (unescape (encodeURIComponent (str)));
-        };
+        }
 
         /**
          * @summary Creates a function for handling the end of reading a file.
@@ -121,21 +121,24 @@ define
             var view;
             var doneset;
             var readers;
+            var reader;
+            var i;
+            var j;
 
             delete (doc._attachments); // remove any existing attachments
-            if (0 != files.length)
+            if (0 !== files.length)
             {
                 serialized = JSON.stringify (doc, null, "    ");
                 attachments = "";
-                for (var i = 0; i < files.length; i++)
+                for (i = 0; i < files.length; i++)
                 {
-                    if (0 != i)
+                    if (0 !== i)
                         attachments += ",\n";
                     attachments +=
                         "        \"" + files[i].name + "\":\n" +
                         "        {\n" +
                         "            \"follows\": true,\n" +
-                        ((files[i].type && ("" != files[i].type)) ? ("            \"content_type\": \"" + files[i].type + "\",\n") : "") +
+                        ((files[i].type && ("" !== files[i].type)) ? ("            \"content_type\": \"" + files[i].type + "\",\n") : "") +
                         "            \"length\": " + files[i].size + "\n" +
                         "        }";
                 }
@@ -158,7 +161,7 @@ define
 
                 // compute the array buffer size
                 size = prefix.length;
-                for (var i = 0; i < files.length; i++)
+                for (i = 0; i < files.length; i++)
                     size += files[i].size;
                 size += (files.length - 1) * spacer.length;
                 size += suffix.length;
@@ -166,33 +169,33 @@ define
                 array = new ArrayBuffer (size);
                 view = new Uint8Array (array);
 
-                for (var i = 0; i < prefix.length; i++)
+                for (i = 0; i < prefix.length; i++)
                     view[i] = (0xff & prefix.charCodeAt (i));
                 index = prefix.length;
 
                 // make an array of status flags
                 doneset = [];
-                for (var i = 0; i < files.length; i++)
+                for (i = 0; i < files.length; i++)
                     doneset.push (false);
 
-                var readers = [];
-                for (var i = 0; i < files.length; i++)
+                readers = [];
+                for (i = 0; i < files.length; i++)
                 {   // here we add the file bytes with spacers between files
-                    var reader = new FileReader ();
+                    reader = new FileReader ();
                     reader.onloadend = makeLoadEndFunction (view, index, doneset, i, callback, array);
                     readers.push (reader);
                     index += files[i].size;
-                    for (var j = 0; j < spacer.length; j++)
+                    for (j = 0; j < spacer.length; j++)
                         view[index++] = (0xff & spacer.charCodeAt (j));
                 }
-                for (var i = 0; i < suffix.length; i++)
+                for (i = 0; i < suffix.length; i++)
                     view[size - suffix.length + i] = (0xff & suffix.charCodeAt (i));
 
                 // kick it off
-                for (var i = 0; i < files.length; i++)
+                for (i = 0; i < files.length; i++)
                     readers[i].readAsArrayBuffer (files[i]);
             }
-        };
+        }
 
         /**
          * @summary Extracts multiple file objects.
@@ -207,7 +210,7 @@ define
             var ret = [new ArrayBuffer ()];
 
             return (ret);
-        };
+        }
 
         var functions =
         {

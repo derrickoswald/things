@@ -31,9 +31,11 @@
 // Below the asterisks comment is the actual user script.
 
 // variables
-var protocol = "http";
+// NOTE: these are replaced by searching for the exact strings seen below,
+// do not change without also changing customize_user_script() in js/thingimporter/userscript.js
+var protocol = "http:";
 var host = "localhost";
-var port =  "5984";
+var port = "5984";
 var prefix = "";
 var database = "pending_things";
 
@@ -51,7 +53,7 @@ configuration =
         {
             function getServer ()
             {
-                return (protocol + "://" + host + ":" + port);
+                return (protocol + "//" + host + ":" + port);
             }
 
             function getPrefix ()
@@ -104,6 +106,10 @@ records = "%%js/records.js%%"
 
 // *************** end of modules from things *****************
 
+/**
+ * @summary Log a message to the console area
+ * @param {string} message the message to add to the console log screen
+ */
 function console_log (message)
 {
     document.getElementById ("console_panel").innerHTML =
@@ -111,19 +117,22 @@ function console_log (message)
         message + "\n";
 }
 
-// Change string to be a valid filename without needing quotes.
-// Avoid using the following characters from appearing in file names:
-//
-//     /
-//     >
-//     <
-//     |
-//     :
-//     &
- //
- // Linux and UNIX allows white spaces, <, >, |, \, :, (, ), &, ;, as well as
- // wildcards such as ? and *, to be quoted or escaped using \ symbol.
- //
+/**
+ * @summary Change string to be a valid filename without needing quotes.
+ * @description Avoid using the following characters from appearing in file names:
+ *
+ *     /
+ *     >
+ *     <
+ *     |
+ *     :
+ *     &
+ *
+ * Linux and UNIX allows white spaces, <, >, |, \, :, (, ), &, ;, as well as
+ * wildcards such as ? and *, to be quoted or escaped using \ symbol.
+ * @param {string} string the string to operate on
+ * @return {string} a valid file name
+ */
  function make_file_name (string)
  {
      var ret;
@@ -134,7 +143,7 @@ function console_log (message)
      ret = ret.replace (/\%/g, "%25"); // also convert % so decodeURIComponent should work
      ret = ret.replace (/\//g, "%2f");
      ret = ret.replace (/\>/g, "%3e");
-     ret = ret.replace (/\</g, "%3c");
+     ret = ret.replace (/</g, "%3c");
      ret = ret.replace (/\|/g, "%7c");
      ret = ret.replace (/\:/g, "%3a");
      ret = ret.replace (/\&/g, "%26");
@@ -151,9 +160,11 @@ function console_log (message)
 
 /**
  * @summary End of HTTP file fetch function generator.
- * @param files array of objects with name and URL which is to hold the results
- * @param index the integer index into the array at which to store the returned data
- * @param callback the function to call when all files are finished loading - called with files as argument
+ * @description Handles ajax readyState DONE to check if this file completes all the downloads.
+ * @param {object[]} files objects with name and URL, each of which also holds the results
+ * @param {number} index the integer index into the array at which to store the returned data
+ * @param {function} callback the function to call when all files are finished loading - called with files as argument
+ * @return {function} a function for checking if all files have been downloaded
  */
 function fileFinishedFunction (files, index, callback)
 {
@@ -177,7 +188,7 @@ function fileFinishedFunction (files, index, callback)
 
 /**
  * @summary Performs ajax calls to fetch the files for the thing.
- * @param {object[]} files the list of files and asscoiated urls
+ * @param {object[]} files the list of files and associated URLs
  * @param {function} callback the function to invoke when the files are finished downloading
  */
 function downloadAllFiles (files, callback)
@@ -225,7 +236,7 @@ function downloadAllImages (images, done_fn)
                     {
                         blobs[index] = event.target.response;
                         count--;
-                        if (0 == count)
+                        if (0 === count)
                             done_fn (blobs);
                     }
                 });
@@ -275,7 +286,7 @@ function convertImagesToDataURLs (blobs, width, height, fn)
                 window.URL.revokeObjectURL (img_element.src);
                 document.body.removeChild (img_element);
                 count--;
-                if (0 == count)
+                if (0 === count)
                     fn (urls);
             });
         }(i, img);
@@ -283,6 +294,11 @@ function convertImagesToDataURLs (blobs, width, height, fn)
     }
 }
 
+/**
+ * @summary Pull the text out of an HTML formatted set of paragraphs.
+ * @param {string} id the element id from which to extract the text
+ * @returns {String} the raw text with newline separators
+ */
 function extract_text (id)
 {
     var paragraphs;
@@ -293,7 +309,7 @@ function extract_text (id)
     paragraphs = document.getElementById (id).getElementsByTagName ("p");
     for (var i = 0; i < paragraphs.length; i++)
     {
-        if ("" != ret)
+        if ("" !== ret)
             ret += "\n";
         ret += paragraphs[i].childNodes[0].nodeValue;
     }
@@ -303,7 +319,7 @@ function extract_text (id)
 
 /**
  * @summary Create a JavaScript object representation of the thing on this page.
- * @returns {object} the created thing
+ * @param {function} callback the function to call when the thing is ready, called with the created thing
  */
 function thing (callback)
 {
@@ -323,8 +339,8 @@ function thing (callback)
         ret.tags.push (as[i].innerHTML.trim ());
     ret.thumbnailURL = [];
     thumbs = document.getElementsByClassName ("thing-gallery-thumb");
-    for (var i = 0; i < thumbs.length; i++)
-        ret.thumbnailURL.push (thumbs[i].getAttribute ("data-large-url"));
+    for (var j = 0; j < thumbs.length; j++)
+        ret.thumbnailURL.push (thumbs[j].getAttribute ("data-large-url"));
     ret.description = extract_text ("description");
     //ret.instructions = extract_text ("instructions");
 
@@ -341,6 +357,10 @@ function thing (callback)
     );
 }
 
+/**
+ * @summary Get the files associated with the thing
+ * @returns {object[]} a set of objects with the name and associated url
+ */
 function get_files ()
 {
     var links;
@@ -392,7 +412,7 @@ function capture ()
                     date = date.replace (" GMT", "Z").replace (" ", "T");
 
                     tor["creation date"] = new Date (date).valueOf ();
-                    tor["created by"] = "ThingiverseImport v2.0";
+                    tor["created by"] = "ThingiverseImport v2.0"; // ToDo: keep this version synced to script version
                     tor.info.thing = thing_metadata;
                     tor._id = torrent.InfoHash (tor.info); // setting _id triggers the PUT method instead of POST
 
@@ -430,6 +450,13 @@ function capture ()
     });
 }
 
+/**
+ * Try to get the author's name from their handle.
+ * @description Looks up the user's about page and checks for a real name
+ * (or at least what Thingiverse has as their name)
+ * @param {string} name the handle for the user
+ * @param {function} callback the function to call with the users "real" name
+ */
 function get_author (name, callback)
 {
     var xmlhttp = new XMLHttpRequest ();
@@ -456,6 +483,7 @@ function get_author (name, callback)
  * @summary Call the CouchDB host to get and put the ping record for this user script.
  * @description Exchange data with the CouchDB database as a sanity check and to assist
  * in configuration checks.
+ * @param {function} callback the function to call back when the ping is complete
  */
 function ping (callback)
 {
@@ -472,7 +500,7 @@ function ping (callback)
             {
                 _id: "ping",
                 time: (new Date ()).valueOf (),
-                version: "2.0" // ToDo: keep this version string matched to script version
+                version: "2.0" // ToDo: keep this version string synced to script version
             };
             console.log ("ping status: " + xmlhttp.status);
             console_log ("Server " + configuration.getCouchDB () + " is online");
@@ -502,6 +530,10 @@ function ping (callback)
     xmlhttp.send ();
 }
 
+/**
+ * @summary Show the user what would be saved in the thing
+ * @param {function} callback the function to call back when the display is complete
+ */
 function display_contents (callback)
 {
     thing_files = get_files ();
@@ -560,4 +592,3 @@ function display_contents (callback)
         }
     }
 )();
-

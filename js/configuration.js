@@ -166,17 +166,20 @@ define
                 {
                     success: function (data)
                     {
+                        var copy;
+                        var property;
+
                         // copy the configuration
-                        var copy = JSON.parse (JSON.stringify (data));
+                        copy = JSON.parse (JSON.stringify (data));
                         // remove the couchdb specific properties
                         delete copy._id;
                         delete copy._rev;
                         // transfer any items from in-memory configuration that are not in db configuration
-                        for (var property in configuration)
+                        for (property in configuration)
                             if (configuration.hasOwnProperty (property) && !(copy[property]))
                                 copy[property] = configuration[property];
                         // delete any items present in db configuration that are not in in-memory configuration
-                        for (var property in copy)
+                        for (property in copy)
                             if (copy.hasOwnProperty (property) && !(configuration.hasOwnProperty (property)))
                                 delete copy[property];
                         configuration = copy;

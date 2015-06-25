@@ -161,7 +161,7 @@ requirejs
             $.couch.urlPrefix = "/root"; // this name must agree with the name used in rewrites.json
             // stupid Futon just doesn't work with vhosts, so set it to localhost (means it doesn't work for remote Futons)
             document.getElementById ("futon_link").setAttribute ("href", location.protocol + "//localhost" +
-                (("" != location.port) ? ":" + location.port : "") + "/_utils/");
+                (("" !== location.port) ? ":" + location.port : "") + "/_utils/");
         }
 
         // ensure that configuration is loaded first, everything else depends on it

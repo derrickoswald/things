@@ -44,7 +44,7 @@ define
 
             var areas = page.layout ();
             wiz.wizard (areas.left, areas.content, steps, data);
-        };
+        }
 
         var functions =
         {

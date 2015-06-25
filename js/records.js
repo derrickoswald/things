@@ -45,7 +45,7 @@ define
                     xhr.setRequestHeader ("X-Couch-Full-Commit", commit.toString ());
                 };
             }
-        };
+        }
 
         /**
          * @private
@@ -65,7 +65,7 @@ define
                         buf.push (encodeURIComponent (name) + "=" + encodeURIComponent (value));
                     }
             return (buf.length ? "?" + buf.join ("&") : "");
-        };
+        }
 
         // see http://jchris.ic.ht/drl/_design/sofa/_list/post/post-page?startkey=[%22Versioning-docs-in-CouchDB%22]
         var rawDocs = {};
@@ -90,7 +90,7 @@ define
                     return true;
                 }
             }
-        };
+        }
 
         /**
          * @summary Browser independent CORS setup.
@@ -197,7 +197,7 @@ define
                     }
                 }
                 return result;
-            };
+            }
 
             multipart.pack (files, doc, "abc123",
                 function (ab)
@@ -220,10 +220,14 @@ define
                     // beforeSend ?
                     xmlhttp.onreadystatechange = function ()
                     {
+                        var resp;
+                        var msg;
+                        var reason;
+
                         if (4 == xmlhttp.readyState)
                             if (200 == xmlhttp.status || 201 == xmlhttp.status || 202 == xmlhttp.status)
                             {
-                                var resp = JSON.parse (xmlhttp.responseText);
+                                resp = JSON.parse (xmlhttp.responseText);
                                 doc._id = resp.id;
                                 doc._rev = resp.rev;
                                 if (options.success)
@@ -231,10 +235,8 @@ define
                             }
                             else if (options.error)
                             {
-                                var msg;
-                                var reason;
-                                var resp = JSON.parse (xmlhttp.responseText);
-                                if (null == resp)
+                                resp = JSON.parse (xmlhttp.responseText);
+                                if (null === resp)
                                 {
                                     msg = xmlhttp.responseText;
                                     reason = "unknown reason, status = " + req.status;
@@ -249,7 +251,7 @@ define
                     };
                     xmlhttp.send (ab);
                 });
-        };
+        }
 
         /**
          * Returns the specified doc from the specified db.
@@ -283,7 +285,6 @@ define
                 }
                 return encodeURIComponent (docID);
             }
-            ;
 
             options = options || {};
             //            if (db_opts.attachPrevRev || options.attachPrevRev)
@@ -335,7 +336,7 @@ define
                             {
                                 var msg;
                                 var reason;
-                                if (null == resp)
+                                if (null === resp)
                                 {
                                     msg = req.responseText;
                                     reason = "unknown reason";
@@ -358,7 +359,7 @@ define
                     ajaxOptions
                 )
             );
-        };
+        }
 
         /**
          * Read an attachment from the document in the specified database
@@ -389,7 +390,7 @@ define
                     }
                 }
             );
-        };
+        }
 
         /**
          * @summary Convert base64 to a blob.

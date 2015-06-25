@@ -114,7 +114,7 @@ define
                     {
                         if (options.success)
                             if (doc)
-                                options.success (("undefined" != typeof (doc.admins)) && (doc.admins.names.length != 0));
+                                options.success (("undefined" != typeof (doc.admins)) && (doc.admins.names.length !== 0));
                             else
                                 options.success (false);
                     },

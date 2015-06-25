@@ -33,7 +33,7 @@ define
                     ret = i;
 
             return (ret);
-        };
+        }
 
         /**
          * Get index of step given the id.
@@ -54,7 +54,7 @@ define
                     ret = i;
 
             return (ret);
-        };
+        }
 
         /**
          * Get number of steps.
@@ -64,7 +64,7 @@ define
         function stepCount ()
         {
             return (document.getElementById ("wizard_navigator").getElementsByTagName ("li").length + 1);
-        };
+        }
 
         /**
          * Transition between steps and handle button visibility based on XXX_lnk clicked.
@@ -87,7 +87,7 @@ define
                 data.next_button.classList.remove ("hide");
             else
                 data.next_button.classList.add ("hide");
-        };
+        }
 
         /**
          * Handle button click.
@@ -108,7 +108,7 @@ define
                 if ((0 <= future) && (future <= steps.length - 1))
                     document.getElementById (steps[future].id + "_lnk").click ();
             }
-        };
+        }
 
         /**
          * @summary Initialize the body of a step.
@@ -187,6 +187,7 @@ define
             var wrapper;
             var item;
             var link;
+            var fn;
 
             // make the nav item
             nav = "<li id='{{id}}_nav' data-tab-id='{{id}}'{{#active}} class='active'{{/active}}>" +
@@ -219,7 +220,7 @@ define
                  * Use event.target and event.relatedTarget to target the
                  * current active tab and the new soon-to-be-active tab, respectively.
                  */
-                var fn = step.transitions.leave.bind (step.transitions.obj);
+                fn = step.transitions.leave.bind (step.transitions.obj);
                 $ (link).on
                 (
                     "hide.bs.tab",
@@ -239,7 +240,7 @@ define
                  * Use event.target and event.relatedTarget to target the
                  * active tab and the previous active tab (if available) respectively.
                  */
-                var fn = step.transitions.enter.bind (step.transitions.obj);
+                fn = step.transitions.enter.bind (step.transitions.obj);
                 $ (link).on
                 (
                     "show.bs.tab",
@@ -255,7 +256,7 @@ define
             item.className = "tab-pane" + (active ? " active" : "");
             item.id = step.id;
             make_page (step, data, active); // ToDo: lazy load wizard pages
-        };
+        }
 
         /**
          * @summary Create and handle a wizard user interface.
@@ -306,7 +307,7 @@ define
 
             for (var i = 0; i < steps.length; i++)
                 addStep (list, content, steps[i], data, start == i);
-        };
+        }
 
         var functions =
         {
@@ -316,4 +317,3 @@ define
         return (functions);
     }
 );
-

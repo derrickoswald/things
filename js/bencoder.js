@@ -48,7 +48,7 @@ define
                 view[i] = (0xff & str.charCodeAt (i));
 
             return (ret);
-        };
+        }
 
         /**
          * @summary Decodes bencoded data.
@@ -387,7 +387,7 @@ define
 
             keys = [];
             for (var d in data)
-                if (!('function' == typeof data[d])) // ignore functions in objects
+                if ('function' !== typeof data[d]) // ignore functions in objects
                     keys.push (d);
             keys = keys.sort (); // Keys must be strings and appear in sorted order (sorted as raw strings, not alphanumerics).
             der = [];

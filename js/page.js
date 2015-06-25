@@ -79,7 +79,7 @@ define
             right = document.getElementById ("right");
 
             // get the databases
-            if (null == databases)
+            if (null === databases)
                 fetch_databases ({ success: draw });
             else
                 draw ();
@@ -118,7 +118,7 @@ define
 
                     url = configuration.getDocumentRoot () + "/" + db.database + "/_changes";
                     db.last = configuration.loadProperty (db.database + ".last");
-                    if (null != db.last)
+                    if (null !== db.last)
                         url += "?since=" + db.last;
                     xmlhttp = new XMLHttpRequest ();
                     xmlhttp.open ("GET", url, true);
@@ -142,7 +142,7 @@ define
                                 // get the element of interest
                                 var element = null;
                                 var items = document.getElementById (html_id).getElementsByTagName ("li");
-                                for (var i = 0; (null == element) && (i < items.length); i++)
+                                for (var i = 0; (null === element) && (i < items.length); i++)
                                 {
                                     var target = items[i].getAttribute ("data-target");
                                     if (target && (target == db.database))
@@ -155,7 +155,7 @@ define
                                 for (var j = 0; j < l; j++)
                                     element.removeChild (badges[0]);
 
-                                if (null == db.last)
+                                if (null === db.last)
                                     configuration.storeProperty (db.database + ".last", reply.last_seq);
                                 else if (db.last != reply.last_seq)
                                 {
@@ -172,7 +172,7 @@ define
                                         }
                                     );
 
-                                    if (0 == updates) // no substantive changes
+                                    if (0 === updates) // no substantive changes
                                         configuration.storeProperty (db.database + ".last", reply.last_seq);
                                     else
                                     {
@@ -235,7 +235,7 @@ define
                         (
                             function (item)
                             {
-                                if (!("_" == item.charAt (0))
+                                if (("_" !== item.charAt (0))
                                     && ("things" != item)
                                     && ("configuration" != item)
                                     && (configuration.getConfigurationItem ("tracker_database") != item))
@@ -247,7 +247,7 @@ define
                                 }
                             }
                         );
-                        fetch_aliases (options)
+                        fetch_aliases (options);
                     },
                     error: function ()
                     {
@@ -334,7 +334,7 @@ define
             var ret;
 
             ret = configuration.getConfigurationItem ("public_database"); // default database
-            if (null != databases)
+            if (null !== databases)
                 databases.forEach
                 (
                     function (item)
@@ -357,7 +357,7 @@ define
         {
             var list;
 
-            if (null != databases)
+            if (null !== databases)
             {
                 databases.forEach
                 (

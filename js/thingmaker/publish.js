@@ -223,7 +223,7 @@ define
                 };
             // copy the document to the public database with appropriate .torrent
             copy_to_public (primary_key, options);
-        };
+        }
 
         /**
          * Publish button pushed event handler
@@ -251,13 +251,13 @@ define
 
                     // add the comment - optional
                     comment = document.getElementById ("comment").value;
-                    if (comment && ("" != comment))
+                    if (comment && ("" !== comment))
                         options.comment = comment;
 
                     // add the announce-list - optional
                     announce_list = [];
-                    tracker_chooser.context.items.forEach (function (item) { if ("" != item.value) announce_list.push (item.value); });
-                    if (0 != announce_list.length)
+                    tracker_chooser.context.items.forEach (function (item) { if ("" !== item.value) announce_list.push (item.value); });
+                    if (0 !== announce_list.length)
                     {
                         options.announce = announce_list[0];
                         if (1 < announce_list.length)

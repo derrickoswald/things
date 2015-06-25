@@ -23,9 +23,7 @@ define
         {
             var ping;
             var xmlhttp;
-            var last;
             var iframe;
-            var next;
             var scripted;
             var details;
 
@@ -38,6 +36,8 @@ define
             xmlhttp.setRequestHeader ("Accept", "application/json");
             xmlhttp.onreadystatechange = function ()
             {
+                var last;
+
                 if (4 == xmlhttp.readyState)
                     if (200 == xmlhttp.status || 201 == xmlhttp.status || 202 == xmlhttp.status  || 404 == xmlhttp.status)
                     {
@@ -59,6 +59,8 @@ define
                                 xmlhttp.setRequestHeader ("Accept", "application/json");
                                 xmlhttp.onreadystatechange = function ()
                                 {
+                                    var next;
+
                                     if (4 == xmlhttp.readyState)
                                     {
                                         scripted = false;
@@ -89,30 +91,45 @@ define
         }
 
         /**
-         * Edit the user script according to the current configuration.
+         * @summary Edit the user script according to the current configuration.
+         * @description Replace standard constants with instance specific values.
+         * The variable declarations at the top of the user script are changed to reflect
+         * the actaul values for this instance of the <em>things</em> system.
+         * @param {string} text the raw user script contents to be edited
+         * @function customize_user_script
          * @memberOf module:thingimporter/setup
          */
         function customize_user_script (text)
         {
             var ret;
 
-            // ToDo: protocol
-            // ToDo: more surgical editing
-            ret = text.replace ("localhost", location.hostname);
-            ret = ret.replace ("5984", location.port);
-            ret = ret.replace ("pending_things", configuration.getConfigurationItem ("pending_database"));
-            ret = ret.replace ("prefix = \"\"", "prefix = \"" + $.couch.urlPrefix + "\"");
+            ret = text;
+
+            ret = ret.replace ("var protocol = \"http:\";", "var protocol = \"" + location.protocol + "\";");
+            ret = ret.replace ("var host = \"localhost\";", "var host = \"" + location.hostname + "\";");
+            ret = ret.replace ("var port = \"5984\";", "var port = \"" + location.port + "\";");
+            ret = ret.replace ("var prefix = \"\";", "var prefix = \"" + $.couch.urlPrefix + "\";");
+            ret = ret.replace ("var database = \"pending_things\";", "var database = \"" + configuration.getConfigurationItem ("pending_database") + "\";");
 
             return (ret);
         }
 
+        /**
+         * @summary Fetch a script using ajax.
+         * @description Asynchronously request the contents of the given file
+         * and call the success() function with the contents.
+         * @param {string} name the name of the script to retrieve (including directories)
+         * @param {object} options callback functions success() and error()
+         * @function get_script
+         * @memberOf module:thingimporter/setup
+         */
         function get_script (name, options)
         {
             var script;
+            var xmlhttp;
 
             options = options || {};
-            script = configuration.getDocumentRoot () +
-                "/things/_design/things/" + name;
+            script = configuration.getDocumentRoot () + "/things/_design/things/" + name;
             xmlhttp = new XMLHttpRequest ();
             xmlhttp.open ("GET", script, true);
             xmlhttp.onreadystatechange = function ()
@@ -133,6 +150,14 @@ define
             xmlhttp.send ();
         }
 
+        /**
+         * @summary Change patterns into fetched file contents within string.
+         * @description Replace patterns of the form "%%name%%" with the contents of file "name".
+         * @param {string} text the text to replace within
+         * @param {object} options callback functions for results
+         * @function replace_placeholders
+         * @memberOf module:thingimporter/setup
+         */
         function replace_placeholders (text, options)
         {
             var regexp;
@@ -170,14 +195,15 @@ define
         }
 
         /**
-         * Set up the "download user script" button.
+         * @summary Set up the "download user script" button.
+         * @description Create a customizer user script and make it available as
+         * a data URL downloaded when the button is pressed.
+         * @function prepare_user_script
          * @memberOf module:thingimporter/setup
          */
         function prepare_user_script ()
         {
             var script;
-            var xmlhttp;
-            var text;
             var a;
 
             // get the user script
@@ -220,9 +246,9 @@ define
         /**
          * @summary Initialize the user script installation page.
          * @description Creates the download artifact and optionally tests the installation.
+         * @return <em>nothing</em>
          * @function init
          * @memberOf module:thingimporter/userscript
-         * @return <em>nothing</em>
          */
         function init ()
         {

@@ -121,7 +121,7 @@ define
                 hasvalues: ("undefined" != typeof (this.values)), // boolean to turn on values processing
                 glyph: function ()
                 {
-                    return ((0 == temp.items.indexOf (this)) ? "glyphicon-plus" : "glyphicon-minus");
+                    return ((0 === temp.items.indexOf (this)) ? "glyphicon-plus" : "glyphicon-minus");
                 },
                 felgarcarb: function ()
                 {
@@ -176,7 +176,7 @@ define
 
             link = event.target;
             value = link.innerHTML;
-            while (link && (null == (target = link.getAttribute (this.data_target))))
+            while (link && (null === (target = link.getAttribute (this.data_target))))
                 link = link.parentElement;
 
             // fill in the input field with the chosen drop-down list item
@@ -236,7 +236,7 @@ define
 
             // get the index
             link = event.target;
-            while (link && (null == (index = link.getAttribute (this.data_source))))
+            while (link && (null === (index = link.getAttribute (this.data_source))))
                 link = link.parentElement;
 
             // remove it from the list
@@ -267,7 +267,7 @@ define
             var spans;
 
             // ensure there is at least one item to render
-            if (0 == this.context.items.length)
+            if (0 === this.context.items.length)
                 this.context.items.push ({ value: "" });
 
             // re-render and inject the new elements into the DOM
@@ -287,16 +287,16 @@ define
             // handle drop down chosen events
             click = this.clicked.bind (this);
             links = list.getElementsByTagName ("a");
-            for (var i = 0; i < links.length; i++)
-                links[i].addEventListener ("click", click);
+            for (var j = 0; j < links.length; j++)
+                links[j].addEventListener ("click", click);
 
             // handle add and remove events on the input group addon button
             added = this.add.bind (this);
             removed = this.remove.bind (this);
             spans = list.getElementsByTagName ("span");
-            for (var i = 0; i < spans.length; i++)
-                if (spans[i].classList.contains ("input-group-addon"))
-                    spans[i].addEventListener ("click", (0 == Number (spans[i].getAttribute (this.data_source))) ? added : removed);
+            for (var k = 0; k < spans.length; k++)
+                if (spans[k].classList.contains ("input-group-addon"))
+                    spans[k].addEventListener ("click", (0 === Number (spans[k].getAttribute (this.data_source))) ? added : removed);
         };
 
         return (

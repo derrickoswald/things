@@ -34,7 +34,7 @@ define
                 data.files = [];
             for (var i = 0; i < files.length; i++)
                 data.files.push (files.item (i));
-        };
+        }
 
         /**
          * @summary Update the file list and enable/disable the next button.
@@ -71,7 +71,7 @@ define
         {
             add_files (event.target.files, data);
             update (data);
-        };
+        }
 
         /**
          * @summary Event handler for dropped files.
@@ -118,12 +118,12 @@ define
 
             dir = event.target.value;
             dir = dir.trim ();
-            if (0 != dir.length)
+            if (0 !== dir.length)
                 data.directory = dir;
             else
                 delete data.directory;
             update (data);
-        };
+        }
 
         return (
             {

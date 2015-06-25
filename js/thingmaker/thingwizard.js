@@ -55,7 +55,7 @@ define
 
             areas = page.layout ();
             wiz.wizard (areas.left, areas.content, steps, data, start);
-        };
+        }
 
         var functions =
         {
@@ -67,4 +67,3 @@ define
         return (functions);
     }
 );
-

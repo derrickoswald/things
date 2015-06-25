@@ -98,15 +98,15 @@ define
                     thing.url = document.getElementById ("url").value;
 
                     authors = [];
-                    author_chooser.context.items.forEach (function (item) { if ("" != item.value) authors.push (item.value); });
+                    author_chooser.context.items.forEach (function (item) { if ("" !== item.value) authors.push (item.value); });
                     thing.authors = authors;
 
                     licenses = [];
-                    license_chooser.context.items.forEach (function (item) { if ("" != item.value) licenses.push (item.value); });
+                    license_chooser.context.items.forEach (function (item) { if ("" !== item.value) licenses.push (item.value); });
                     thing.licenses = licenses;
 
                     tags = [];
-                    tag_chooser.context.items.forEach (function (item) { if ("" != item.value) tags.push (item.value); });
+                    tag_chooser.context.items.forEach (function (item) { if ("" !== item.value) tags.push (item.value); });
                     thing.tags = tags;
 
                     thing.thumbnailURL = document.getElementById ("thumbnailURL").value;
@@ -120,7 +120,7 @@ define
                     showlink (torrent.Encode (tor));
                 }
             );
-        };
+        }
 
         /**
          * For initialization function.
@@ -136,7 +136,7 @@ define
             author_chooser = new chooser.Chooser ("authors", "Authors", "Author");
             license_chooser = new chooser.Chooser ("licenses", "Licenses", "License", license_list);
             tag_chooser = new chooser.Chooser ("tags", "Tags", "Tag");
-            if (data.torrent && ((null == form_initialized_with) || (form_initialized_with != data.torrent._id)))
+            if (data.torrent && ((null === form_initialized_with) || (form_initialized_with !== data.torrent._id)))
             {
                 form_initialized_with = data.torrent._id;
                 if (data.torrent.info && data.torrent.info.thing)
@@ -154,8 +154,8 @@ define
 
                     if (thing.authors)
                         if ('[object Array]' === Object.prototype.toString.call (thing.authors))
-                            for (var j = 0; j < thing.authors.length; j++)
-                                author_chooser.context.items.push ({ value: thing.authors[j] });
+                            for (var i = 0; i < thing.authors.length; i++)
+                                author_chooser.context.items.push ({ value: thing.authors[i] });
                         else
                             author_chooser.context.items.push ({ value: thing.authors.toString () });
                     else if (thing.author)
@@ -172,8 +172,8 @@ define
 
                     if (thing.tags)
                         if ('[object Array]' === Object.prototype.toString.call (thing.tags))
-                            for (var j = 0; j < thing.tags.length; j++)
-                                tag_chooser.context.items.push ({ value: thing.tags[j] });
+                            for (var k = 0; k < thing.tags.length; k++)
+                                tag_chooser.context.items.push ({ value: thing.tags[k] });
                         else
                             tag_chooser.context.items.push ({ value: thing.tags.toString () });
                     else if (thing.tag)

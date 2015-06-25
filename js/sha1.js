@@ -33,7 +33,7 @@ define
             {
                 var t4 = (n << s) | (n >>> (32 - s));
                 return t4;
-            };
+            }
 
             function cvt_hex (val)
             {
@@ -47,7 +47,7 @@ define
                     str += v.toString (16);
                 }
                 return str;
-            };
+            }
 
             function Utf8Encode (string)
             {
@@ -78,7 +78,7 @@ define
                 }
 
                 return utftext;
-            };
+            }
 
             var blockstart;
             var i, j;
@@ -93,7 +93,7 @@ define
             var ret;
 
             binary = binary | false;
-            var word_array = new Array ();
+            var word_array = [];
             var msg_len;
             if (msg instanceof ArrayBuffer)
             {

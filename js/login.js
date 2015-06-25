@@ -91,7 +91,7 @@ define (
         function show (event)
         {
             var credentials = getCredentials ();
-            if (null != credentials)
+            if (null !== credentials)
             {
                 document.getElementById ("username").value = credentials.name;
                 document.getElementById ("password").value = credentials.password;
@@ -131,7 +131,7 @@ define (
 
             try
             {
-                ret = (("localStorage" in window) && (null != window["localStorage"]));
+                ret = (("localStorage" in window) && (null !== window["localStorage"]));
             }
             catch (e)
             {
@@ -190,9 +190,9 @@ define (
                 name = localStorage.getItem ("couchdb_user");
                 password = localStorage.getItem ("couchdb_password");
                 autologin = localStorage.getItem ("couchdb_autologin");
-                if (null != autologin)
+                if (null !== autologin)
                     autologin = JSON.parse (autologin.toLowerCase ());
-                if ((null != name) || (null != password) || (null != autologin))
+                if ((null !== name) || (null !== password) || (null !== autologin))
                     ret = { name: name, password: password, autologin: autologin };
             }
 
@@ -309,7 +309,7 @@ define (
             var credentials;
 
             credentials = getCredentials ();
-            if (null != credentials) // the user really wants to logout, so reset autologin
+            if (null !== credentials) // the user really wants to logout, so reset autologin
                 storeCredentials (credentials.name, credentials.password, false);
             $.couch.logout
             (

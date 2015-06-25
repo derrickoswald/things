@@ -44,7 +44,7 @@ define
         function file_change (event, data)
         {
             select_template (event.target.files, data);
-        };
+        }
 
         /**
          * @summary Event handler for dropped files.

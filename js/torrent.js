@@ -81,29 +81,40 @@ define
 
             var afterall = function ()
             {
+                var length;
+                var blob;
+                var view;
+                var hashes;
+                var hashview;
+                var index;
+                var hash;
+                var temp;
+                var i;
+                var j;
+
                 // now we have our blobs, build it into one big blob
-                var length = 0;
-                for (var i = 0; i < blobs.length; i++)
-                    length += blobs[i].byteLength;
-                var blob = new ArrayBuffer (length);
-                var view = new Uint8Array (blob, 0, length);
                 length = 0;
-                for (var i = 0; i < blobs.length; i++)
+                for (i = 0; i < blobs.length; i++)
+                    length += blobs[i].byteLength;
+                blob = new ArrayBuffer (length);
+                view = new Uint8Array (blob, 0, length);
+                length = 0;
+                for (i = 0; i < blobs.length; i++)
                 {
                     view.set (new Uint8Array (blobs[i], 0, blobs[i].byteLength), length);
                     length += blobs[i].byteLength;
                 }
 
                 // compute the hashes
-                var hashes = new ArrayBuffer (Math.ceil (length / piece_length) * 20);
-                var hashview = new Uint8Array (hashes);
-                var index = 0;
-                for (var j = 0; j < length; j += piece_length)
+                hashes = new ArrayBuffer (Math.ceil (length / piece_length) * 20);
+                hashview = new Uint8Array (hashes);
+                index = 0;
+                for (i = 0; i < length; i += piece_length)
                 {
-                    var hash = sha1.sha1 (blob.slice (j, j + piece_length), true);
-                    var temp = new Uint8Array (hash);
-                    for (var k = 0; k < 20; k++)
-                        hashview[index++] = temp[k];
+                    hash = sha1.sha1 (blob.slice (i, i + piece_length), true);
+                    temp = new Uint8Array (hash);
+                    for (j = 0; j < 20; j++)
+                        hashview[index++] = temp[j];
                 }
 
                 callback (hashes);
@@ -115,7 +126,7 @@ define
                 reader.onloadend = makeLoadEndFunction (blobs, i, afterall);
                 reader.readAsArrayBuffer (files[i]);
             }
-        };
+        }
 
         /**
          * @summary Make a torrent object.
@@ -132,6 +143,7 @@ define
             var timestamp;
             var infohash;
             var torrent;
+            var thing;
 
             // JavaScript date is number of milliseconds since epoch
             timestamp = Math.round ((new Date ()).getTime () / 1000.0);
@@ -144,7 +156,7 @@ define
                     };
             else
             {
-                if (null == directory)
+                if (null === directory)
                 {
                     directory = "directory" + "_" + Math.floor ((Math.random () * 1000) + 1);
                     alert ("generating required directory " + directory);
@@ -162,7 +174,7 @@ define
                         "pieces": "placeholder until hashes are computed"
                     };
             }
-            if (null == template)
+            if (null === template)
                 torrent =
                 {
                     "created by": "ThingMaker v2.0",
@@ -173,17 +185,17 @@ define
             else
             {
                 torrent = template;
-                var thing = ret["info"]["thing"]; // keep the thing details from the info section - if any
+                thing = ret.info.thing; // keep the thing details from the info section - if any
                 torrent["creation date"] = timestamp;
-                torrent["info"] = infohash;
-                if (null != thing)
-                    torrent["info"]["thing"] = thing;
+                torrent.info = infohash;
+                if (null !== thing)
+                    torrent.info.thing = thing;
             }
 
             ComputeHashes (files, piece_length,
                 function (hashes)
                 {
-                    torrent["info"]["pieces"] = hashes;
+                    torrent.info.pieces = hashes;
                     callback (torrent);
                 });
         }
@@ -284,27 +296,30 @@ define
         function printCertificate (cert, tabspace)
         {
             var br;
+            var b64;
+            var i;
+            var j;
             var ret;
 
             ret = "";
 
-            for (var j = 0; j < tabspace; j++)
+            for (i = 0; i < tabspace; i++)
                 ret += " ";
             ret += "-----BEGIN CERTIFICATE-----\n";
 
-            var b64 = btoa (String.fromCharCode.apply (null, new Uint8Array (cert)));
+            b64 = btoa (String.fromCharCode.apply (null, new Uint8Array (cert)));
             br = 0;
-            for (var i = 0; i < b64.length; i++)
+            for (i = 0; i < b64.length; i++)
             {
-                if (0 == (br % 64))
-                    for (var j = 0; j < tabspace; j++)
+                if (0 === (br % 64))
+                    for (j = 0; j < tabspace; j++)
                         ret += " ";
                 ret += b64.charAt (i);
-                if ((0 == (++br % 64)) && (i + 1 < b64.length))
+                if ((0 === (++br % 64)) && (i + 1 < b64.length))
                     ret += "\n";
             }
             ret += "\n";
-            for (var j = 0; j < tabspace; j++)
+            for (j = 0; j < tabspace; j++)
                 ret += " ";
             ret += "-----END CERTIFICATE-----";
 
@@ -332,12 +347,12 @@ define
             br = 0;
             for (var i = 0; i < view.byteLength; i++)
             {
-                if (0 == (br % 32))
+                if (0 === (br % 32))
                     for (var j = 0; j < tabspace; j++)
                         ret += " ";
                 ret += ((view[i] >>> 4) & 0x0f).toString (16);
                 ret += (view[i] & 0x0f).toString (16);
-                if ((0 == (++br % 32)) && (i + 1 < view.byteLength))
+                if ((0 === (++br % 32)) && (i + 1 < view.byteLength))
                     ret += "\n";
             }
 
@@ -367,7 +382,7 @@ define
             {
                 piece += ((view[i] >>> 4) & 0x0f).toString (16);
                 piece += (view[i] & 0x0f).toString (16);
-                if (0 == (++bytes % 20))
+                if (0 === (++bytes % 20))
                 {
                     ret.push (piece);
                     piece = "";
@@ -432,7 +447,7 @@ define
                 tabspace = 0;
                 while (" " == ret.substr (index - tabspace - 1, 1))
                     tabspace++;
-                raw_text = printCertificate (torrent["signatures"]["net.thingtracker"]["certificate"], tabspace + 4);
+                raw_text = printCertificate (torrent.signatures["net.thingtracker"].certificate, tabspace + 4);
                 s = "";
                 for (var j = 0; j < tabspace; j++)
                     s += " ";
@@ -446,16 +461,16 @@ define
                 tabspace = 0;
                 while (" " == ret.substr (index - tabspace - 1, 1))
                     tabspace++;
-                raw_text = printSignature (torrent["signatures"]["net.thingtracker"]["signature"], tabspace + 4);
+                raw_text = printSignature (torrent.signatures["net.thingtracker"].signature, tabspace + 4);
                 s = "";
-                for (var j = 0; j < tabspace; j++)
+                for (var k = 0; k < tabspace; k++)
                     s += " ";
                 ret = ret.substr (0, index) + "\"signature\": {\n" + raw_text + "\n" + s + "}" + ret.substr (index + signature.length);
                 index += signature.length;
             }
 
             return (ret);
-        };
+        }
 
         var exported =
         {
@@ -473,4 +488,3 @@ define
         return (exported);
     }
 );
-
