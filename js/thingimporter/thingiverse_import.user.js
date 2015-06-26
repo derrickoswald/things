@@ -66,9 +66,14 @@ configuration =
                 return (getServer () + getPrefix ());
             }
 
+            function getDatabase ()
+            {
+                return (database);
+            }
+
             function getCouchDB ()
             {
-                return (getDocumentRoot () + "/" + database);
+                return (getDocumentRoot () + "/" + getDatabase ());
             }
 
             return (
@@ -76,6 +81,7 @@ configuration =
                     getServer: getServer,
                     getPrefix: getPrefix,
                     getDocumentRoot: getDocumentRoot,
+                    getDatabase: getDatabase,
                     getCouchDB: getCouchDB
                 }
             );
@@ -94,15 +100,15 @@ function define (dependencies, module)
     return (module.apply (this, args));
 }
 
-sha1 = "%%js/sha1.js%%"
+sha1 = "%%js/sha1.js%%";
 
-bencoder = "%%js/bencoder.js%%"
+bencoder = "%%js/bencoder.js%%";
 
-torrent = "%%js/torrent.js%%"
+torrent = "%%js/torrent.js%%";
 
-multipart = "%%js/multipart.js%%"
+multipart = "%%js/multipart.js%%";
 
-records = "%%js/records.js%%"
+records = "%%js/records.js%%";
 
 // *************** end of modules from things *****************
 
@@ -383,38 +389,40 @@ function get_files ()
 
 /**
  * @summary Send the thing on this page to the things database
+ * @param {object} event <em>not used</em>
  */
-function capture ()
+function capture (event)
 {
+    document.getElementById ("import_thing_button").disabled = true;
     downloadAllFiles (thing_files, function (files)
     {
         console.log ("files downloaded: " + files.length);
-        var blobs = [];
         downloadAllImages (thing_metadata.thumbnailURL, function (blobs)
         {
             console.log ("images downloaded: " + blobs.length);
 
-            convertImagesToDataURLs (blobs, 512, 512, function (urls)
+            var directory = encodeURIComponent (make_file_name (get_title ()));
+            var filelist = [];
+            files.forEach (function (file) { file.data.name = file.name; filelist.push (file.data); });
+            torrent.MakeTorrent (filelist, 16384, directory, null, function (tor)
             {
-                console.log ("images converted: " + urls.length);
+                // set the time to match the upload date
+                var header = document.getElementsByClassName ("thing-header-data")[0];
+                var subhead = header.getElementsByTagName ("h2")[0];
+                var time = subhead.getElementsByTagName ("time")[0];
+                var date = time.getAttribute ("datetime");
+                date = date.replace (" GMT", "Z").replace (" ", "T");
 
-                thing_metadata.thumbnails = urls;
-                var directory = encodeURIComponent (make_file_name (get_title ()));
-                var filelist = [];
-                files.forEach (function (file) { file.data.name = file.name; filelist.push (file.data); });
-                torrent.MakeTorrent (filelist, 16384, directory, null, function (tor)
+                tor["creation date"] = new Date (date).valueOf ();
+                tor["created by"] = "ThingiverseImport v2.0"; // ToDo: keep this version synced to script version
+                tor.info.thing = thing_metadata;
+                tor._id = torrent.InfoHash (tor.info); // setting _id triggers the PUT method instead of POST
+
+                convertImagesToDataURLs (blobs, 512, 512, function (urls)
                 {
-                    // set the time to match the upload date
-                    var header = document.getElementsByClassName ("thing-header-data")[0];
-                    var subhead = header.getElementsByTagName ("h2")[0];
-                    var time = subhead.getElementsByTagName ("time")[0];
-                    var date = time.getAttribute ("datetime");
-                    date = date.replace (" GMT", "Z").replace (" ", "T");
+                    console.log ("images converted: " + urls.length);
 
-                    tor["creation date"] = new Date (date).valueOf ();
-                    tor["created by"] = "ThingiverseImport v2.0"; // ToDo: keep this version synced to script version
-                    tor.info.thing = thing_metadata;
-                    tor._id = torrent.InfoHash (tor.info); // setting _id triggers the PUT method instead of POST
+                    thing_metadata.thumbnails = urls;
 
                     // make the list of files for attachment with names adjusted for directory
                     var uploadfiles = [];
@@ -433,17 +441,25 @@ function capture ()
                     // convert the pieces into an array (CouchDB doesn't store ArrayBuffers)
                     tor.info.pieces = torrent.PiecesToArray (tor.info.pieces);
 
+                    var id = tor._id;
                     var options =
                     {
-                        success: function () { alert ("thing imported"); },
-                        error: function () { alert ("thing import failed"); },
+                        success: function ()
+                        {
+                            console.log ("document " + id + " saved");
+                            console_log ("Uploaded thing " + id);
+                            document.getElementById ("import_thing_button").disabled = false;
+                        },
+                        error: function ()
+                        {
+                            console.log ("failed to save document " + id);
+                            console_log ("Failed to upload thing " + id);
+                            document.getElementById ("import_thing_button").disabled = false;
+                        },
                         CORS: configuration.getServer (),
                         USE_PUT: true
                     };
-                    var id = tor._id;
                     records.saveDocWithAttachments (database, tor, options, uploadfiles);
-                    console.log ("document " + id + " saved");
-                    console_log ("Uploaded thing " + id);
                 });
             });
         });
@@ -503,7 +519,7 @@ function ping (callback)
                 version: "2.0" // ToDo: keep this version string synced to script version
             };
             console.log ("ping status: " + xmlhttp.status);
-            console_log ("Server " + configuration.getCouchDB () + " is online");
+            console_log ("Server " + configuration.getServer () + " is online");
             if (200 == xmlhttp.status || 201 == xmlhttp.status || 202 == xmlhttp.status)
             {
                 var resp = JSON.parse (xmlhttp.responseText);
@@ -518,7 +534,7 @@ function ping (callback)
                     {
                         console.log ("pong status: " + xmlhttp.status);
                         var pinged = (200 == xmlhttp.status || 201 == xmlhttp.status || 202 == xmlhttp.status);
-                        console_log ("Database is " + (pinged ? "accessible" : "read-only"));
+                        console_log ("Database " + getDatabase () + " is accessible " + (pinged ? "read-write" : "read-only"));
                         document.getElementById ("import_thing_button").disabled = !pinged;
                         callback ();
                     }
@@ -542,9 +558,10 @@ function display_contents (callback)
         function (metadata)
         {
             thing_metadata = metadata;
-            document.getElementById ("info_panel").innerHTML =
-                "Thing Metadata:\n" + JSON.stringify (thing_metadata, null, 4) + "\n" +
-                "Thing Files:\n" + JSON.stringify (thing_files, null, 4) + "\n";
+            document.getElementById ("metadata_panel").innerHTML =
+                "<div>Thing Metadata</div><div>" + JSON.stringify (thing_metadata, null, 4) + "</div>";
+            document.getElementById ("files_panel").innerHTML =
+                "<div>Thing Files:</div><div>" + JSON.stringify (thing_files, null, 4) + "</div>";
             callback ();
         }
     );
@@ -566,10 +583,13 @@ function display_contents (callback)
                 var ff = document.createElement ("div");
                 ff.setAttribute ("style", "position: relative;");
                 var template =
-                    "<div style='position: absolute; top: 100px; left: 20px;'>" +
-                        "<pre id='info_panel' style='max-width: 500px; overflow-x: hidden; overflow-y: auto;'></pre>" +
-                        "<button id='import_thing_button' type='button' class='btn btn-lg btn-primary' disabled>Import to things</button>" +
-                        "<pre id='console_panel' style='max-width: 500px; overflow-x: hidden; overflow-y: auto;'></pre>" +
+                    "<div style='position: absolute; top: 80px; left: 20px;'>" +
+                        "<div style='height: 100%'>" +
+                            "<pre id='metadata_panel' style='max-width: 500px; overflow-x: hidden; max-height: 25%; overflow-y: auto; border: 5px solid #e3edf9;border-radius: 2em; padding: 2em; margin-bottom: 1em'></pre>" +
+                            "<pre id='files_panel' style='max-width: 500px; overflow-x: hidden; max-height: 25%; overflow-y: auto; border: 5px solid #e3edf9;border-radius: 2em; padding: 2em; margin-bottom: 1em'></pre>" +
+                            "<pre id='console_panel' style='max-width: 500px; overflow-x: hidden; max-height: 25%; overflow-y: auto; border: 5px solid #e3edf9;border-radius: 2em; padding: 2em; margin-bottom: 1em'></pre>" +
+                            "<button id='import_thing_button' type='button' class='btn btn-lg btn-primary' disabled style='float: right; text-shadow: initial; background-color: #337ab7;'>Import to things</button>" +
+                        "</div>" +
                     "</div>";
                 ff.innerHTML = template;
                 document.getElementsByTagName ("body")[0].appendChild (ff);

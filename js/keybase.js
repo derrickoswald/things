@@ -17,7 +17,6 @@ define
      */
     function (configuration)
     {
-
         /**
          * Keybase URL with proxy prefix.
          * corresponds to https://keybase.io/_/api/1.0/ as proxied by couchdb
@@ -28,13 +27,15 @@ define
 
         var CORS_URL = "https://keybase.io/_/api/1.0/";
 
-
         /**
          * @summary Make CORS request object.
          * @description Cross browser handler for CORS requests.
          * @param {string} method the type of request to be made
          * @param {string} url the URL for the request
          * @returns {object} the CORS capable object or <code>null</code> if the browser doesn't support CORS.
+         * @category internal
+         * @function createCORSRequest
+         * @memberOf module:keybase
          */
         function createCORSRequest (method, url)
         {
@@ -53,6 +54,80 @@ define
 
             return (ret);
         }
+
+        /**
+         * @summary Lookup someone in Keybase.
+         * @description Tries to get information about the username.
+         * @param {string} username the user to look up in Keybase
+         * @param {object} options callback functions for success() and error(),
+         * success function passed the lookup results
+         * @function lookup
+         * @memberOf module:keybase
+         */
+        function lookup (username, options)
+        {
+            var url;
+            var xmlhttp;
+
+            options = options || {};
+            url = CORS_URL + "user/lookup.json" + "?usernames=" + username;
+            xmlhttp = createCORSRequest('GET', url);
+            if (null === xmlhttp)
+            {
+                // fall back to non-CORS assuming an appropriate proxy is set up
+                url = URL + "user/lookup.json" + "?usernames=" + username;
+                xmlhttp = new XMLHttpRequest ();
+                xmlhttp.open ("GET", url, true);
+            }
+            xmlhttp.onreadystatechange = function ()
+            {
+                if (4 == xmlhttp.readyState)
+                    if (200 == xmlhttp.status)
+                    {
+                        if (options.success)
+                            options.success (JSON.parse (xmlhttp.responseText));
+                    }
+                    else
+                        if (options.error)
+                            options.error ();
+            };
+            xmlhttp.send ();
+        }
+
+        /**
+         * Some basic functionality test to get the salt value for a name
+         * @param {string} name - the name to get the salt for
+         * @see https://keybase.io/docs/api/1.0
+         * @function getsalt
+         * @memberOf module:keybase
+         */
+        function getsalt (name)
+        {
+            var url;
+            var xmlhttp;
+            var ret = null;
+
+            url = URL + "getsalt.json" + "?email_or_username=" + name;
+            xmlhttp = new XMLHttpRequest ();
+            xmlhttp.open ("GET", url, false);
+            xmlhttp.onreadystatechange = function ()
+            {
+                if ((4 == xmlhttp.readyState) && (200 == xmlhttp.status))
+                    ret = JSON.parse (xmlhttp.responseText);
+            };
+            xmlhttp.send ();
+
+            return (ret);
+        }
+
+        return (
+            {
+                lookup: lookup,
+                getsalt: getsalt
+            }
+        );
+    }
+);
 
         // https://keybase.io/_/api/1.0/user/lookup.json?usernames=derrickoswald
 //        derrick :
@@ -262,72 +337,3 @@ define
 //            } ],
 //            "csrf_token" : "lgHZIDNlY2IwNmRlYmNlM2NjNGJlOTlmN2QyZjE3YzQ4YTA4zlVuCGDOAAFRgMDEIDc9oG1jDvBw/CfIt+W4jqsavzCh4krASQ+iAQdbyau8"
 //        },
-
-        /**
-         * @summary Lookup someone in Keybase.
-         * @description Tries to get information about the username.
-         */
-        function lookup (username, options)
-        {
-            var url;
-            var xmlhttp;
-
-            options = options || {};
-            url = CORS_URL + "user/lookup.json" + "?usernames=" + username;
-            xmlhttp = createCORSRequest('GET', url);
-            if (null == xmlhttp)
-            {
-                // fall back to non-CORS assuming an appropriate proxy is set up
-                url = URL + "user/lookup.json" + "?usernames=" + username;
-                xmlhttp = new XMLHttpRequest ();
-                xmlhttp.open ("GET", url, true);
-            }
-            xmlhttp.onreadystatechange = function ()
-            {
-                if (4 == xmlhttp.readyState)
-                    if (200 == xmlhttp.status)
-                    {
-                        if (options.success)
-                            options.success (JSON.parse (xmlhttp.responseText));
-                    }
-                    else
-                        if (options.error)
-                            options.error ();
-            };
-            xmlhttp.send ();
-        }
-
-        /**
-         * Some basic functionality test to get the salt value for a name
-         * @param {string} name - the name to get the salt for
-         * @see https://keybase.io/docs/api/1.0
-         * @function getsalt
-         * @memberOf module:keybase
-         */
-        function getsalt (name)
-        {
-            var url;
-            var xmlhttp;
-            var ret = null;
-
-            url = URL + "getsalt.json" + "?email_or_username=" + name;
-            xmlhttp = new XMLHttpRequest ();
-            xmlhttp.open ("GET", url, false);
-            xmlhttp.onreadystatechange = function ()
-            {
-                if ((4 == xmlhttp.readyState) && (200 == xmlhttp.status))
-                    ret = JSON.parse (xmlhttp.responseText);
-            };
-            xmlhttp.send ();
-
-            return (ret);
-        }
-
-        return (
-            {
-                lookup: lookup,
-                getsalt: getsalt
-            }
-        );
-    }
-);
