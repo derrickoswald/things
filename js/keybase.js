@@ -7,7 +7,7 @@
  */
 define
 (
-    ["configuration"],
+    ["configuration"], // "js/static/triplesec-3.0.14"],
     /**
      * @summary Functions for interacting with keybase.io.
      * @description User profile and security credentials.
@@ -15,25 +15,14 @@ define
      * @exports keybase
      * @version 1.0
      */
-    function (configuration)
+    function (configuration) // , triplesec)
     {
-        /**
-         * Keybase URL with proxy prefix.
-         * corresponds to https://keybase.io/_/api/1.0/ as proxied by couchdb
-         */
-        var URL = configuration.getDocumentRoot () + "/keybase/_/api/1.0/";
-        // i.e. add this line under the [httpd_global_handlers] section:
-        // keybase = {couch_httpd_proxy, handle_proxy_req, <<"https://keybase.io/">>}
-
-        var CORS_URL = "https://keybase.io/_/api/1.0/";
-
         /**
          * @summary Make CORS request object.
          * @description Cross browser handler for CORS requests.
          * @param {string} method the type of request to be made
          * @param {string} url the URL for the request
          * @returns {object} the CORS capable object or <code>null</code> if the browser doesn't support CORS.
-         * @category internal
          * @function createCORSRequest
          * @memberOf module:keybase
          */
@@ -54,6 +43,19 @@ define
 
             return (ret);
         }
+
+        /**
+         * Keybase URL with proxy prefix.
+         * corresponds to https://keybase.io/_/api/1.0/ as proxied by couchdb
+         * i.e. add this line under the [httpd_global_handlers] section:
+         * keybase = {couch_httpd_proxy, handle_proxy_req, <<"https://keybase.io/">>}
+         */
+        var URL = configuration.getDocumentRoot () + "/keybase/_/api/1.0/";
+
+        /**
+         * Keybase URL when used with CORS.
+         */
+        var CORS_URL = "https://keybase.io/_/api/1.0/";
 
         /**
          * @summary Lookup someone in Keybase.
@@ -97,33 +99,122 @@ define
         /**
          * Some basic functionality test to get the salt value for a name
          * @param {string} name - the name to get the salt for
+         * @param {object} options - the success and error functions
          * @see https://keybase.io/docs/api/1.0
          * @function getsalt
          * @memberOf module:keybase
          */
-        function getsalt (name)
+        function getsalt (name, options)
         {
             var url;
             var xmlhttp;
-            var ret = null;
 
             url = URL + "getsalt.json" + "?email_or_username=" + name;
             xmlhttp = new XMLHttpRequest ();
-            xmlhttp.open ("GET", url, false);
+            xmlhttp.open ("GET", url, true);
             xmlhttp.onreadystatechange = function ()
             {
-                if ((4 == xmlhttp.readyState) && (200 == xmlhttp.status))
-                    ret = JSON.parse (xmlhttp.responseText);
+                if (4 == xmlhttp.readyState)
+                    if (200 == xmlhttp.status)
+                        options.success (JSON.parse (xmlhttp.responseText));
+                    else
+                        if (options.error)
+                            options.error ();
             };
             xmlhttp.send ();
+        }
 
-            return (ret);
+        function hex2bin (hex)
+        {
+            var bytes = [];
+
+            for(var i=0; i< hex.length - 1; i += 2)
+                bytes.push (parseInt (hex.substr (i, 2), 16));
+
+            return (String.fromCharCode.apply (String, bytes));
+        }
+
+// key = _arg.key, salt = _arg.salt, r = _arg.r, N = _arg.N, p = _arg.p, c0 = _arg.c0, c1 = _arg.c1, c = _arg.c, klass = _arg.klass, progress_hook = _arg.progress_hook, dkLen = _arg.dkLen;
+// pwh = scrypt(passphrase, hex2bin(salt), N=215, r=8, p=1, dkLen=224)[192:224]
+// https://gist.github.com/maxtaco/b5c0983ba96b8dc88c5f
+
+        function login (name, passphrase, options)
+        {
+            getsalt
+            (
+                name,
+                {
+                    success: function (getsalt_response)
+                    {
+                        console.log (JSON.stringify (getsalt_response));
+
+                        triplesec.scrypt
+                        (
+                            {
+                                key: new triplesec.WordArray (passphrase), // triplesec.WordArray.from_utf8 (passphrase),
+                                salt: triplesec.WordArray.from_hex (getsalt_response.salt), // new triplesec.WordArray (hex2bin (getsalt_response.salt)),
+                                r: 8,
+                                N: 32768,
+                                p: 1,
+//                              c0:
+//                              c1:
+//                              c:
+//                              klass:
+                                dkLen: 224,
+                                progress_hook: function (a)
+                                {
+                                    console.log (JSON.stringify (a));
+                                },
+                                encoding: "utf-8"
+                            },
+                            function (scrypt_response)
+                            {
+                                console.log (JSON.stringify (scrypt_response));
+
+                                var pwh = scrypt_response.slice (23,56); // [92,224]
+                                var hmac = new triplesec.HMAC (pwh);
+                                var buf = new triplesec.Buffer (getsalt_response.login_session, 'base64');
+                                var hmac_pwh_binary = hmac.finalize (buf);
+                                var hmac_pwh = hmac_pwh_binary.to_hex ();
+
+                                var url;
+                                var xmlhttp;
+
+                                url = URL + "login.json";
+                                xmlhttp = new XMLHttpRequest ();
+                                xmlhttp.open ("POST", url, true);
+                                xmlhttp.setRequestHeader ('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+                                xmlhttp.onreadystatechange = function ()
+                                {
+                                    if (4 == xmlhttp.readyState)
+                                        if (200 == xmlhttp.status)
+                                        {
+                                            var result = JSON.parse (xmlhttp.responseText);
+                                            console.log (JSON.stringify (result));
+                                            options.success (result);
+                                        }
+                                        else
+                                            if (options.error)
+                                                options.error ();
+                                };
+                                var parameters =
+                                    "email_or_username=" + name +
+                                    "&hmac_pwh=" + hmac_pwh +
+                                    "&login_session=" + getsalt_response.login_session +
+                                    "&csrf_token=" + getsalt_response.csrf_token;
+                                xmlhttp.send (parameters);
+                            }
+                        );
+                    }
+                }
+            );
         }
 
         return (
             {
                 lookup: lookup,
-                getsalt: getsalt
+                getsalt: getsalt,
+                login: login
             }
         );
     }

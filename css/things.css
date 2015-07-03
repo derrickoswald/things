@@ -44,9 +44,31 @@ body
 	padding-right: 1em;
 }
 
-.directoryinput-field
+#file_table
 {
-    margin-top: 1em;
+	margin-top: 2em;
+}
+
+#file_table thead
+{
+	font-size: larger;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+#file_table tfoot
+{
+    font-weight: bold;
+}
+
+#file_table tfoot tr #total_size
+{
+	text-decoration: overline;
+}
+
+#file_table .glyphicon-remove
+{
+	color: red;
 }
 
 .fileinput-button
@@ -94,7 +116,12 @@ table.file_list tr td
 
 table.file_list tr td.right
 {
-	text-align: right;
+    text-align: right;
+}
+
+table.file_list tr td.center
+{
+    text-align: center;
 }
 
 table.file_list tr:nth-child(even)

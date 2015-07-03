@@ -4,27 +4,43 @@
     <link rel="stylesheet" href="../../css/things.css">
 }}
 <h2>Select Files</h2>
-Identify the files to be included in your <em>Thing</em>.<br>
-You can either select a single file or multiple files by clicking on the <b>Add files</b> button below and using the dialog to navigate to and identify the file(s),
-or you can drag and drop one or more files onto the <b>Drop files here...</b> area,
-or (TBD) you can paste files onto this form.
-Note that if you specify multiple files, you must then also specify the directory for the files.
-
-<div id="choose_thing_directory" class="directoryinput-field">
-    Directory: <input id="thing_directory" type="text" name="directory" />
+<p>Identify the files to be included in your <em>Thing</em>.</p>
+<p>You can either select a single file or multiple files by clicking on the <b>Add files</b> button below and using the dialog to navigate to and identify the file(s),
+or you can drag and drop one or more files onto the <b>Drop files here...</b> area
+(TBD), or you can paste files onto this form(end TBD).</p>
+<p>Note that if you specify multiple files, you must then also specify the directory for the files.</p>
+<div class="form-horizontal">
+    <div id="directory_group" class="form-group">
+        <label class="col-sm-3 control-label" for="thing_directory">Directory</label>
+        <div class="col-sm-9">
+            <input id="thing_directory" class="form-control" type="text" name="directory" placeholder="directory name"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="files_drop_zone">Drag & drop</label>
+        <div class="col-sm-9">
+            <div id="files_drop_zone" class="form-control">
+                Drop files here...
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="choose_thing_files"></label>
+        <div class="col-sm-9">
+            <span id="choose_thing_files" class="btn btn-success fileinput-button">
+                <i class="glyphicon glyphicon-plus"></i>
+                <span>Add files...</span>
+                <input id="thing_files" type="file" name="files[]" multiple>
+            </span>
+        </div>
+    </div>
 </div>
-<div id="files_drop_zone">
-Drop files here...
-</div>
-<span id="choose_thing_form" class="btn btn-success fileinput-button">
-    <i class="glyphicon glyphicon-plus"></i>
-    <span>Add files...</span>
-    <input id="thing_files" type="file" name="files[]" multiple>
-</span>
-
-<table id="file_table" class="file_list">
-	<tr><td></td><td>No files selected</td><td class="right"></td></tr>
+<table id="file_table" class="file_list hidden">
+    <thead>
+        <tr><td>Type</td><td>Name</td><td>Size</td><td>Remove</td></tr>
+    </thead>
+	<tr><td></td><td>No files selected</td><td class="right"></td><td></td></tr>
+    <tfoot>
+        <tr><td></td><td></td><td id="total_size">{{total}}</td><td></td></tr>
+    </tfoot>
 </table>
-<div id="total_size">{{total}}</div>
-<div id="info_hash"></div>
-<div id="file_content"></div>

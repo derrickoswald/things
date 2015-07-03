@@ -37,13 +37,36 @@ define
         }
 
         /**
+         * @summary Remove a file from the list.
+         * @description Alter the file list in the data element
+         * to remove the one that has a name given by the event target
+         * data-file attribute.
+         * @param {object} data - the context object for the wizard
+         * @param {object} event - the event that triggers this method
+         * @function remove_file
+         * @memberOf module:thingmaker/files
+         */
+        function remove_file (data, event)
+        {
+            var name = event.target.getAttribute ("data-file");
+            for (var i = 0; i < data.files.length; i++)
+                if (data.files[i].name == name)
+                {
+                    data.files.splice (i, 1);
+                    break;
+                }
+            update (data);
+        }
+
+        /**
          * @summary Update the file list and enable/disable the next button.
          * @function update
          * @memberOf module:thingmaker/files
-         * @param {object} data thinkmaker data object
+         * @param {object} data - thingmaker data object
          */
         function update (data)
         {
+            // compute the file list
             var total = 0;
             var filelist = [];
             for (var i = 0; i < data.files.length; i++)
@@ -52,21 +75,59 @@ define
                 // also ??? data.files[i].lastModifiedDate ? data.files[i].lastModifiedDate.toLocaleDateString () : 'n/a'
                 total += data.files[i].size;
             }
-
+            // render the file list
             var file_table_template =
+                "<thead>" +
+                    "<tr><td>Type</td><td>Name</td><td class='right'>Size</td><td class='center'>Remove</td></tr>" +
+                "</thead>" +
                 "{{#filelist}}" +
-                "<tr><td><img src=\"../img/file_extension_pdf.png\">{{filetype}}</img></td><td>{{filename}}</td><td class=\"right\">{{filesize}}</td></tr>" +
+                "<tr>" +
+                    "<td><img src='../img/file_extension_pdf.png'>{{filetype}}</img></td>" +
+                    "<td>{{filename}}</td>" +
+                    "<td class='right'>{{filesize}}</td>" +
+                    "<td class='center'><span class='glyphicon glyphicon-remove' data-file='{{filename}}'></span></td>" +
+                "</tr>" +
                 "{{/filelist}}" +
-                "{{^filelist}}<tr><td><td>No files selected</td><td class=\"right\"></td></tr>{{/filelist}}" +
-                "{{total}}";
-            document.getElementById ("file_table").innerHTML = mustache.render (file_table_template, { filelist: filelist, total: total });
-
+                "{{^filelist}}<tr><td><td>No files selected</td><td class='right'></td></tr>{{/filelist}}" +
+                "<tfoot>" +
+                    "<tr><td></td><td></td><td id='total_size' class='right'>{{total}}</td><td class='center'></td></tr>" +
+                "</tfoot>";
+            document.getElementById ("file_table").innerHTML = mustache.render
+            (
+                file_table_template,
+                {
+                    filelist: filelist,
+                    total: total
+                }
+            );
+            // toggle visibility
+            if (data.files && (0 != data.files.length))
+                document.getElementById ("file_table").classList.remove ("hidden");
+            else
+                document.getElementById ("file_table").classList.add ("hidden");
+            // add Contextual backgrounds to the directory input field if it's required
+            if (data.files && ((1 < data.files.length) && !data.directory))
+                document.getElementById ("directory_group").classList.add ("has-error");
+            else
+                document.getElementById ("directory_group").classList.remove ("has-error");
+            // set the state of the Next button
             if (data.files && ((1 == data.files.length) || ((1 < data.files.length) && data.directory)))
                 data.next_button.removeAttribute ("disabled");
             else
                 data.next_button.setAttribute ("disabled", "disabled");
+            // add delete function to each file
+            var removes = document.getElementById ("file_table").getElementsByClassName ("glyphicon-remove");
+            var remove = remove_file.bind (this, data);
+            for (var i = 0; i < removes.length; i++)
+                removes[i].addEventListener ("click", remove);
         }
 
+        /**
+         * @summary Handler for file change events.
+         * @description Add files to the collection and update the display.
+         * @param {object} event - the file change event
+         * @param {object} data - the thingmaker wizard data object
+         */
         function file_change (event, data)
         {
             add_files (event.target.files, data);
@@ -129,15 +190,21 @@ define
             {
                 getStep: function ()
                 {
-                    var select_files_hooks =
-                        [
-                            { id: "thing_files", event: "change", code: file_change, obj: this },
-                            { id: "thing_directory", event: "keyup", code: directory_change, obj: this },
-                            // drag and drop listeners
-                            { id: "files_drop_zone", event: "dragover", code: file_drag, obj: this },
-                            { id: "files_drop_zone", event: "drop", code: file_drop, obj: this }
-                        ];
-                    return ({ id: "select_files", title: "Select files", template: "templates/thingmaker/files.mst", hooks: select_files_hooks });
+                    return (
+                        {
+                            id: "select_files",
+                            title: "Select files",
+                            template: "templates/thingmaker/files.mst",
+                            hooks:
+                            [
+                                { id: "thing_files", event: "change", code: file_change, obj: this },
+                                { id: "thing_directory", event: "keyup", code: directory_change, obj: this },
+                                // drag and drop listeners
+                                { id: "files_drop_zone", event: "dragover", code: file_drag, obj: this },
+                                { id: "files_drop_zone", event: "drop", code: file_drop, obj: this }
+                            ]
+                        }
+                    );
                 }
             }
         );

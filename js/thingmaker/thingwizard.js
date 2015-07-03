@@ -6,13 +6,13 @@
  */
 define
 (
-    ["configuration", "page", "wizard", "thingmaker/files", "thingmaker/template", "thingmaker/make", "thingmaker/upload", "thingmaker/publish"],
+    ["configuration", "page", "wizard", "thingmaker/files", "thingmaker/template", "thingmaker/make", "thingmaker/upload", "thingmaker/publish", "thingmaker/sign"],
     /**
      * @summary Create a new thing by specifying the files, template and metadata.
      * @exports thingmaker/thingwizard
      * @version 1.0
      */
-    function (configuration, page, wiz, files, template, make, upload, publish)
+    function (configuration, page, wiz, files, template, make, upload, publish, sign)
     {
         /**
          * @summary Wizard steps.
@@ -25,7 +25,7 @@ define
                 files.getStep (), // { id: "select_files", title: "Select files", template: "templates/files.mst", hooks: select_files_hooks },
                 template.getStep (), // { id: "use_template", title: "Use a template", template: "templates/thingmaker/template.mst"},
                 make.getStep (), // { id: "enter_metadata", title: "Enter metadata", template: "templates/metadata.mst"},
-                { id: "sign", title: "Sign the thing", template: "templates/thingmaker/sign.mst"},
+                sign.getStep (), // { id: "sign", title: "Sign the thing", template: "templates/thingmaker/sign.mst"},
                 upload.getStep (), // { id: "upload", title: "Upload the thing", template: "templates/upload.mst", hooks: upload_hooks}
                 publish.getStep (), // { id: "publish", title: "Publish the thing", template: "templates/publish.mst", hooks: publish_hooks}
             ];

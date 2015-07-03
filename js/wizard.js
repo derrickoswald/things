@@ -29,7 +29,7 @@ define
 
             navs = document.getElementById ("wizard_navigator").getElementsByTagName ("li");
             for (var i = 0; (i < navs.length) && (0 > ret); i++)
-                if (-1 != navs[i].className.split (" ").indexOf ("active"))
+                if (navs[i].classList.contains ("active"))
                     ret = i;
 
             return (ret);
@@ -63,30 +63,7 @@ define
          */
         function stepCount ()
         {
-            return (document.getElementById ("wizard_navigator").getElementsByTagName ("li").length + 1);
-        }
-
-        /**
-         * Transition between steps and handle button visibility based on XXX_lnk clicked.
-         * @param {string} event - the click event
-         * @param {*} data - the data used as context for the action
-         * @memberOf module:wizard
-         */
-        function jump (event, data)
-        {
-            var id;
-            var to;
-
-            id = event.target.getAttribute ("data-tab-id");
-            to = indexOf (id);
-            if (0 < to)
-                data.prev_button.classList.remove ("hide");
-            else
-                data.prev_button.classList.add ("hide");
-            if (to < stepCount () - 2)
-                data.next_button.classList.remove ("hide");
-            else
-                data.next_button.classList.add ("hide");
+            return (document.getElementById ("wizard_navigator").getElementsByTagName ("li").length);
         }
 
         /**
@@ -116,7 +93,8 @@ define
          * @param {object} step - the step provided to the wizard
          * @param {*} data - the data used as context for each action
          * @param active - if <code>true</code> make this step the active one
-         * @memberOf module:wizard         */
+         * @memberOf module:wizard
+         */
         function make_page (step, data, active)
         {
             var xmlhttp = new XMLHttpRequest ();
@@ -197,15 +175,31 @@ define
             wrapper.innerHTML = mustache.render (nav, {id: step.id, active: active, title: step.title});
             item = list.appendChild (wrapper.children[0]);
 
-            // add click event listener
+            // add click event listener to transition between steps and handle button visibility
             link = item.getElementsByTagName ("a")[0];
             link.addEventListener
             (
                 "click",
                 function (event)
                 {
+                    var id;
+                    var to;
+                    var next_button;
+                    var prev_button;
+
                     event.preventDefault ();
-                    jump (event, data);
+                    id = event.target.getAttribute ("data-tab-id");
+                    to = indexOf (id);
+                    next_button = document.getElementById ("next");
+                    prev_button = document.getElementById ("previous");
+                    if (0 < to)
+                        prev_button.classList.remove ("hide");
+                    else
+                        prev_button.classList.add ("hide");
+                    if (to < stepCount () - 1)
+                        next_button.classList.remove ("hide");
+                    else
+                        next_button.classList.add ("hide");
                     $(link).tab ("show");
                 }
             );
@@ -273,14 +267,18 @@ define
          */
         function wizard (nav, content, steps, data, start)
         {
+            var nav_template;
+            var content_template;
+
             if ("undefined" == typeof (start))
                 start = 0;
-            var nav_template =
+
+            nav_template =
                 "<ul id='wizard_navigator' class='nav nav-tabs nav-stacked' role='tablist'>" +
                     /* li */
                 "</ul>";
 
-            var content_template =
+            content_template =
                 "<div class='row'>" +
                     "<div class='wizard_button_next'>" +
                         "<button id='next' class='btn btn-primary btn-large button-next' type='submit'>" +
@@ -300,20 +298,17 @@ define
             var list = document.getElementById ("wizard_navigator");
 
             content.innerHTML = mustache.render (content_template);
-            data.next_button = document.getElementById ("next");
-            data.prev_button = document.getElementById ("previous");
-            data.prev_button.onclick = function () { step (steps, data, -1); };
-            data.next_button.onclick = function () { step (steps, data, 1); };
+            document.getElementById ("previous").onclick = function () { step (steps, data, -1); };
+            document.getElementById ("next").onclick = function () { step (steps, data, 1); };
 
             for (var i = 0; i < steps.length; i++)
                 addStep (list, content, steps[i], data, start == i);
         }
 
-        var functions =
-        {
-            "wizard": wizard
-        };
-
-        return (functions);
+        return (
+            {
+                "wizard": wizard
+            }
+        );
     }
 );

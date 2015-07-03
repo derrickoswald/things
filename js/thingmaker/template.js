@@ -6,7 +6,7 @@
  */
 define
 (
-    ["mustache", "torrent"],
+    ["torrent"],
     /**
      * @summary Allows selection of a template torrent the file system.
      * @description Reads in a .torrent file as a template to be used for new version creation
@@ -14,7 +14,7 @@ define
      * @exports thingmaker/template
      * @version 1.0
      */
-    function (mustache, torrent)
+    function (torrent)
     {
         function update (data)
         {
