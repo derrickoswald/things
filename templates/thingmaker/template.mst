@@ -8,13 +8,25 @@
 Choose a torrent file that will be used as a basis for the <em>Thing</em> you create.<br>
 This can be a torrent file from a previous version of your <em>Thing</em>, or just a template torrent file
 that has mostly the same metadata as you will be filling in in Step 3.
-<div id="template_drop_zone">
-Drop template here...
+<div class="form-horizontal">
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="template_drop_zone">Drag & drop</label>
+        <div class="col-sm-9">
+            <div id="template_drop_zone" class="form-control">
+                Drop template here...
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="choose_template_file"></label>
+        <div class="col-sm-9">
+            <span id="choose_template_file" class="btn btn-success fileinput-button">
+                <i class="glyphicon glyphicon-plus"></i>
+                <span>Select template...</span>
+                <input id="thing_template" type="file" name="file">
+            </span>
+        </div>
+    </div>
 </div>
-<span id="choose_template_form" class="btn btn-success fileinput-button">
-    <i class="glyphicon glyphicon-plus"></i>
-    <span>Select template...</span>
-    <input id="thing_template" type="file" name="files[]" multiple>
-</span>
-<div><pre id="byte_content"></pre></div>
+<div><pre id="byte_content" class="hidden"></pre></div>
 

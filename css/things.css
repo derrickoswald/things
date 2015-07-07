@@ -259,6 +259,12 @@ table.file_list tr:nth-child(even)
 	cursor: pointer;
 }
 
+ul.attachment li span.glyphicon-eye-open
+{
+	color: navy;
+	cursor: pointer;
+}
+
 .dropdown-menu.pull-right
 {
 	right: auto;

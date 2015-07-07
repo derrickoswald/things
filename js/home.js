@@ -6,14 +6,14 @@
  */
 define
 (
-    ["configuration", "page", "mustache", "thingmaker/thingwizard", "login"],
+    ["configuration", "page", "mustache", "thingmaker/thingwizard", "login", "torrent"],
     /**
      * @summary Functions to handle the home page.
      * @name home
      * @exports home
      * @version 1.0
      */
-    function (configuration, page, mustache, thingwizard, login)
+    function (configuration, page, mustache, thingwizard, login, torrent)
     {
         var things_template =
             "<div id='count_of_things'>{{#total_rows}}{{total_rows}} documents{{/total_rows}}{{^total_rows}}no documents{{/total_rows}}</div>" +
@@ -82,7 +82,14 @@ define
                                     "<div class='col-xs-6'>" +
                                         "<h5>Attachments</h5>" +
                                         "<ul class='thing_property_list attachment'>" +
-                                            "{{#filelist}}<li><a href='{{url}}'>{{name}}</a></li>{{/filelist}}" +
+                                            "{{#filelist}}" +
+                                                "<li>" +
+                                                    "<a href='{{url}}'>{{name}}</a>" +
+                                                    "{{#torrent}}" +
+                                                        "<span class='view_torrent glyphicon glyphicon-eye-open marginleft' data-toggle='tooltip' data-placement='top' title='View' data-database='{{database}}' data-id='{{_id}}' data-attachment='{{url}}' data-name='{{name}}'></span>" +
+                                                    "{{/torrent}}" +
+                                                "</li>" +
+                                            "{{/filelist}}" +
                                         "</ul>" +
                                     "</div>" +
                                 "</div>" +
@@ -214,6 +221,28 @@ define
         {
         }
 
+        function view_torrent (options)
+        {
+            var url;
+            var xmlhttp;
+
+            url = configuration.getDocumentRoot () + "/" +
+                options.database + "/" + options._id + "/" + options.name;
+            xmlhttp = new XMLHttpRequest ();
+            xmlhttp.open ("GET", url, true);
+            xmlhttp.responseType = "arraybuffer";
+            xmlhttp.onreadystatechange = function ()
+            {
+                if (4 == xmlhttp.readyState)
+                    if (200 == xmlhttp.status)
+                        options.success (xmlhttp.response);
+                    else
+                        if (options.error)
+                            options.error ();
+            };
+            xmlhttp.send ();
+        }
+
         /**
          * @summary Read the database:view and render the data into html_id.
          * @description Uses mustache to display the contents of the database of <em>things</em>.
@@ -242,7 +271,17 @@ define
                         var list = [];
                         for (var property in item.value._attachments)
                             if (item.value._attachments.hasOwnProperty (property))
-                                list.push ({name: property, url: (result.doc_root + item.id + "/" + encodeURIComponent (property))});
+                            {
+                                var eye = (".torrent" == property.substring (property.length - ".torrent".length));
+                                list.push
+                                (
+                                    {
+                                        name: property,
+                                        url: (result.doc_root + item.id + "/" + encodeURIComponent (property)),
+                                        torrent: eye
+                                    }
+                                );
+                            }
                         item.value.filelist = list;
                         list = [];
                         if (item.value.info.thing.thumbnails)
@@ -276,6 +315,37 @@ define
                         $ (".transfer_id").on ("click", function (event) { options.transfer ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
                     if (options.select)
                         $ (".select_id").on ("click", function (event) { options.select ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
+                    $ (".view_torrent").on
+                    (
+                        "click",
+                        function (event)
+                        {
+                            var name = event.target.getAttribute ("data-name");
+                            var url = event.target.getAttribute ("data-attachment");
+                            var tor = window.open ("", "TorrentWindow", "menubar=yes, status=yes");
+                            if (null != tor)
+                                tor.document.getElementsByTagName ("body")[0].innerHTML = "Loading...";
+                            view_torrent
+                            (
+                                {
+                                    database: event.target.getAttribute ("data-database"),
+                                    _id: event.target.getAttribute ("data-id"),
+                                    attachment: url,
+                                    name: name,
+                                    success: function (arraybuffer)
+                                    {
+                                        var obj = torrent.ReadTorrent (arraybuffer);
+                                        var text = torrent.PrintTorrent (obj);
+                                        if (null == tor)
+                                            alert ("Popup blocked.\nThe first 1000 characters of the torrent file:\n\n" + text.substring (0, 1000));
+                                        else
+                                            tor.document.getElementsByTagName ("body")[0].innerHTML =
+                                                "<p><a href='" + url + "'>" + name + "</a></p>" +
+                                                "<pre>" + text + "</pre>";
+                                    }
+                                }
+                            );
+                        });
                 },
                 error : function (status)
                 {

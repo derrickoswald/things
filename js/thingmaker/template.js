@@ -18,7 +18,9 @@ define
     {
         function update (data)
         {
-            document.getElementById ("byte_content").innerHTML = torrent.PrintTorrent (data.torrent);
+            var content = document.getElementById ("byte_content");
+            content.innerHTML = torrent.PrintTorrent (data.torrent);
+            content.classList.remove ("hidden");
         }
 
         function select_template (files, data)

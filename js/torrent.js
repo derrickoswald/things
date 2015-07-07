@@ -260,7 +260,7 @@ define
         /**
          * @summary Create an object from bencoded data.
          * @description Convert the bencoded ArrayBuffer into a JavaScript object.
-         * @param {ArrayBuffer} torrent_file contents of the .torrent file
+         * @param {ArrayBuffer|string} torrent_file contents of the .torrent file
          * @return {object} the JavaScript object with properties equivalent to the bencoded torrent.
          * @memberOf module:torrent
          */
@@ -269,6 +269,8 @@ define
             var binary_torrent;
             var ret;
 
+            if ("string" == typeof (torrent_file))
+                torrent_file = bencoder.str2ab (torrent_file);
             ret = bencoder.decode (torrent_file, false);
 
             // this would have been straight forward except
@@ -474,15 +476,16 @@ define
 
         var exported =
         {
-            "ComputeHashes" : ComputeHashes,
-            "MakeTorrent": MakeTorrent,
-            "Encode": Encode,
-            "Binarize": Binarize,
-            "InfoHash": InfoHash,
-            "ReadTorrentAsync": ReadTorrentAsync,
-            "PrintTorrent": PrintTorrent,
-            "PiecesToArray": PiecesToArray,
-            "ArrayToPieces": ArrayToPieces
+            ComputeHashes : ComputeHashes,
+            MakeTorrent: MakeTorrent,
+            Encode: Encode,
+            Binarize: Binarize,
+            InfoHash: InfoHash,
+            ReadTorrent: ReadTorrent,
+            ReadTorrentAsync: ReadTorrentAsync,
+            PrintTorrent: PrintTorrent,
+            PiecesToArray: PiecesToArray,
+            ArrayToPieces: ArrayToPieces
         };
 
         return (exported);

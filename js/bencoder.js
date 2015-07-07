@@ -42,7 +42,7 @@ define
         function str2ab (str)
         {
             var len = str.length;
-            var ret = new ArrayBuffer (str.length);
+            var ret = new ArrayBuffer (len);
             var view = new Uint8Array (ret);
             for (var i = 0; i < len; i++)
                 view[i] = (0xff & str.charCodeAt (i));
