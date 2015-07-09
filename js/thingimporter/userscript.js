@@ -93,23 +93,33 @@ define
         /**
          * @summary Edit the user script according to the current configuration.
          * @description Replace standard constants with instance specific values.
-         * The variable declarations at the top of the user script are changed to reflect
-         * the actaul values for this instance of the <em>things</em> system.
-         * @param {string} text the raw user script contents to be edited
+         * The variable declarations of the form $$XXX$$ are changed
+         * to reflect the actual values for this instance of the <em>things</em> system.
+         * @param {string} text - the raw user script contents to be edited
+         * @param {object} subst - the object with substitution strings, name: value
          * @function customize_user_script
          * @memberOf module:thingimporter/setup
          */
-        function customize_user_script (text)
+        function customize_user_script (text, subst)
         {
+            var regexp;
+            var match;
+            var variable;
+            var value;
+            var newtext;
             var ret;
 
-            ret = text;
-
-            ret = ret.replace ("var protocol = \"http:\";", "var protocol = \"" + location.protocol + "\";");
-            ret = ret.replace ("var host = \"localhost\";", "var host = \"" + location.hostname + "\";");
-            ret = ret.replace ("var port = \"5984\";", "var port = \"" + location.port + "\";");
-            ret = ret.replace ("var prefix = \"\";", "var prefix = \"" + $.couch.urlPrefix + "\";");
-            ret = ret.replace ("var database = \"pending_things\";", "var database = \"" + configuration.getConfigurationItem ("pending_database") + "\";");
+            regexp = /(\$\$.*\$\$)/;
+            match = regexp.exec (text);
+            if (match)
+            {
+                variable = match[0].substring (2, match[0].length - 2);
+                value = subst[variable] ? subst[variable] : "";
+                newtext = text.replace (match[0], value);
+                ret = customize_user_script (newtext, subst); // recursive
+            }
+            else
+                ret = text;
 
             return (ret);
         }
@@ -151,7 +161,7 @@ define
         }
 
         /**
-         * @summary Change patterns into fetched file contents within string.
+         * @summary Change patterns into fetched file contents within a string.
          * @description Replace patterns of the form "%%name%%" with the contents of file "name".
          * @param {string} text the text to replace within
          * @param {object} options callback functions for results
@@ -205,6 +215,16 @@ define
         {
             var script;
             var a;
+            var substitutions =
+            {
+                version: "2.0",
+                protocol: location.protocol,
+                host: location.hostname,
+                port: location.port,
+                prefix: $.couch.urlPrefix,
+                database: configuration.getConfigurationItem ("pending_database")
+            };
+
 
             // get the user script
             get_script
@@ -213,7 +233,7 @@ define
                 {
                     success: function (text)
                     {
-                        text = customize_user_script (text);
+                        text = customize_user_script (text, substitutions);
                         replace_placeholders
                         (
                             text,

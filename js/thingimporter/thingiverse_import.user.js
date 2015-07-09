@@ -1,43 +1,43 @@
 // ==UserScript==
 // @name        ThingiverseImport
 // @namespace   thingiverse_import
-// @description Import thing from Thingiverse into CouchDB
+// @description Import thing from Thingiverse into CouchDB based things (see https://github.com/derrickoswald/things)
 // @include     http://www.thingiverse.com/*
 // @include     https://www.thingiverse.com/*
-// @version     2.0
+// @version     $$version$$
 // @grant       none
 // ==/UserScript==
 
-// In order for this to work, you need to enable CORS in CouchDB by editing /etc/couchdb/default.ini in the httpd section:
+// In order for this to work, the things configuration needs to enable CORS in CouchDB,
+// or by manually editing /etc/couchdb/default.ini in the httpd section:
 //     [httpd]
 //     enable_cors = true
-// specify thingiverse.com as the source and also add PUT as a legal method in the same file as above in the cors section:
+// specify thingiverse.com as the source and also add PUT as a legal method in the same file in the cors section:
 //     [cors]
 //     origins = http://www.thingiverse.com
 //     methods = GET,POST,PUT
-// and create a database that requires no authentication to POST new documents to.
+// and create a database that requires no authentication to add new documents to.
 
 // A little help in deciphering the code...
 
-// If you are viewing this in your browser, it has been transformed by including modules from "things"
+// If you are viewing this in your browser, it has been transformed to match the things
+// system it was downloaded from by replacing variables and including modules from "things"
 // https://github.com/derrickoswald/things
 // using the very simplified define() function below.
 
-// If you are viewing it in the original source form, there will be placeholders (identified by percent signs)
-// for the modules that are to be included.
+// If you are viewing it in the original source form, there will be placeholders identified by percent signs
+// for the modules that are to be included and by dollar signs for variables that are replaced.
 
 // The special case is the configuration module that needs to defined for this specific user script.
 
 // Below the asterisks comment is the actual user script.
 
 // variables
-// NOTE: these are replaced by searching for the exact strings seen below,
-// do not change without also changing customize_user_script() in js/thingimporter/userscript.js
-var protocol = "http:";
-var host = "localhost";
-var port = "5984";
-var prefix = "";
-var database = "pending_things";
+var protocol = "$$protocol$$";
+var host = "$$host$$";
+var port = "$$port$$";
+var prefix = "$$prefix$$";
+var database = "$$database$$";
 
 // content
 var thing_metadata;
@@ -414,7 +414,7 @@ function capture (event)
                 date = date.replace (" GMT", "Z").replace (" ", "T");
 
                 tor["creation date"] = new Date (date).valueOf ();
-                tor["created by"] = "ThingiverseImport v2.0"; // ToDo: keep this version synced to script version
+                tor["created by"] = "ThingiverseImport v$$version$$";
                 tor.info.thing = thing_metadata;
                 tor._id = torrent.InfoHash (tor.info); // setting _id triggers the PUT method instead of POST
 
@@ -516,7 +516,7 @@ function ping (callback)
             {
                 _id: "ping",
                 time: (new Date ()).valueOf (),
-                version: "2.0" // ToDo: keep this version string synced to script version
+                version: "$$version$$"
             };
             console.log ("ping status: " + xmlhttp.status);
             console_log ("Server " + configuration.getServer () + " is online");
@@ -533,9 +533,9 @@ function ping (callback)
                     if (4 == xmlhttp.readyState)
                     {
                         console.log ("pong status: " + xmlhttp.status);
-                        var pinged = (200 == xmlhttp.status || 201 == xmlhttp.status || 202 == xmlhttp.status);
-                        console_log ("Database " + getDatabase () + " is accessible " + (pinged ? "read-write" : "read-only"));
-                        document.getElementById ("import_thing_button").disabled = !pinged;
+                        var ponged = (200 == xmlhttp.status || 201 == xmlhttp.status || 202 == xmlhttp.status);
+                        console_log ("Database " + configuration.getDatabase () + " is accessible " + (ponged ? "read-write" : "read-only"));
+                        document.getElementById ("import_thing_button").disabled = !ponged;
                         callback ();
                     }
                 };
@@ -559,9 +559,9 @@ function display_contents (callback)
         {
             thing_metadata = metadata;
             document.getElementById ("metadata_panel").innerHTML =
-                "<div>Thing Metadata</div><div>" + JSON.stringify (thing_metadata, null, 4) + "</div>";
+                "<div>" + JSON.stringify (thing_metadata, null, 4) + "</div>";
             document.getElementById ("files_panel").innerHTML =
-                "<div>Thing Files:</div><div>" + JSON.stringify (thing_files, null, 4) + "</div>";
+                "<div>" + JSON.stringify (thing_files, null, 4) + "</div>";
             callback ();
         }
     );
@@ -585,8 +585,11 @@ function display_contents (callback)
                 var template =
                     "<div style='position: absolute; top: 80px; left: 20px;'>" +
                         "<div style='height: 100%'>" +
+                            "<div style='position: relative; top: +12px; left: +35px; background: #f5f5f5; width: 135px; padding-left: 20px; color: #337ab7;'>Thing Metadata</div>" +
                             "<pre id='metadata_panel' style='max-width: 500px; overflow-x: hidden; max-height: 25%; overflow-y: auto; border: 5px solid #e3edf9;border-radius: 2em; padding: 2em; margin-bottom: 1em'></pre>" +
+                            "<div style='position: relative; top: +12px; left: +35px; background: #f5f5f5; width: 100px; padding-left: 20px; color: #337ab7;'>Thing Files</div>" +
                             "<pre id='files_panel' style='max-width: 500px; overflow-x: hidden; max-height: 25%; overflow-y: auto; border: 5px solid #e3edf9;border-radius: 2em; padding: 2em; margin-bottom: 1em'></pre>" +
+                            "<div style='position: relative; top: +12px; left: +35px; background: #f5f5f5; width: 100px; padding-left: 20px; color: #337ab7;'>Messages</div>" +
                             "<pre id='console_panel' style='max-width: 500px; overflow-x: hidden; max-height: 25%; overflow-y: auto; border: 5px solid #e3edf9;border-radius: 2em; padding: 2em; margin-bottom: 1em'></pre>" +
                             "<button id='import_thing_button' type='button' class='btn btn-lg btn-primary' disabled style='float: right; text-shadow: initial; background-color: #337ab7;'>Import to things</button>" +
                         "</div>" +
