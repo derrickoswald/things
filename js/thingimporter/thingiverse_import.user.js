@@ -308,6 +308,7 @@ function convertImagesToDataURLs (blobs, width, height, fn)
 function extract_text (id)
 {
     var paragraphs;
+    var txt;
     var ret;
 
     ret = "";
@@ -317,153 +318,27 @@ function extract_text (id)
     {
         if ("" !== ret)
             ret += "\n";
-        ret += paragraphs[i].childNodes[0].nodeValue;
+        txt = "";
+        for (var j = 0; j < paragraphs[i].childNodes.length; j++)
+            txt += paragraphs[i].childNodes[j].textContent;
+        ret += txt;
     }
 
-    return (ret);
+    return (ret.trim ());
 }
 
-/**
- * @summary Create a JavaScript object representation of the thing on this page.
- * @param {function} callback the function to call when the thing is ready, called with the created thing
- */
-function thing (callback)
+function get_images ()
 {
-    var as;
     var thumbs;
-    var ret;
-
-    ret = {};
-
-    ret.title = get_title ();
-    ret.url = [location.protocol, '//', location.host, location.pathname].join ('');
-    ret.authors = [ document.getElementsByClassName ("thing-header-data")[0].getElementsByTagName ("h2")[0].getElementsByTagName ("a")[0].innerHTML ];
-    ret.licenses = [ document.getElementsByClassName ("thing-license")[0].getAttribute ("title") ];
-    ret.tags = [];
-    as = document.getElementsByClassName ("tags")[0].getElementsByTagName ("a");
-    for (var i = 0; i < as.length; i++)
-        ret.tags.push (as[i].innerHTML.trim ());
-    ret.thumbnailURL = [];
-    thumbs = document.getElementsByClassName ("thing-gallery-thumb");
-    for (var j = 0; j < thumbs.length; j++)
-        ret.thumbnailURL.push (thumbs[j].getAttribute ("data-large-url"));
-    ret.description = extract_text ("description");
-    //ret.instructions = extract_text ("instructions");
-
-    // try and fill in the author's real name
-    get_author
-    (
-        ret.authors[0],
-        function (full_name)
-        {
-            if (full_name != ret.authors[0])
-                ret.authors[0] = full_name + " (" + ret.authors[0] + ")";
-            callback (ret);
-        }
-    );
-}
-
-/**
- * @summary Get the files associated with the thing
- * @returns {object[]} a set of objects with the name and associated url
- */
-function get_files ()
-{
-    var links;
     var ret;
 
     ret = [];
 
-    links = document.getElementsByClassName ("thing-file-download-link");
-    for (var i = 0; i < links.length; i++)
-        ret.push
-        (
-            {
-                name : links[i].getAttribute ("data-file-name"),
-                url : links[i].getAttribute ("href")
-            }
-        );
+    thumbs = document.getElementsByClassName ("thing-gallery-thumb");
+    for (var j = 0; j < thumbs.length; j++)
+        ret.push (thumbs[j].getAttribute ("data-large-url"));
 
     return (ret);
-}
-
-/**
- * @summary Send the thing on this page to the things database
- * @param {object} event <em>not used</em>
- */
-function capture (event)
-{
-    document.getElementById ("import_thing_button").disabled = true;
-    downloadAllFiles (thing_files, function (files)
-    {
-        console.log ("files downloaded: " + files.length);
-        downloadAllImages (thing_metadata.thumbnailURL, function (blobs)
-        {
-            console.log ("images downloaded: " + blobs.length);
-
-            var directory = encodeURIComponent (make_file_name (get_title ()));
-            var filelist = [];
-            files.forEach (function (file) { file.data.name = file.name; filelist.push (file.data); });
-            torrent.MakeTorrent (filelist, 16384, directory, null, function (tor)
-            {
-                // set the time to match the upload date
-                var header = document.getElementsByClassName ("thing-header-data")[0];
-                var subhead = header.getElementsByTagName ("h2")[0];
-                var time = subhead.getElementsByTagName ("time")[0];
-                var date = time.getAttribute ("datetime");
-                date = date.replace (" GMT", "Z").replace (" ", "T");
-
-                tor["creation date"] = new Date (date).valueOf ();
-                tor["created by"] = "ThingiverseImport v$$version$$";
-                tor.info.thing = thing_metadata;
-                tor._id = torrent.InfoHash (tor.info); // setting _id triggers the PUT method instead of POST
-
-                convertImagesToDataURLs (blobs, 512, 512, function (urls)
-                {
-                    console.log ("images converted: " + urls.length);
-
-                    thing_metadata.thumbnails = urls;
-
-                    // make the list of files for attachment with names adjusted for directory
-                    var uploadfiles = [];
-                    files.forEach (
-                        function (file)
-                        {
-                            if (1 < files.length)
-                                uploadfiles.push (new File ([file.data], directory + "/" + encodeURIComponent (file.name), { type: file.data.type, lastModifiedDate: file.data.lastModifiedDate }));
-                            else
-                                uploadfiles.push (file.data);
-                        });
-
-                    // add the torrent to a copy of the list of files to be saved
-                    uploadfiles.push (new File ([bencoder.str2ab (bencoder.encode (tor))], tor._id + ".torrent", { type: "application/octet-stream" }));
-
-                    // convert the pieces into an array (CouchDB doesn't store ArrayBuffers)
-                    tor.info.pieces = torrent.PiecesToArray (tor.info.pieces);
-
-                    var id = tor._id;
-                    var options =
-                    {
-                        success: function ()
-                        {
-                            console.log ("document " + id + " saved");
-                            console_log ("Uploaded thing " + id);
-                            document.getElementById ("import_thing_button").disabled = false;
-                        },
-                        error: function ()
-                        {
-                            console.log ("failed to save document " + id);
-                            console_log ("Failed to upload thing " + id);
-                            document.getElementById ("import_thing_button").disabled = false;
-                        },
-                        CORS: configuration.getServer (),
-                        USE_PUT: true
-                    };
-                    records.saveDocWithAttachments (database, tor, options, uploadfiles);
-                });
-            });
-        });
-    });
 }
 
 /**
@@ -493,6 +368,232 @@ function get_author (name, callback)
         }
     };
     xmlhttp.send ();
+}
+
+/**
+ * @summary Create a JavaScript object representation of the thing on this page.
+ * @param {function} callback the function to call when the thing is ready, called with the created thing
+ */
+function thing (callback)
+{
+    var as;
+    var ret;
+
+    ret = {};
+
+    ret.title = get_title ();
+    ret.url = [location.protocol, '//', location.host, location.pathname].join ('');
+    ret.authors = [ document.getElementsByClassName ("thing-header-data")[0].getElementsByTagName ("h2")[0].getElementsByTagName ("a")[0].innerHTML ];
+    ret.licenses = [ document.getElementsByClassName ("thing-license")[0].getAttribute ("title") ];
+    ret.tags = [];
+    as = document.getElementsByClassName ("tags")[0].getElementsByTagName ("a");
+    for (var i = 0; i < as.length; i++)
+        ret.tags.push (as[i].innerHTML.trim ());
+    ret.thumbnailURL = get_images ();
+    ret.description = extract_text ("description");
+    //ret.instructions = extract_text ("instructions");
+
+    // try and fill in the author's real name
+    get_author
+    (
+        ret.authors[0],
+        function (full_name)
+        {
+            if (full_name != ret.authors[0])
+                ret.authors[0] = full_name + " (" + ret.authors[0] + ")";
+            callback (ret);
+        }
+    );
+}
+
+/**
+ * @summary Get the files associated with the thing.
+ * @returns {object[]} a set of objects with the name and associated url
+ */
+function get_files ()
+{
+    var links;
+    var ret;
+
+    ret = [];
+
+    links = document.getElementsByClassName ("thing-file-download-link");
+    for (var i = 0; i < links.length; i++)
+        ret.push
+        (
+            {
+                name : links[i].getAttribute ("data-file-name"),
+                url : links[i].getAttribute ("href")
+            }
+        );
+
+    return (ret);
+}
+
+/**
+ * @summary Get the mime type associated with an image file name.
+ * @param {string} name - the name of the file
+ * @returns {string} best guess at a mime type for the file
+ */
+function get_image_mime (name)
+{
+    var ret;
+
+    ret = null;
+
+    switch (name.substring (name.lastIndexOf (".") + 1))
+    {
+        case "gif":
+            ret = "image/gif"; // GIF image; Defined in RFC 2045 and RFC 2046
+            break;
+        case "jpg":
+            ret = "image/jpeg"; // JPEG JFIF image; Defined in RFC 2045 and RFC 2046
+            break;
+        case "png":
+            ret = "image/png"; // Portable Network Graphics; Registered,[13] Defined in RFC 2083
+            break;
+        case "bmp":
+            ret = "image/bmp"; // BMP file format;
+            break;
+        case "svg":
+            ret = "image/svg+xml"; // SVG vector image; Defined in SVG Tiny 1.2 Specification Appendix M
+            break;
+        case "tif":
+            ret = "image/tiff"; // TIF image;
+            break;
+    }
+
+    return (ret);
+}
+
+function upload (tor, directory, files, images)
+{
+    // make the list of files for attachment with names adjusted for directory
+    var uploadfiles = [];
+    files.forEach
+    (
+        function (file)
+        {
+            if (1 < files.length)
+                uploadfiles.push (new File ([file.data], directory + "/" + encodeURIComponent (file.name), { type: file.data.type, lastModifiedDate: file.data.lastModifiedDate }));
+            else
+                uploadfiles.push (file.data);
+        }
+    );
+
+    // add the torrent to a copy of the list of files to be saved
+    uploadfiles.push (new File ([bencoder.str2ab (bencoder.encode (tor))], tor._id + ".torrent", { type: "application/octet-stream" }));
+
+    // add the image files if supplied
+    if (images)
+        uploadfiles = uploadfiles.concat (images);
+
+    // convert the pieces into an array (CouchDB doesn't store ArrayBuffers)
+    tor.info.pieces = torrent.PiecesToArray (tor.info.pieces);
+
+    var id = tor._id;
+    var options =
+    {
+        success: function ()
+        {
+            console.log ("document " + id + " saved");
+            console_log ("Uploaded thing <a href='" + configuration.getCouchDB () + "/" + id + "' target='_blank'>" + id + "</a>");
+            document.getElementById ("import_thing_button").disabled = false;
+        },
+        error: function (status, msg, reason)
+        {
+            console.log ("failed to save document " + id + " " + msg + ": " + reason);
+            console_log ("Failed to upload thing " + id + " " + msg + ": " + reason);
+            document.getElementById ("import_thing_button").disabled = false;
+        },
+        CORS: configuration.getServer (),
+        USE_PUT: true
+    };
+    records.saveDocWithAttachments (database, tor, options, uploadfiles);
+}
+
+/**
+ * @summary Send the thing on this page to the things database
+ * @param {object} event <em>not used</em>
+ */
+function capture (event)
+{
+    var dataurl = document.getElementById ("images_as_dataurl").checked;
+    document.getElementById ("import_thing_button").disabled = true;
+    thing_metadata.thumbnailURL = get_images (); // this is overwritten below
+    downloadAllFiles (thing_files, function (files)
+    {
+        console.log ("files downloaded: " + files.length);
+        downloadAllImages (thing_metadata.thumbnailURL, function (blobs)
+        {
+            console.log ("images downloaded: " + blobs.length);
+
+            var directory = encodeURIComponent (make_file_name (get_title ()));
+            var filelist = [];
+            files.forEach (function (file) { file.data.name = file.name; filelist.push (file.data); });
+            torrent.MakeTorrent (filelist, 16384, directory, null, function (tor)
+            {
+                // set the time to match the upload date
+                var header = document.getElementsByClassName ("thing-header-data")[0];
+                var subhead = header.getElementsByTagName ("h2")[0];
+                var time = subhead.getElementsByTagName ("time")[0];
+                var date = time.getAttribute ("datetime");
+                date = date.replace (" GMT", "Z").replace (" ", "T");
+
+                tor["creation date"] = new Date (date).valueOf ();
+                tor["created by"] = "ThingiverseImport v$$version$$";
+                tor.info.thing = thing_metadata;
+
+                if (dataurl)
+                    convertImagesToDataURLs
+                    (
+                        blobs,
+                        512,
+                        512,
+                        function (urls)
+                        {
+                            console.log ("images converted: " + urls.length);
+                            thing_metadata.thumbnailURL = urls;
+                            tor._id = torrent.InfoHash (tor.info); // setting _id triggers the PUT method instead of POST
+                            upload (tor, directory, files);
+                        }
+                    );
+                else
+                {
+                    var images = [];
+                    var thumbnails = [];
+                    thing_metadata.thumbnailURL.forEach
+                    (
+                        function (url, index)
+                        {
+                            var name;
+                            var test;
+                            var suffix;
+                            var mime;
+                            var file;
+
+                            name = url.substring (url.lastIndexOf ("/") + 1);
+                            test = name;
+                            suffix = 0;
+                            while (-1 != thumbnails.indexOf (test))
+                                test = name.substring (0, name.lastIndexOf (".")) + "_" + ++suffix + name.substring (name.lastIndexOf ("."));
+                            name = test;
+                            thumbnails.push (name);
+                            mime = get_image_mime (name);
+                            if (null != mime)
+                                file = new File ([blobs[index]], name, { type: mime });
+                            else
+                                file = new File ([blobs[index]], name);
+                            images.push (file);
+                        }
+                    );
+                    thing_metadata.thumbnailURL = thumbnails;
+                    tor._id = torrent.InfoHash (tor.info); // setting _id triggers the PUT method instead of POST
+                    upload (tor, directory, files, images);
+                }
+            });
+        });
+    });
 }
 
 /**
@@ -573,45 +674,65 @@ function display_contents (callback)
 (
     function initialize ()
     {
-        if (!document.getElementsByClassName ("thingiverse_test")[0])
+        function isThing ()
         {
-            var trigger1 = "http://www.thingiverse.com/thing:";
-            var trigger2 = "https://www.thingiverse.com/thing:";
-            if ((document.URL.substring (0, trigger1.length) == trigger1) || (document.URL.substring (0, trigger2.length) == trigger2))
-            {
-                console.log ("initializing thingiverse_import");
-                var ff = document.createElement ("div");
-                ff.setAttribute ("style", "position: relative;");
-                var template =
-                    "<div style='position: absolute; top: 80px; left: 20px;'>" +
-                        "<div style='height: 100%'>" +
-                            "<div style='position: relative; top: +12px; left: +35px; background: #f5f5f5; width: 135px; padding-left: 20px; color: #337ab7;'>Thing Metadata</div>" +
-                            "<pre id='metadata_panel' style='max-width: 500px; overflow-x: hidden; max-height: 25%; overflow-y: auto; border: 5px solid #e3edf9;border-radius: 2em; padding: 2em; margin-bottom: 1em'></pre>" +
-                            "<div style='position: relative; top: +12px; left: +35px; background: #f5f5f5; width: 100px; padding-left: 20px; color: #337ab7;'>Thing Files</div>" +
-                            "<pre id='files_panel' style='max-width: 500px; overflow-x: hidden; max-height: 25%; overflow-y: auto; border: 5px solid #e3edf9;border-radius: 2em; padding: 2em; margin-bottom: 1em'></pre>" +
-                            "<div style='position: relative; top: +12px; left: +35px; background: #f5f5f5; width: 100px; padding-left: 20px; color: #337ab7;'>Messages</div>" +
-                            "<pre id='console_panel' style='max-width: 500px; overflow-x: hidden; max-height: 25%; overflow-y: auto; border: 5px solid #e3edf9;border-radius: 2em; padding: 2em; margin-bottom: 1em'></pre>" +
-                            "<button id='import_thing_button' type='button' class='btn btn-lg btn-primary' disabled style='float: right; text-shadow: initial; background-color: #337ab7;'>Import to things</button>" +
-                        "</div>" +
-                    "</div>";
-                ff.innerHTML = template;
-                document.getElementsByTagName ("body")[0].appendChild (ff);
-                var button = document.getElementById ("import_thing_button");
-                button.addEventListener ("click", capture);
-                display_contents
-                (
-                    function ()
-                    {
-                        ping
-                        (
-                            function ()
-                            {
-                                console.log ("done initializing thingiverse_import");
-                            }
-                        );
-                    }
-                );
-            }
+            var triggers =
+            [
+                 "http://www.thingiverse.com/thing:",
+                 "https://www.thingiverse.com/thing:"
+            ];
+            var url;
+            var thing;
+            var ret;
+
+            ret = false;
+            url = document.URL;
+            for (var i = 0; !ret && (i < triggers.length); i++)
+                if (url.substring (0, triggers[i].length) == triggers[i])
+                {
+                    thing = url.substring (triggers[i].length);
+                    if (String (Number (thing)) == thing)
+                        ret = true;
+                }
+
+            return (ret);
+        }
+
+        if (isThing ())
+        {
+            console.log ("initializing thingiverse_import");
+            var ff = document.createElement ("div");
+            ff.setAttribute ("style", "position: relative;");
+            var template =
+                "<div style='position: absolute; top: 80px; left: 20px;'>" +
+                    "<div style='height: 100%'>" +
+                        "<div style='position: relative; top: +12px; left: +35px; background: #f5f5f5; width: 135px; padding-left: 20px; color: #337ab7;'>Thing Metadata</div>" +
+                        "<pre id='metadata_panel' style='max-width: 500px; overflow-x: hidden; max-height: 25%; overflow-y: auto; border: 5px solid #e3edf9;border-radius: 2em; padding: 2em; margin-bottom: 1em'></pre>" +
+                        "<div style='position: relative; top: +12px; left: +35px; background: #f5f5f5; width: 100px; padding-left: 20px; color: #337ab7;'>Thing Files</div>" +
+                        "<pre id='files_panel' style='max-width: 500px; overflow-x: hidden; max-height: 25%; overflow-y: auto; border: 5px solid #e3edf9;border-radius: 2em; padding: 2em; margin-bottom: 1em'></pre>" +
+                        "<div style='position: relative; top: +12px; left: +35px; background: #f5f5f5; width: 100px; padding-left: 20px; color: #337ab7;'>Messages</div>" +
+                        "<pre id='console_panel' style='max-width: 500px; overflow-x: hidden; max-height: 25%; overflow-y: auto; border: 5px solid #e3edf9;border-radius: 2em; padding: 2em; margin-bottom: 1em'></pre>" +
+                        "<div style='margin-left: 25px;'><label for='images_as_dataurl'><input id='images_as_dataurl' type='checkbox'><span style='margin-left: 10px;'>Images as data urls</span></label></div>" +
+                        "<button id='import_thing_button' type='button' class='btn btn-lg btn-primary' disabled style='float: right; text-shadow: initial; background-color: #337ab7;'>Import to things</button>" +
+                    "</div>" +
+                "</div>";
+            ff.innerHTML = template;
+            document.getElementsByTagName ("body")[0].appendChild (ff);
+            var button = document.getElementById ("import_thing_button");
+            button.addEventListener ("click", capture);
+            display_contents
+            (
+                function ()
+                {
+                    ping
+                    (
+                        function ()
+                        {
+                            console.log ("done initializing thingiverse_import");
+                        }
+                    );
+                }
+            );
         }
     }
 )();

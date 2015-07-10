@@ -2,7 +2,7 @@
  * @fileOverview Install the user script in the browser.
  * @name thingimporter/userscript
  * @author Derrick Oswald
- * @version 1.0
+ * @version 2.1
  */
 define
 (
@@ -11,7 +11,7 @@ define
      * @summary Create, download (but not install) and test the user script.
      * @name thingimporter/userscript
      * @exports thingimporter/userscript
-     * @version 1.0
+     * @version 2.1
      */
     function (login, configuration)
     {
@@ -217,7 +217,7 @@ define
             var a;
             var substitutions =
             {
-                version: "2.0",
+                version: "2.1",
                 protocol: location.protocol,
                 host: location.hostname,
                 port: location.port,
@@ -225,11 +225,11 @@ define
                 database: configuration.getConfigurationItem ("pending_database")
             };
 
-
             // get the user script
+            script = "js/thingimporter/thingiverse_import.user.js";
             get_script
             (
-                "js/thingimporter/thingiverse_import.user.js",
+                script,
                 {
                     success: function (text)
                     {

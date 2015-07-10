@@ -268,6 +268,7 @@ define
                     result.doc_root = configuration.getDocumentRoot () + "/" + database + "/";
                     result.rows.forEach (function (item)
                     {
+                        var thing = result.doc_root + item.id + "/";
                         var list = [];
                         for (var property in item.value._attachments)
                             if (item.value._attachments.hasOwnProperty (property))
@@ -277,16 +278,22 @@ define
                                 (
                                     {
                                         name: property,
-                                        url: (result.doc_root + item.id + "/" + encodeURIComponent (property)),
+                                        url: (thing + encodeURIComponent (property)),
                                         torrent: eye
                                     }
                                 );
                             }
                         item.value.filelist = list;
                         list = [];
-                        if (item.value.info.thing.thumbnails)
-                            for (var i = 0; i < item.value.info.thing.thumbnails.length; i++)
-                                list.push ({index: i, image: item.value.info.thing.thumbnails[i], active: (0 == i)});
+                        if (item.value.info.thing.thumbnailURL)
+                            for (var i = 0; i < item.value.info.thing.thumbnailURL.length; i++)
+                            {
+                                var url = item.value.info.thing.thumbnailURL[i];
+                                // if it doesn't start with data: or http: or https: then prepend the thing url
+                                if (!("data:" == url.substring (0, 5)) && !("http:" == url.substring (0, 5)) && !("https:" == url.substring (0, 6)))
+                                    url = thing + url;
+                                list.push ({index: i, image: url, active: (0 == i)});
+                            }
                         item.value.thumbnaillist = list;
                     });
                     result.database = database;
