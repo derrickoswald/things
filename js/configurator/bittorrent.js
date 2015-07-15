@@ -44,7 +44,7 @@ define
          * @description Creates an http proxy entry for the provided name and url.
          * @param {object} options - functions for success and error callback
          * @function create_proxy
-         * @memberOf module:personalization
+         * @memberOf module:bittorrent
          */
         function create_proxy (name, url, options)
         {
@@ -62,7 +62,7 @@ define
          * @description Creates an http proxy entry for deluge.
          * @param {object} options - functions for success and error callback
          * @function create_deluge_proxy
-         * @memberOf module:personalization
+         * @memberOf module:bittorrent
          */
         function create_deluge_proxy (options)
         {
@@ -73,7 +73,7 @@ define
          * @summary Create the deluge proxy and restart the CouchDB server.
          * @description Event handler for the Deluge button.
          * @function deluge
-         * @memberOf module:personalization
+         * @memberOf module:bittorrent
          */
         function deluge (event)
         {
@@ -94,7 +94,7 @@ define
          * If the configuration database doesn't yet exist it is created.
          * @param {object} event - the save button press event
          * @function save
-         * @memberOf module:personalization
+         * @memberOf module:bittorrent
          */
         function save (event)
         {
@@ -138,7 +138,7 @@ define
          * @description Fills the form with existing configuration data and attaches handlers for the
          * various operations.
          * @function init
-         * @memberOf module:personalization
+         * @memberOf module:bittorrent
          */
         function init ()
         {

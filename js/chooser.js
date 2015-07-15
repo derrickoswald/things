@@ -232,7 +232,6 @@ define
         {
             var link;
             var index;
-            var list;
 
             // get the index
             link = event.target;

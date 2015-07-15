@@ -17,21 +17,20 @@ or you can drag and drop one or more files onto the <b>Drop files here...</b> ar
         </div>
     </div>
     <div class="form-group">
-        <label class="col-sm-3 control-label" for="files_drop_zone">Drag & drop</label>
+        <label class="col-sm-3 control-label" for="choose_thing_files">Files</label>
         <div class="col-sm-9">
-            <div id="files_drop_zone" class="form-control">
-                Drop files here...
+            <div class="input-group">
+                <span id="choose_thing_files" class="input-group-btn">
+                    <span class="btn btn-success btn-file">
+                        <i class="glyphicon glyphicon-plus marginright"></i>
+                        Add files...
+                        <input id="thing_files" type="file" name="files[]" multiple>
+                    </span>
+                </span>
+                <div id="files_drop_zone" class="form-control drop_zone">
+                    Drop files here...
+                </div>
             </div>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-3 control-label" for="choose_thing_files"></label>
-        <div class="col-sm-9">
-            <span id="choose_thing_files" class="btn btn-success fileinput-button">
-                <i class="glyphicon glyphicon-plus"></i>
-                <span>Add files...</span>
-                <input id="thing_files" type="file" name="files[]" multiple>
-            </span>
         </div>
     </div>
 </div>

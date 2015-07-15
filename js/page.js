@@ -6,7 +6,7 @@
  */
 define
 (
-    ["configuration","mustache"],
+    ["configuration","mustache", "login"],
     /**
      * @summary Single page application layout component.
      * @description ... will eventually be used for back button history,
@@ -15,7 +15,7 @@ define
      * @exports page
      * @version 1.0
      */
-    function (configuration, mustache)
+    function (configuration, mustache, login)
     {
         var left;
         var content;
@@ -35,6 +35,10 @@ define
             "</div>" +
             "<div id='info'></div>";
 
+        function getDatabases ()
+        {
+            return (databases);
+        }
 
 // ToDo: media query based layout
 //            // see http://www.sitepoint.com/javascript-media-queries/
@@ -211,8 +215,20 @@ define
             for (var i = 0; i < links.length; i++)
                 links[i].addEventListener ("click", switch_database);
 
-            // check for changes
-            changes (html_id);
+            // check for changes after maybe auto-login first
+            login.isLoggedIn
+            (
+                {
+                    success: function (userCtx)
+                    {
+                        changes (html_id);
+                    },
+                    error: function (userCtx)
+                    {
+                        changes (html_id);
+                    }
+                }
+            );
         }
 
         /**
@@ -316,10 +332,18 @@ define
          */
         function switch_database (event)
         {
+            var active;
+            var next;
+
             event.stopPropagation ();
             event.preventDefault ();
 
-            var next = event.target.parentElement.getAttribute ("data-target");
+            // reset active navigation tab
+            active = document.getElementById ("navigator_menu").getElementsByClassName ("active")[0];
+            if (active)
+                active.classList.remove ("active");
+            // switch to chosen database
+            next = event.target.parentElement.getAttribute ("data-target");
             set_current (next);
         }
 
@@ -405,6 +429,7 @@ define
         var _page = $.eventable
         (
             {
+                getDatabases: getDatabases,
                 layout: layout,
                 get_layout: get_layout,
                 get_current: get_current,

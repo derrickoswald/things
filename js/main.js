@@ -108,18 +108,24 @@ requirejs
                         return (
                             /**
                              * Click event handler.
-                             * @param {object} event the click event <em>not used</em>
+                             * @param {object} event - the click event
                              */
                             function (event)
                             {
-                                var link;
+                                var parent;
+                                var active;
 
+                                // stop the normal link action
                                 event.preventDefault ();
-                                link = $ (event.target); // get a jQuery element
-                                link.parent ().parent ().find (".active").removeClass ("active");
-                                link.parent ().addClass ("active");
+                                // switch class active
+                                parent = event.target.parentElement;
+                                active = parent.parentElement.getElementsByClassName ("active")[0];
+                                if (active)
+                                    active.classList.remove ("active");
+                                parent.classList.add ("active");
                                 // close the menu (for cell phones)
-                                $ ("#navigator_menu").removeClass ("in");
+                                document.getElementById ("navigator_menu").classList.remove ("in");
+                                // initialize the new nav
                                 fn ();
                             }
                         );

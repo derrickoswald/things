@@ -88,7 +88,7 @@ define
                     "<td class='center'><span class='glyphicon glyphicon-remove' data-file='{{filename}}'></span></td>" +
                 "</tr>" +
                 "{{/filelist}}" +
-                "{{^filelist}}<tr><td><td>No files selected</td><td class='right'></td></tr>{{/filelist}}" +
+                "{{^filelist}}<tr><td></td><td>No files selected</td><td class='right'></td></tr>{{/filelist}}" +
                 "<tfoot>" +
                     "<tr><td></td><td></td><td id='total_size' class='right'>{{total}}</td><td class='center'></td></tr>" +
                 "</tfoot>";
@@ -112,9 +112,9 @@ define
                 document.getElementById ("directory_group").classList.remove ("has-error");
             // set the state of the Next button
             if (data.files && ((1 == data.files.length) || ((1 < data.files.length) && data.directory)))
-                data.next_button.removeAttribute ("disabled");
+                document.getElementById ("next").removeAttribute ("disabled");
             else
-                data.next_button.setAttribute ("disabled", "disabled");
+                document.getElementById ("next").setAttribute ("disabled", "disabled");
             // add delete function to each file
             var removes = document.getElementById ("file_table").getElementsByClassName ("glyphicon-remove");
             var remove = remove_file.bind (this, data);
@@ -171,6 +171,7 @@ define
          * @description Attached to the directory input box .
          * @param {event} event - the keyup event
          * @param data - the context object for the wizard
+         * @function directory_change
          * @memberOf module:thingmaker/files
          */
         function directory_change (event, data)
@@ -183,6 +184,18 @@ define
                 data.directory = dir;
             else
                 delete data.directory;
+            update (data);
+        }
+
+        /**
+         * Initialize the page based on the wizard data object.
+         * @param {object} event the tab being shown event
+         * @param {object} data the data object for the thingmaker
+         * @function init
+         * @memberOf module:thingmaker/files
+         */
+        function init (event, data)
+        {
             update (data);
         }
 
@@ -202,7 +215,12 @@ define
                                 // drag and drop listeners
                                 { id: "files_drop_zone", event: "dragover", code: file_drag, obj: this },
                                 { id: "files_drop_zone", event: "drop", code: file_drop, obj: this }
-                            ]
+                            ],
+                            transitions:
+                            {
+                                enter: init,
+                                obj: this
+                            }
                         }
                     );
                 }

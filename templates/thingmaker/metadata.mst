@@ -8,7 +8,7 @@
 <p>Fill in this form with the metadata for your <em>thing</em> and press the <b>Make</b> button.</p>
 <p>For details about the fields, consult the <a href="http://thingtracker.net/#specification">specification</a>.</p>
 
-<div id="thing_form" class="form-horizontal">
+<div class="form-horizontal">
     <div class="form-group">
         <label class="col-sm-3 control-label" for="title">Title</label>
         <div class="col-sm-9">
@@ -33,11 +33,7 @@
     </div>
     <div id="tags" class="form-group">
     </div>
-    <div class="form-group">
-        <label class="col-sm-3 control-label" for="thumbnailURL">Thumbnail URL</label>
-        <div class="col-sm-9">
-            <input id="thumbnailURL" class="form-control" type="text" name="thumbnailURL" placeholder="http://...">
-        </div>
+    <div id="thumbnails" class="form-group">
     </div>
     <div class="form-group">
         <label class="col-sm-3 control-label" for="make_thing_button"></label>
@@ -49,6 +45,5 @@
         </div>
     </div>
 </div>
-
 
 <div id="torrent_link"></div>

@@ -134,13 +134,12 @@ define
                             attachments
                         );
                     },
-                    error: function(status)
+                    error: function (status)
                     {
-                        console.log(status);
+                        console.log (status);
                     }
                 }
             );
-
         }
 
         /**

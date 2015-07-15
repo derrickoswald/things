@@ -106,6 +106,10 @@ define
          */
         function getsalt (name, options)
         {
+//            options.success
+//            (
+//                {"status":{"code":0,"name":"OK"},"salt":"a8bba31bf941a42c7cc9ab00f710ecfd","login_session":"lgHZIDc4YzZhNGYwODI4NzkxZTVmMTdhNzRmMjY3ZmIxZTAwzlWf2GXNCWDAxCBa5aKC3IhPqMaRVjRFbnoWb5WicLaAngfKShi8djahVg==","pwh_version":3,"csrf_token":"lgHZIDA0ZWU0YmNkNTg3MDE3MmE3Mjk4ZDU1MGNhZTdkZTA4zlWf1qzOAAFRgMDEIPXtjBOXiZZyt73TUqwgxm/2Gfx6DOMymGZL3A6mS/JG"}
+//            );
             var url;
             var xmlhttp;
 
@@ -151,16 +155,16 @@ define
                         triplesec.scrypt
                         (
                             {
-                                key: new triplesec.WordArray (passphrase), // triplesec.WordArray.from_utf8 (passphrase),
+                                key: triplesec.WordArray.from_utf8 (passphrase), // new triplesec.WordArray (passphrase),
                                 salt: triplesec.WordArray.from_hex (getsalt_response.salt), // new triplesec.WordArray (hex2bin (getsalt_response.salt)),
                                 r: 8,
                                 N: 32768,
                                 p: 1,
-//                              c0:
+//                              c0: 1
 //                              c1:
 //                              c:
 //                              klass:
-                                dkLen: 224,
+                                dkLen: 320,
                                 progress_hook: function (a)
                                 {
                                     console.log (JSON.stringify (a));

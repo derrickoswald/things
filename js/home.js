@@ -24,13 +24,13 @@ define
                             "<div class='container-fluid'>" +
                                 "<div class='row'>" +
                                     "<div class='col-xs-6'>" +
-                                        "<h2 class='hidden-lg'><a href='{{info.thing.url}}'>{{short_title}}</a></h2>" +
-                                        "<h2 class='hidden-xs hidden-sm hidden-md'><a href='{{info.thing.url}}'>{{info.thing.title}}</a></h2>" +
+                                        "<h2 class='hidden-lg'><a href='{{info.thing.url}}' target='_blank'>{{short_title}}</a></h2>" +
+                                        "<h2 class='hidden-xs hidden-sm hidden-md'><a href='{{info.thing.url}}' target='_blank'>{{info.thing.title}}</a></h2>" +
                                     "</div>" +
                                     "<div class='col-xs-6'>" +
                                         "<div class='pull-right'>" +
-                                            "<span class='fineprint hidden-lg'><a href='{{doc_root}}{{_id}}'>{{short_id}}</a></span>" +
-                                            "<span class='fineprint hidden-xs hidden-sm hidden-md'><a href='{{doc_root}}{{_id}}'>{{_id}}</a></span>" +
+                                            "<span class='fineprint hidden-lg'><a href='{{doc_root}}{{_id}}' target='_blank'>{{short_id}}</a></span>" +
+                                            "<span class='fineprint hidden-xs hidden-sm hidden-md'><a href='{{doc_root}}{{_id}}' target='_blank'>{{_id}}</a></span>" +
                                             "{{#options.edit}}" +
                                                 "<span class='edit_id glyphicon glyphicon-pencil marginleft' data-toggle='tooltip' data-placement='top' title='Edit' data-database='{{database}}' data-id='{{_id}}' data-rev='{{_rev}}'>" +
                                                 "</span>" +
@@ -84,7 +84,7 @@ define
                                         "<ul class='thing_property_list attachment'>" +
                                             "{{#filelist}}" +
                                                 "<li>" +
-                                                    "<a href='{{url}}'>{{name}}</a>" +
+                                                    "<a href='{{url}}' target='_blank'>{{name}}</a>" +
                                                     "{{#torrent}}" +
                                                         "<span class='view_torrent glyphicon glyphicon-eye-open marginleft' data-toggle='tooltip' data-placement='top' title='View' data-database='{{database}}' data-id='{{_id}}' data-attachment='{{url}}' data-name='{{name}}'></span>" +
                                                     "{{/torrent}}" +
@@ -96,7 +96,7 @@ define
                                 "<div class='row'>" +
                                     "{{#thumbnaillist}}" +
                                         "<div class='col-xs-6 col-md-3'>" +
-                                            "<a href='#' class='thumbnail'>" +
+                                            "<a href='{{image}}' class='thumbnail' target='_blank'>" +
                                                 "<img src='{{image}}' alt='{{_id}}_image_{{index}}'>" +
                                             "</a>" +
                                         "</div>" +
@@ -107,7 +107,7 @@ define
 //                                    "<div class='row-same-height'>" +
 //                                        "{{#thumbnaillist}}" +
 //                                        "<div class='col-xs-6 col-xs-height col-md-3'>" +
-//                                            "<a href='#' class='thumbnail'>" +
+//                                            "<a href='#' class='thumbnail' target='_blank'>" +
 //                                                "<img src='{{image}}' alt='{{_id}}_image_{{index}}'>" +
 //                                            "</a>" +
 //                                        "</div>" +
@@ -128,11 +128,11 @@ define
 //                                                "</div>" +
 //                                            "{{/thumbnaillist}}" +
 //                                        "</div>" +
-//                                        "<a class='left carousel-control' href='#{{_id}}_carousel' role='button' data-slide='prev'>" +
+//                                        "<a class='left carousel-control' href='#{{_id}}_carousel' role='button' data-slide='prev' target='_blank'>" +
 //                                            "<span class='glyphicon glyphicon-chevron-left' aria-hidden='true'></span>" +
 //                                            "<span class='sr-only'>Previous</span>" +
 //                                        "</a>" +
-//                                        "<a class='right carousel-control' href='#{{_id}}_carousel' role='button' data-slide='next'>" +
+//                                        "<a class='right carousel-control' href='#{{_id}}_carousel' role='button' data-slide='next' target='_blank'>" +
 //                                            "<span class='glyphicon glyphicon-chevron-right' aria-hidden='true'></span>" +
 //                                            "<span class='sr-only'>Next</span>" +
 //                                         "</a>" +
@@ -385,8 +385,8 @@ define
                                 {
                                     success: function (data)
                                     {
-                                         console.log (data);
-                                         initialize ();
+                                        console.log ("Document " + data.id + " revision: " + data.rev + " deleted.");
+                                        initialize ();
                                     },
                                     error: function (status)
                                     {

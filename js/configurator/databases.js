@@ -21,7 +21,7 @@ define
         /**
          * list of current existing databases
          * @type {string[]}
-         * @memberOf module:databases
+         * @memberOf module:configurator/databases
          */
         var list = null;
 
@@ -35,7 +35,7 @@ define
          * @param {string} validation - the validate_doc_update function
          * @param {boolean} security - <em>optional</em> security document to attach to the database
          * @function create_database
-         * @memberOf module:databases
+         * @memberOf module:configurator/databases
          */
         function create_database (name, views, validation, security)
         {
@@ -78,7 +78,7 @@ define
          * If the configuration database doesn't yet exist it is created.
          * @param {object} event - the save button press event
          * @function save
-         * @memberOf module:databases
+         * @memberOf module:configurator/databases
          */
         function save (event)
         {
@@ -189,7 +189,7 @@ define
          * @summary Update the checkbox for security of the local database.
          * @param {string} db - the name of the database to interrogate
          * @function create_proxies
-         * @memberOf module:databases
+         * @memberOf module:configurator/databases
          */
         function update_local_security_state (db)
         {
@@ -224,7 +224,7 @@ define
          * @param {string} id_input - the element id of the user entered name of the database
          * @param {string} id_addon - the element id of the addon to update
          * @function update_addon
-         * @memberOf module:databases
+         * @memberOf module:configurator/databases
          */
         function update_addon (id_input, id_addon)
         {
@@ -256,7 +256,7 @@ define
          * @summary Update the form state for creating databases.
          * @param {object} event - the event that triggered the update request
          * @function update_database_state
-         * @memberOf module:databases
+         * @memberOf module:configurator/databases
          */
         function update_database_state (event)
         {
@@ -295,7 +295,7 @@ define
          * @description Fills the form with existing configuration data and attaches handlers for the
          * various operations.
          * @function init
-         * @memberOf module:databases
+         * @memberOf module:configurator/databases
          */
         function init ()
         {

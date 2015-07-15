@@ -4,29 +4,45 @@
     <link rel="stylesheet" href="../../css/things.css">
 }}
 <h2>Select a Template</h2>
-<em>This step is optional.</em><br>
-Choose a torrent file that will be used as a basis for the <em>Thing</em> you create.<br>
+<p><em>This step is optional.</em></p>
+<p>You can select an existing <em>Thing</em> to use as a template for your new <em>Thing</em>.</p>
+<p>There are two ways to do this:</p>
+<ul>
+<li>Select an existing thing from a database. You need to choose the database and then select the
+thing from the list of things in that database.</li>
+<li>Choose a torrent file that will be used as a basis for the <em>Thing</em> you create.
 This can be a torrent file from a previous version of your <em>Thing</em>, or just a template torrent file
-that has mostly the same metadata as you will be filling in in Step 3.
+that has similar metadata.</li>
+</ul>
+<p></p>
 <div class="form-horizontal">
     <div class="form-group">
-        <label class="col-sm-3 control-label" for="template_drop_zone">Drag & drop</label>
+        <label class="col-sm-3 control-label" for="source_database">Source database</label>
+        <div id="source_database_chooser" class="col-sm-9">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="source_thing">Thing</label>
+        <div id="source_thing_chooser" class="col-sm-9">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="choose_template_file">Template torrent</label>
         <div class="col-sm-9">
-            <div id="template_drop_zone" class="form-control">
-                Drop template here...
+            <div class="input-group">
+                <span id="choose_template_file" class="input-group-btn">
+                    <span class="btn btn-success btn-file">
+                        <i class="glyphicon glyphicon-plus marginright"></i>
+                        Select template...
+                        <input id="thing_template" type="file" name="file">
+                    </span>
+                </span>
+                <div id="template_drop_zone" class="form-control drop_zone">
+                    Drop template here...
+                </div>
             </div>
         </div>
     </div>
-    <div class="form-group">
-        <label class="col-sm-3 control-label" for="choose_template_file"></label>
-        <div class="col-sm-9">
-            <span id="choose_template_file" class="btn btn-success fileinput-button">
-                <i class="glyphicon glyphicon-plus"></i>
-                <span>Select template...</span>
-                <input id="thing_template" type="file" name="file">
-            </span>
-        </div>
-    </div>
 </div>
-<div><pre id="byte_content" class="hidden"></pre></div>
+<div><pre id="torrent_content" class="hidden"></pre></div>
 
