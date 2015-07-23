@@ -1,0 +1,39 @@
+{{!
+    <link rel="stylesheet" href="../../css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/static/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../../css/things.css">
+}}
+<h1>Thing Maker</h1>
+<p>
+    <strong>Create a distributed <em>Thing</em> using the BitTorrent network.</strong>
+</p>
+<p>
+The idea behind the Thing Maker is to use <a href="https://en.wikipedia.org/wiki/Bittorrent">BitTorrent</a>
+to distribute <a href="http://thingtracker.net/">Thing Tracker things</a>. <br>
+A short overview of the idea can be found <a href="http://my.brainshark.com/Distributed-Thing-Tracker-767853647">here</a>.
+</p>
+<p>
+This wizard helps with the steps of the process shown below:
+</p>
+<img src="img/thingmaker.svg" alt="thing maker process diagram">
+<p>
+Although the wizard is meant to be a linear process, some latitude is provided to jump between
+steps using the navigation menu on the left hand side. 
+</p>
+<div class="form-horizontal">
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="expert">Expert mode</label>
+        <div class="col-sm-9">
+            <div class="checkbox">
+                <label>
+                    <input id="expert" type="checkbox" name="expert" aria-describedby="expert_help"> Enable advanced features with less verbose screens
+                </label>
+            </div>
+            <span id="expert_help" class="help-block expert">
+                Users familiar with the process may wish to disable verbose elements and enable more
+                advanced technical features by enabling the <b>Expert</b> setting. To restore non-expert
+                mode, return to this overview step and deselect the <b>Expert</b> checkbox.
+            </span>
+        </div>
+    </div>
+</div>

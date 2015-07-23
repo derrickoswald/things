@@ -234,7 +234,10 @@ define
                  * Use event.target and event.relatedTarget to target the
                  * active tab and the previous active tab (if available) respectively.
                  */
-                fn = step.transitions.enter.bind (step.transitions.obj);
+                if (step.transitions.obj)
+                    fn = step.transitions.enter.bind (step.transitions.obj);
+                else
+                    fn = step.transitions.enter;
                 $ (link).on
                 (
                     "show.bs.tab",

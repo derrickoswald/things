@@ -6,10 +6,11 @@
  */
 define
 (
-    ["mustache", "../torrent", "../records", "../login", "../chooser"],
+    [ "mustache", "../torrent", "../records", "../login", "../chooser" ],
     /**
      * @summary Create a torrent file.
-     * @description Combines file, metadata and thing information into the torrent file.
+     * @description Combines file, metadata and thing information into the torrent
+     *              file.
      * @name thingmaker/make
      * @exports thingmaker/make
      * @version 1.0
@@ -34,11 +35,7 @@ define
         /**
          * Preselected list of licenses from which to choose.
          */
-        var license_list =
-        [
-            "Creative Commons Attribution 4.0 International License",
-            "Open Hardware Initiative 2.0"
-        ];
+        var license_list = [ "Creative Commons Attribution 4.0 International License", "Open Hardware Initiative 2.0" ];
 
         /**
          * List of tags builder component.
@@ -47,10 +44,12 @@ define
 
         /**
          * @summary Add files to the list.
-         * @description Creates the file list if necessary and adds the
-         * given files to the list.
-         * @param {FileList} files - the files dropped or selected by the user
-         * @param {object} data - the context object for the wizard
+         * @description Creates the file list if necessary and adds the given files
+         *              to the list.
+         * @param {FileList}
+         *            files - the files dropped or selected by the user
+         * @param {object}
+         *            data - the context object for the wizard
          * @function add_files
          * @memberOf module:thingmaker/metadata
          */
@@ -59,16 +58,26 @@ define
             if (typeof (data.thumbnails) == "undefined")
                 data.thumbnails = [];
             for (var i = 0; i < files.length; i++)
-                data.thumbnails.push (files.item (i));
+                data.thumbnails.push ({type: "local", url: files.item (i).name, file: files.item (i)});
+        }
+
+        function add_file (event, data)
+        {
+            if (typeof (data.thumbnails) == "undefined")
+                data.thumbnails = [];
+            data.thumbnails.push ({type: "remote", url: "", file: null});
+            update (data);
         }
 
         /**
          * @summary Remove a file from the list.
-         * @description Alter the file list in the data element
-         * to remove the one that has a name given by the event target
-         * data-file attribute.
-         * @param {object} data - the context object for the wizard
-         * @param {object} event - the event that triggers this method
+         * @description Alter the file list in the data element to remove the one
+         *              that has a name given by the event target data-file
+         *              attribute.
+         * @param {object}
+         *            data - the context object for the wizard
+         * @param {object}
+         *            event - the event that triggers this method
          * @function remove_file
          * @memberOf module:thingmaker/metadata
          */
@@ -96,74 +105,57 @@ define
          * @summary Update the file list and enable/disable the next button.
          * @function update
          * @memberOf module:thingmaker/metadata
-         * @param {object} data - thingmaker data object
+         * @param {object}
+         *            data - thingmaker data object
          */
         function update (data)
         {
-
-//        <label class="col-sm-3 control-label" for="url1">Thumbnail images</label>
-//        <div class="col-sm-9">
-//            <div class='input-group'>
-//                <input id="url1" class="form-control" type="text" name="url1" placeholder="URL">
-//                <span class="input-group-addon btn btn-default">
-//                    <i class='glyphicon glyphicon-minus'></i>
-//                </span>
-//            </div>
-//        </div>
-//        <label class="col-sm-3 control-label" for="url2"></label>
-//        <div class="col-sm-9">
-//            <div class='input-group'>
-//                <input id="url2" class="form-control" type="text" name="url2" placeholder="URL">
-//                <span class="input-group-addon btn btn-default">
-//                    <i class='glyphicon glyphicon-minus'></i>
-//                </span>
-//            </div>
-//        </div>
-//        <label class="col-sm-3 control-label" for="thumbnails_drop_zone"></label>
-//        <div class="col-sm-9">
-//            <div class='input-group'>
-//                <div id="thumbnails_drop_zone" class="form-control">
-//                    Drop images here...
-//                </div>
-//                <span class="input-group-addon btn btn-default">
-//                    <i class='glyphicon glyphicon-plus'></i>
-//                </span>
-//            </div>
-//        </div>
-
-
-
             // compute the file list
             var filelist = [];
             var label = "Thumbnail images";
             for (var i = 0; data.thumbnails && (i < data.thumbnails.length); i++)
             {
-                filelist.push
-                (
-                    {
-                        index: i,
-                        label: label,
-                        filename: data.thumbnails[i].name,
-                        filesize: data.thumbnails[i].size,
-                        filetype: data.thumbnails[i].type
-                    }
-                );
-                // also ??? data.thumbnails[i].lastModifiedDate ? data.thumbnails[i].lastModifiedDate.toLocaleDateString () : 'n/a'
+                var image =
+                {
+                    index : i,
+                    label : label,
+                    url: data.thumbnails[i].url
+                };
+                switch (data.thumbnails[i].type)
+                {
+                    case "local":
+                        image.type = "Local";
+                        image.filename = data.thumbnails[i].file.name;
+                        image.filesize = data.thumbnails[i].file.size;
+                        image.filetype = data.thumbnails[i].file.type;
+                        break;
+                    case "remote":
+                        image.type = "Remote";
+                        break;
+                    case "embedded":
+                        image.type = "Embedded";
+                        break;
+                }
+                filelist.push (image);
                 label = "";
             }
 
-            // render the image list as an input element for each image plus a DnD zone
+            // render the image list as an input element for each image plus a DnD
+            // zone
             var image_elements_template =
                 "{{#filelist}}" +
                     "<label class='col-sm-3 control-label' for='url{{index}}'>{{label}}</label>" +
                     "<div class='col-sm-9'>" +
                         "<div class='input-group'>" +
                             "<div class='input-group-btn'>" +
-                                "<button type='button' class='btn btn-default dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>Relative URL<span class='caret marginleft'></span></button>" +
+                                "<button type='button' class='btn btn-default dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>" +
+                                    "Local" +
+                                    "<span class='caret marginleft'></span>" +
+                                "</button>" +
                                 "<ul class='dropdown-menu'>" +
-                                    "<li><a href='#'>Relative URL</a></li>" +
-                                    "<li><a href='#'>Remote URL</a></li>" +
-                                    "<li><a href='#'>Data URL</a></li>" +
+                                    "<li><a href='#'>Local</a></li>" +
+                                    "<li><a href='#'>Remote</a></li>" +
+                                    "<li><a href='#'>Embedded</a></li>" +
                                 "</ul>" +
                             "</div>" +
                             "<input id='url{{index}}' class='form-control' type='text' name='url{{index}}' placeholder='URL' value='{{filename}}'>" +
@@ -172,31 +164,13 @@ define
                             "</span>" +
                         "</div>" +
                     "</div>" +
-                "{{/filelist}}" +
-                "<label class='col-sm-3 control-label' for='thumbnails_drop_zone'></label>" +
-                "<div class='col-sm-9'>" +
-                    "<div class='input-group'>" +
-                        "<span id='choose_thing_thumbnails' class='input-group-btn'>" +
-                            "<span class='btn btn-success btn-file'>" +
-                                "<i class='glyphicon glyphicon-plus marginright'></i>" +
-                                "Add images..." +
-                                "<input id='thing_images' type='file' name='images[]' multiple>" +
-                            "</span>" +
-                        "</span>" +
-                        "<div id='thumbnails_drop_zone' class='form-control drop_zone'>" +
-                            "Drop images here..." +
-                        "</div>" +
-                        "<span id='add_thumbnail' class='input-group-addon btn btn-default'>" +
-                            "<i class='glyphicon glyphicon-plus'></i>" +
-                        "</span>" +
-                    "</div>" +
-                "</div>";
+                "{{/filelist}}";
             document.getElementById ("thumbnails").innerHTML = mustache.render
             (
                 image_elements_template,
                 {
-                    filelist: filelist,
-                    label: label
+                    filelist : filelist,
+                    label : label
                 }
             );
 
@@ -207,49 +181,35 @@ define
                 removes[i].addEventListener ("click", remove);
 
             // add element function
-            document.getElementById ("add_thumbnail").addEventListener
-            (
-                "click",
-                function (event)
-                {
-                    add_file (event, data);
-                }
-            );
+            document.getElementById ("add_thumbnail").addEventListener ("click", function (event)
+            {
+                add_file (event, data);
+            });
 
             // add file change listener
-            document.getElementById ("choose_thing_thumbnails").addEventListener
-            (
-                "change",
-                function (event)
-                {
-                    file_change (event, data);
-                }
-            );
+            document.getElementById ("choose_thing_thumbnails").addEventListener ("change", function (event)
+            {
+                file_change (event, data);
+            });
 
             // add drop zone handlers
-            document.getElementById ("thumbnails_drop_zone").addEventListener
-            (
-                "dragover",
-                function (event)
-                {
-                    file_drag (event, data);
-                }
-            );
-            document.getElementById ("thumbnails_drop_zone").addEventListener
-            (
-                "drop",
-                function (event)
-                {
-                    file_drop (event, data);
-                }
-            );
+            document.getElementById ("thumbnails_drop_zone").addEventListener ("dragover", function (event)
+            {
+                file_drag (event, data);
+            });
+            document.getElementById ("thumbnails_drop_zone").addEventListener ("drop", function (event)
+            {
+                file_drop (event, data);
+            });
         }
 
         /**
          * @summary Handler for file change events.
          * @description Add files to the collection and update the display.
-         * @param {object} event - the file change event
-         * @param {object} data - the thingmaker wizard data object
+         * @param {object}
+         *            event - the file change event
+         * @param {object}
+         *            data - the thingmaker wizard data object
          */
         function file_change (event, data)
         {
@@ -259,11 +219,13 @@ define
 
         /**
          * @summary Event handler for dropped files.
-         * @description Attached to the drop target, this handler responds to dropped files,
-         * adding them to the list of files.
+         * @description Attached to the drop target, this handler responds to
+         *              dropped files, adding them to the list of files.
          * @see {module:thingmaker/metadata.add_files}
-         * @param {event} event - the drop event
-         * @param data - the context object for the wizard
+         * @param {event}
+         *            event - the drop event
+         * @param data -
+         *            the context object for the wizard
          * @memberOf module:thingmaker/metadata
          */
         function file_drop (event, data)
@@ -276,10 +238,13 @@ define
 
         /**
          * @summary Event handler for dragging files.
-         * @description Attached to the drop target, this handler simply modifies the effect to copy,
-         * (which produces the typical hand cursor).
-         * @param {event} event - the dragover event
-         * @param data - the context object for the wizard
+         * @description Attached to the drop target, this handler simply modifies
+         *              the effect to copy, (which produces the typical hand
+         *              cursor).
+         * @param {event}
+         *            event - the dragover event
+         * @param data -
+         *            the context object for the wizard
          * @memberOf module:thingmaker/metadata
          */
         function file_drag (event, data)
@@ -291,7 +256,9 @@ define
 
         /**
          * Display a link to the torrent contents for download
-         * @param {object} torrent the torrent encoded as a JavaScript object
+         *
+         * @param {object}
+         *            torrent the torrent encoded as a JavaScript object
          * @function showlink
          * @memberOf module:thingmaker/make
          */
@@ -313,8 +280,11 @@ define
 
         /**
          * Event handler for the make button.
-         * @param {object} event the button pressed event
-         * @param {object} data the data object for the thingmaker
+         *
+         * @param {object}
+         *            event the button pressed event
+         * @param {object}
+         *            data the data object for the thingmaker
          * @function make
          * @memberOf module:thingmaker/make
          */
@@ -324,55 +294,90 @@ define
 
             dir = data.directory ? data.directory : null;
 
-            torrent.MakeTorrent (data.files, data.piece_length, dir, null, // no template being used yet
-                function (tor)
+            torrent.MakeTorrent (data.files, data.piece_length, dir, null, // no
+                                                                            // template
+                                                                            // being
+                                                                            // used
+                                                                            // yet
+            function (tor)
+            {
+                var thing;
+                var authors;
+                var licenses;
+                var tags;
+
+                thing =
+                {};
+                tor.info.thing = thing;
+
+                thing.title = document.getElementById ("title").value;
+
+                thing.description = document.getElementById ("description").value;
+
+                thing.url = document.getElementById ("url").value;
+
+                authors = [];
+                author_chooser.context.items.forEach (function (item)
                 {
-                    var thing;
-                    var authors;
-                    var licenses;
-                    var tags;
+                    if ("" !== item.value)
+                        authors.push (item.value);
+                });
+                thing.authors = authors;
 
-                    thing = {};
-                    tor.info.thing = thing;
+                licenses = [];
+                license_chooser.context.items.forEach (function (item)
+                {
+                    if ("" !== item.value)
+                        licenses.push (item.value);
+                });
+                thing.licenses = licenses;
 
-                    thing.title = document.getElementById ("title").value;
+                tags = [];
+                tag_chooser.context.items.forEach (function (item)
+                {
+                    if ("" !== item.value)
+                        tags.push (item.value);
+                });
+                thing.tags = tags;
 
-                    thing.description = document.getElementById ("description").value;
+                // ToDo:
+                // how to make with various kinds of thumbnails.
+                // data.thumbnails
+                thing.thumbnailURL = document.getElementById ("thumbnailURL").value;
 
-                    thing.url = document.getElementById ("url").value;
+                tor._id = torrent.InfoHash (tor.info);
 
-                    authors = [];
-                    author_chooser.context.items.forEach (function (item) { if ("" !== item.value) authors.push (item.value); });
-                    thing.authors = authors;
+                data.torrent = tor;
 
-                    licenses = [];
-                    license_chooser.context.items.forEach (function (item) { if ("" !== item.value) licenses.push (item.value); });
-                    thing.licenses = licenses;
+                form_initialized_with = null;
 
-                    tags = [];
-                    tag_chooser.context.items.forEach (function (item) { if ("" !== item.value) tags.push (item.value); });
-                    thing.tags = tags;
+                showlink (torrent.Encode (tor));
+            });
+        }
 
-                    // ToDo:
-                    // how to make with various kinds of thumbnails.
-                    // data.thumbnails
-                    thing.thumbnailURL = document.getElementById ("thumbnailURL").value;
+        /**
+         * Show or hide expert elements on the page.
+         * @param {boolean} expert - if <code>true</> hide the elements with the expert class
+         */
+        function show_hide_expert (expert)
+        {
+            var elements;
 
-                    tor._id = torrent.InfoHash (tor.info);
-
-                    data.torrent = tor;
-
-                    form_initialized_with = null;
-
-                    showlink (torrent.Encode (tor));
-                }
-            );
+            elements = document.getElementsByClassName ("expert");
+            for (var i = 0; i < elements.length; i++)
+                if (expert)
+                    elements[i].classList.add ("hidden");
+                else
+                    elements[i].classList.remove ("hidden");
         }
 
         /**
          * For initialization function.
-         * @param {object} event the tab being shown event
-         * @param {object} data the data object for the thingmaker
+         *
+         * @param {object}
+         *            event the tab being shown event
+         * @param {object}
+         *            data the data object for the thingmaker
          * @function init
          * @memberOf module:thingmaker/make
          */
@@ -402,68 +407,101 @@ define
                     if (thing.authors)
                         if ('[object Array]' === Object.prototype.toString.call (thing.authors))
                             for (var i = 0; i < thing.authors.length; i++)
-                                author_chooser.context.items.push ({ value: thing.authors[i] });
+                                author_chooser.context.items.push (
+                                {
+                                    value : thing.authors[i]
+                                });
                         else
-                            author_chooser.context.items.push ({ value: thing.authors.toString () });
+                            author_chooser.context.items.push (
+                            {
+                                value : thing.authors.toString ()
+                            });
                     else if (thing.author)
-                        author_chooser.context.items.push ({ value: thing.author.toString () });
+                        author_chooser.context.items.push (
+                        {
+                            value : thing.author.toString ()
+                        });
 
                     if (thing.licenses)
                         if ('[object Array]' === Object.prototype.toString.call (thing.licenses))
                             for (var j = 0; j < thing.licenses.length; j++)
-                                license_chooser.context.items.push ({ value: thing.licenses[j] });
+                                license_chooser.context.items.push (
+                                {
+                                    value : thing.licenses[j]
+                                });
                         else
-                            license_chooser.context.items.push ({ value: thing.licenses.toString () });
+                            license_chooser.context.items.push (
+                            {
+                                value : thing.licenses.toString ()
+                            });
                     else if (thing.license)
-                        license_chooser.context.items.push ({ value: thing.license.toString () });
+                        license_chooser.context.items.push (
+                        {
+                            value : thing.license.toString ()
+                        });
 
                     if (thing.tags)
                         if ('[object Array]' === Object.prototype.toString.call (thing.tags))
                             for (var k = 0; k < thing.tags.length; k++)
-                                tag_chooser.context.items.push ({ value: thing.tags[k] });
+                                tag_chooser.context.items.push (
+                                {
+                                    value : thing.tags[k]
+                                });
                         else
-                            tag_chooser.context.items.push ({ value: thing.tags.toString () });
+                            tag_chooser.context.items.push (
+                            {
+                                value : thing.tags.toString ()
+                            });
                     else if (thing.tag)
-                        tag_chooser.context.items.push ({ value: thing.tag.toString () });
+                        tag_chooser.context.items.push (
+                        {
+                            value : thing.tag.toString ()
+                        });
 
-                    if (thing.thumbnailURL)
-                    {
-                        // ToDo: how to reconstitute the image files from the torrent just by name
-                        data.thumbnails = [];
-                        if ('[object Array]' === Object.prototype.toString.call (thing.thumbnailURL))
-                            for (var l = 0; l < thing.thumbnailURL.length; l++)
-                                data.thumbnails.push ({ value: thing.thumbnailURL[l] });
-                        else
-                            data.thumbnails.push ({ value: thing.thumbnailURL.toString () });
-                    }
+                    // ToDo: how to reconstitute the image files from the torrent
+                    // just by name
+                    // if (thing.thumbnailURL)
+                    // {
+                    // data.thumbnails = [];
+                    // if ('[object Array]' === Object.prototype.toString.call
+                    // (thing.thumbnailURL))
+                    // for (var l = 0; l < thing.thumbnailURL.length; l++)
+                    // data.thumbnails.push ({ value: thing.thumbnailURL[l] });
+                    // else
+                    // data.thumbnails.push ({ value: thing.thumbnailURL.toString ()
+                    // });
+                    // }
                 }
             }
             author_chooser.render ();
             license_chooser.render ();
             tag_chooser.render ();
             update (data);
+            show_hide_expert (data.expert);
         }
 
         return (
             {
-                getStep: function ()
+                getStep : function ()
                 {
                     return (
+                    {
+                        id : "enter_metadata",
+                        title : "Enter metadata",
+                        template : "templates/thingmaker/metadata.mst",
+                        hooks : [
                         {
-                            id: "enter_metadata",
-                            title: "Enter metadata",
-                            template: "templates/thingmaker/metadata.mst",
-                            hooks:
-                            [
-                                { id: "make_thing_button", event: "click", code: make, obj: this }
-                            ],
-                            transitions:
-                            {
-                                enter: init,
-                                obj: this
-                            }
+                            id : "make_thing_button",
+                            event : "click",
+                            code : make,
+                            obj : this
+                        } ],
+                        transitions :
+                        {
+                            enter : init,
+                            obj : this
                         }
-                    );
+                    });
                 }
             }
         );

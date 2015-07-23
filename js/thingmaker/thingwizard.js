@@ -6,30 +6,14 @@
  */
 define
 (
-    ["configuration", "page", "wizard", "thingmaker/files", "thingmaker/template", "thingmaker/metadata", "thingmaker/sign", "thingmaker/upload", "thingmaker/publish"],
+    ["configuration", "page", "wizard", "thingmaker/overview", "thingmaker/template", "thingmaker/files", "thingmaker/metadata", "thingmaker/sign", "thingmaker/upload", "thingmaker/publish"],
     /**
      * @summary Create a new thing by specifying the files, template and metadata.
      * @exports thingmaker/thingwizard
      * @version 1.0
      */
-    function (configuration, page, wiz, files, template, metadata, sign, upload, publish)
+    function (configuration, page, wiz, overview, template, files, metadata, sign, upload, publish)
     {
-        /**
-         * @summary Wizard steps.
-         * @description The steps in the wizard sequence
-         * @memberOf thingmaker/thingwizard
-         */
-        var steps =
-            [
-                { id: "overview", title: "Overview", template: "templates/thingmaker/overview.html"},
-                template.getStep (),
-                files.getStep (),
-                metadata.getStep (),
-                sign.getStep (),
-                upload.getStep (),
-                publish.getStep (),
-            ];
-
         /**
          * @summary Wizard data.
          * @description The object passed around to maintain state.
@@ -44,6 +28,22 @@ define
             // thumbnails
             // torrent
         };
+
+        /**
+         * @summary Wizard steps.
+         * @description The steps in the wizard sequence
+         * @memberOf thingmaker/thingwizard
+         */
+        var steps =
+            [
+                overview.getStep (),
+                template.getStep (),
+                files.getStep (),
+                metadata.getStep (),
+                sign.getStep (),
+                upload.getStep (),
+                publish.getStep (),
+            ];
 
         /**
          * @summary Create the wizard.
@@ -64,7 +64,6 @@ define
 
         return (
             {
-                "steps": steps,
                 "data": data,
                 "initialize": initialize
             }

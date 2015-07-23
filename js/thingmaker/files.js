@@ -69,7 +69,7 @@ define
             // compute the file list
             var total = 0;
             var filelist = [];
-            for (var i = 0; i < data.files.length; i++)
+            for (var i = 0; data.files && (i < data.files.length); i++)
             {
                 filelist.push ({ filename: data.files[i].name, filesize: data.files[i].size, filetype: data.files[i].type });
                 // also ??? data.files[i].lastModifiedDate ? data.files[i].lastModifiedDate.toLocaleDateString () : 'n/a'
@@ -100,6 +100,9 @@ define
                     total: total
                 }
             );
+            // render the directory input box
+            if (data.directory)
+                document.getElementById ("thing_directory").value = data.directory;
             // toggle visibility
             if (data.files && (0 != data.files.length))
                 document.getElementById ("file_table").classList.remove ("hidden");

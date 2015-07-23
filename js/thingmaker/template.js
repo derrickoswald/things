@@ -119,38 +119,6 @@ define
         {
             console.log ("fetch " + database + ":" + id);
 
-            // one way would be to fetch the torrent file that should be attached
-//            var name = id + ".torrent";
-//            var url = configuration.getDocumentRoot () + "/" + database + "/" + id + "/" + name;
-//            var xmlhttp = new XMLHttpRequest ();
-//            xmlhttp.open ("GET", url, true);
-//            xmlhttp.responseType = "blob";
-//            xmlhttp.onreadystatechange = function ()
-//            {
-//                if (4 == xmlhttp.readyState)
-//                {
-//                    if (200 == xmlhttp.status)
-//                    {
-//                        var file = new File ([xmlhttp.response], name);
-//                        data.torrent = torrent.ReadTorrentAsync
-//                        (
-//                            file,
-//                            {
-//                                success: function (name, tor)
-//                                {
-//                                    data.torrent = tor;
-//                                    if (!tor._id && tor.info)
-//                                        tor._id = torrent.InfoHash (tor.info);
-//                                    update (data);
-//                                }
-//                            }
-//                        );
-//                    }
-//                }
-//            };
-//            xmlhttp.send ();
-
-            // another way is to fetch the document
             $.couch.db (database).openDoc
             (
                 id,
@@ -158,70 +126,63 @@ define
                     attachments: true,
                     success: function (doc)
                     {
-                        var attachments;
+                        var directory;
                         var files;
                         var thumbnails;
+                        var blob;
+                        var file;
 
-                        // re-hydrate the attachments
-                        attachments = [];
-                        for (var attachment in doc._attachments)
+                        // get the files
+                        files = [];
+                        directory = null;
+                        if (!doc.info.files)
                         {
-                            if (doc._attachments.hasOwnProperty (attachment))
+                            blob = records.base64toBlob (doc._attachments[doc.info.name].data, doc._attachments[doc.info.name].content_type);
+                            file = new File ([blob], doc.info.name, { type: doc._attachments[doc.info.name].content_type });
+                            files.push (file);
+                        }
+                        else
+                        {
+                            directory = doc.info.name;
+                            for (var i = 0; i < doc.info.files.length; i++)
                             {
-                                var blob = records.base64toBlob (doc._attachments[attachment].data, doc._attachments[attachment].content_type);
-                                var file = new File ([blob], attachment, { type: doc._attachments[attachment].content_type });
-                                attachments.push (file);
+                                var filename = doc.info.files[i].path[0]; // ToDo: multiple paths in name?
+                                var name = directory + "/" + doc.info.files[i].path[0];
+                                blob = records.base64toBlob (doc._attachments[name].data, doc._attachments[name].content_type);
+                                file = new File ([blob], filename, { type: doc._attachments[name].content_type });
+                                files.push (file);
                             }
                         }
 
-                        // remove couch stuff
-                        delete doc._rev;
-                        delete doc._attachments;
-
-                        // make the pieces back into an ArrayBuffer
-                        doc.info.pieces = torrent.ArrayToPieces (doc.info.pieces);
-
-                        // separate the attachments into files and thumbnails
-                        files = [];
+                        // get the thumbnails
                         thumbnails = [];
-                        if (!doc.info.files)
-                            for (var h = 0; h < attachments.length; h++)
-                            {
-                                if (attachments[h].name == doc.info.name)
-                                {
-                                    files.push (attachments[h]);
-                                    break;
-                                }
-                            }
-                        else
-                            for (var i = 0; i < doc.info.files.length; i++)
-                            {
-                                var name = doc.info.name + "/" + doc.info.files[i].path;
-                                for (var j = 0; j < attachments.length; j++)
-                                    if (attachments[j].name == name)
-                                    {
-                                        files.push (attachments[j]);
-                                        break;
-                                    }
-                            }
                         if (doc.info.thing.thumbnailURL)
                             for (var k = 0; k < doc.info.thing.thumbnailURL.length; k++)
                             {
                                 var url = doc.info.thing.thumbnailURL[k];
                                 if ("data:" == url.substring (0, 5))
-                                    thumbnails.push ({url: url, file: new File ([blob], "name")});
+                                    thumbnails.push ({type: "embedded", url: url, file: new File ([blob], "name")});
                                 else if (("http:" == url.substring (0, 5)) || ("https:" == url.substring (0, 6)))
-                                    thumbnails.push ({url: url, file: new File ([blob], "name")});
+                                    thumbnails.push ({type: "remote", url: url, file: new File ([blob], "name")});
                                 else
-                                    for (var l = 0; l < attachments.length; l++)
-                                        if (attachments[l].name == url)
-                                        {
-                                            thumbnails.push ({url: url, file: attachments[l]});
-                                            break;
-                                        }
+                                {
+                                    blob = records.base64toBlob (doc._attachments[url].data, doc._attachments[url].content_type);
+                                    file = new File ([blob], url, { type: doc._attachments[url].content_type });
+                                    thumbnails.push ({type: "local", url: url, file: file});
+                                }
                             }
+
+                        // make the pieces back into an ArrayBuffer
+                        doc.info.pieces = torrent.ArrayToPieces (doc.info.pieces);
+
+                        // remove extraneous couch stuff
+                        delete doc._rev;
+                        delete doc._attachments;
+
                         data.torrent = doc;
                         data.files = files;
+                        if (null != directory)
+                            data.directory = directory;
                         data.thumbnails = thumbnails;
 
                         update (data);

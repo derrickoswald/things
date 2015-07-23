@@ -12,13 +12,26 @@
     <div class="form-group">
         <label class="col-sm-3 control-label" for="title">Title</label>
         <div class="col-sm-9">
-            <input id="title" class="form-control" type="text" name="title" placeholder="Title">
+            <input id="title" class="form-control" type="text" name="title" placeholder="Title" aria-describedby="title_help">
+            <span id="title_help" class="help-block expert">
+                A concise word or phrase summarizing the <em>Thing</em>.
+                &lt;TBD&gt;This is searchable metadata.&lt;/TBD&gt;
+                This should <b>not</b> contain HTML markup, but may contain spaces and punctuation if required.
+                Avoid the use of special characters and character entity references.
+            </span>
         </div>
     </div>
     <div class="form-group">
         <label class="col-sm-3 control-label" for="description">Description</label>
         <div class="col-sm-9">
-            <input id="description" class="form-control" type="text" name="description" placeholder="Description">
+            <input id="description" class="form-control" type="text" name="description" placeholder="Description" aria-describedby="description_help">
+            <span id="description_help" class="help-block expert">
+                A description of the <em>Thing</em> with more detail than
+                would be placed in the title, such as the purpose, provenance, related things, and so on.
+                &lt;TBD&gt;This is searchable metadata.&lt;/TBD&gt;
+                &lt;TBD&gt;This may contain HTML markup, but some systems may not render the markup,
+                so markup usage should be minimal or only where necessary.&lt;/TBD&gt;
+            </span>
         </div>
     </div>
     <div class="form-group">
@@ -34,6 +47,41 @@
     <div id="tags" class="form-group">
     </div>
     <div id="thumbnails" class="form-group">
+    </div>
+    <div class=form-group>
+        <label class="col-sm-3 control-label" for="thumbnails_drop_zone"></label>
+        <div class="col-sm-9">
+            <div class="input-group">
+                <span id="choose_thing_thumbnails" class="input-group-btn">
+                    <span class="btn btn-success btn-file">
+                        <i class="glyphicon glyphicon-plus marginright"></i>
+                        Add images...
+                        <input id="thing_images" type="file" name="images[]" multiple>
+                    </span>
+                </span>
+                <div id="thumbnails_drop_zone" class="form-control drop_zone" aria-describedby="thumbnails_help">
+                    Drop images here...
+                </div>
+                <span id="add_thumbnail" class="input-group-addon btn btn-default">
+                    <i class="glyphicon glyphicon-plus"></i>
+                </span>
+            </div>
+            <span id="thumbnails_help" class="help-block expert">
+                A collection of images augmenting the verbal description of the <em>Thing</em>.
+                These can specified in three ways:
+                <ul>
+                    <li>local - where the image is stored as an attachment like the actual files of the <em>Thing</em>
+                    and the metadata for the image is a relative URL to the attachment, e.g. ./thumb.jpg,
+                    which only works when a hosting system serves the image files relative to the <em>Thing</em></li>
+                    <li>remote - where the image is hosted in a remote location and the metadata for the image
+                    is an absolute URL to the image on the remote site, e.g. http://somecompany.com/thumb.jpg</li>
+                    <li>embedded - where the image is included as a data URL directly in the metadata
+                    (this can lead to very large metadata storage size which translates to large .torrent files
+                    which may be a problem for some BitTorrent clients using libtorrent which limits torrent
+                    sizes to 3MB by default)</li>
+                </ul>
+            </span>
+        </div>
     </div>
     <div class="form-group">
         <label class="col-sm-3 control-label" for="make_thing_button"></label>

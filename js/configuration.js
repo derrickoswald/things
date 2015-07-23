@@ -30,7 +30,8 @@ define
             deluge_password: "deluge",
             torrent_directory: "/home/derrick/Torrents",
             instance_name: "",
-            keybase_username: ""
+            keybase_username: "",
+            thingmaker_expert: "false"
         };
 
         /**
