@@ -9,7 +9,7 @@ define
     ["configuration"],
     /**
      * @summary Introduce users to the thingmaker.
-     * @description Provides a hig level overview of the process for making a thing.
+     * @description Provides a high level overview of the process for making a thing.
      * @name thingmaker/overview
      * @exports thingmaker/overview
      * @version 1.0

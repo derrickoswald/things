@@ -13,7 +13,7 @@
         <label class="col-sm-3 control-label" for="title">Title</label>
         <div class="col-sm-9">
             <input id="title" class="form-control" type="text" name="title" placeholder="Title" aria-describedby="title_help">
-            <span id="title_help" class="help-block expert">
+            <span id="title_help" class="help-block nonexpert">
                 A concise word or phrase summarizing the <em>Thing</em>.
                 &lt;TBD&gt;This is searchable metadata.&lt;/TBD&gt;
                 This should <b>not</b> contain HTML markup, but may contain spaces and punctuation if required.
@@ -25,7 +25,7 @@
         <label class="col-sm-3 control-label" for="description">Description</label>
         <div class="col-sm-9">
             <input id="description" class="form-control" type="text" name="description" placeholder="Description" aria-describedby="description_help">
-            <span id="description_help" class="help-block expert">
+            <span id="description_help" class="help-block nonexpert">
                 A description of the <em>Thing</em> with more detail than
                 would be placed in the title, such as the purpose, provenance, related things, and so on.
                 &lt;TBD&gt;This is searchable metadata.&lt;/TBD&gt;
@@ -37,7 +37,11 @@
     <div class="form-group">
         <label class="col-sm-3 control-label" for="url">URL</label>
         <div class="col-sm-9">
-            <input id="url" class="form-control" type="text" name="url" placeholder="URL">
+            <input id="url" class="form-control" type="text" name="url" placeholder="URL" aria-describedby="url_help">
+            <span id="url_help" class="help-block nonexpert">
+                A canonical URL for the reference this <em>thing</em> is derived from.
+                Typically this is the source URL where the original <em>thing</em> can be found.
+            </span>
         </div>
     </div>
     <div id="authors" class="form-group">
@@ -66,7 +70,7 @@
                     <i class="glyphicon glyphicon-plus"></i>
                 </span>
             </div>
-            <span id="thumbnails_help" class="help-block expert">
+            <span id="thumbnails_help" class="help-block nonexpert">
                 A collection of images augmenting the verbal description of the <em>Thing</em>.
                 These can specified in three ways:
                 <ul>

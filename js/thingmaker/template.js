@@ -23,9 +23,36 @@ define
     function (mustache, configuration, page, torrent, records)
     {
         /**
+         * Show or hide expert elements on the page.
+         * @param {boolean} expert - if <code>true</> hide the elements with the expert class
+         * @function show_hide_expert
+         * @memberOf module:thingmaker/template
+         */
+        function show_hide_expert (expert)
+        {
+            var elements;
+
+            elements = document.getElementsByClassName ("expert");
+            for (var i = 0; i < elements.length; i++)
+                if (expert)
+                    elements[i].classList.remove ("hidden");
+                else
+                    elements[i].classList.add ("hidden");
+            elements = document.getElementsByClassName ("nonexpert");
+            for (var i = 0; i < elements.length; i++)
+                if (expert)
+                    elements[i].classList.add ("hidden");
+                else
+                    elements[i].classList.remove ("hidden");
+        }
+
+
+        /**
          * Update the metadata, thumbnail and files information on screen.
          * @param {object} data - the wizard data object containing a list of files,
          * a list of thumbnails and a metadata object (torrent).
+         * @function update
+         * @memberOf module:thingmaker/template
          */
         function update (data)
         {
@@ -36,6 +63,13 @@ define
                 content.innerHTML = torrent.PrintTorrent (data.torrent);
                 content.classList.remove ("hidden");
             }
+
+            // refresh the list of things
+            var db = document.getElementById ("source_database_name").innerHTML;
+            fill_database_list (data, db, "Things");
+
+            // expert mode
+            show_hide_expert (data.expert);
         }
 
         /**
@@ -47,6 +81,7 @@ define
          */
         function select_template (files, data)
         {
+            document.getElementById ("template_drop_zone").innerHTML = files[0].name;
             torrent.ReadTorrentAsync
             (
                 files[0],
@@ -117,8 +152,8 @@ define
          */
         function fetch_thing_details (data, database, id)
         {
-            console.log ("fetch " + database + ":" + id);
-
+            // reset the drop zone prompt
+            document.getElementById ("template_drop_zone").innerHTML = "Drop template here...";
             $.couch.db (database).openDoc
             (
                 id,
@@ -224,7 +259,7 @@ define
                 "<ul>" +
                     "{{#rows}}" +
                         "{{#value}}" +
-                            "<li><a href='{{id}}'>{{info.name}}</a></li>" +
+                            "<li{{#current}} style='background-color: #e9f3ff;'{{/current}}><a href='{{id}}'>{{info.name}}</a></li>" +
                         "{{/value}}" +
                     "{{/rows}}" +
                 "</ul>";
@@ -234,6 +269,16 @@ define
                 {
                     success : function (result)
                     {
+                        // mark the current thing if any
+                        if (data.torrent)
+                            result.rows.forEach
+                            (
+                                function (item)
+                                {
+                                    if (item.id == data.torrent._id)
+                                        item.value.current = true;
+                                }
+                            );
                         var chooser = document.getElementById ("source_thing_chooser");
                         chooser.innerHTML = mustache.render (template, result);
 
@@ -257,6 +302,20 @@ define
         {
             event.preventDefault ();
             var db = event.target.innerHTML;
+            // update current in databases list
+            var dbs = [];
+            data.databases.forEach
+            (
+                function (item)
+                {
+                    if (item.name == db)
+                        item.current = true;
+                    else
+                        delete item.current;
+                    dbs.push (item);
+                }
+            );
+            data.databases = dbs;
             document.getElementById ("source_database_name").innerHTML = db;
             fill_database_list (data, db, "Things");
         }
@@ -286,8 +345,10 @@ define
                         "{{/.}}" +
                     "</ul>" +
                 "</div>";
+            if (null == data.databases)
+                data.databases = page.getDatabases ();
             var chooser = document.getElementById ("source_database_chooser");
-            chooser.innerHTML = mustache.render (template, page.getDatabases ());
+            chooser.innerHTML = mustache.render (template, data.databases);
             // hook up drop down menu items
             var links = chooser.getElementsByTagName ("a");
             for (var i = 0; i < links.length; i++)
@@ -295,7 +356,7 @@ define
 
             // show the initial list
             var db = "public_things";
-            page.getDatabases ().forEach (function (item) { if (item.current) db = item.database; });
+            data.databases.forEach (function (item) { if (item.current) db = item.database; });
             fill_database_list (data, db, "Things");
 
             // show files and torrent

@@ -21,11 +21,12 @@ define
          * @param {string} label User visible label for the input set
          * @param {string} placeholder User visible placeholder text in an empty input field
          * @param {array} choices list of user visible items for the drop down menu
-         * (if not supplied or empty, the input field is a plain text input with no dropdown)
+         * (if not supplied, null or an empty array, the input field is a plain text input with no dropdown)
+         * @param {string} help_markup markup to add as help text
          * @class
          * @memberOf module:chooser
          */
-        function Chooser (target_list, label, placeholder, choices)
+        function Chooser (target_list, label, placeholder, choices, help_markup)
         {
             /**
              * Unique DOM element name for entire input set.
@@ -66,6 +67,12 @@ define
             this.values = choices;
 
             /**
+             * Help text
+             * @memberOf Chooser#
+             */
+            this.help = help_markup;
+
+            /**
              * DOM element attribute name that stores the index value of the input group.
              * @memberOf Chooser#
              */
@@ -83,15 +90,15 @@ define
              */
             this.template =
                  "{{#items}}" +
-                    "<label class='col-sm-3 control-label chooser-label' for='" + this.list_name + "_{{felgarcarb}}' " + this.data_source + "='{{felgarcarb}}'>" +
+                    "<label class='col-sm-3 control-label chooser-label' for='" + this.list_name + "_{{index}}' " + this.data_source + "='{{index}}'>" +
                         this.input_label +
                     "</label>" +
-                    "<div class='col-sm-9' " + this.data_source + "='{{felgarcarb}}'>" +
+                    "<div class='col-sm-9' " + this.data_source + "='{{index}}'>" +
                         "<div class='input-group'>" +
                             "{{#hasvalues}}" +
                                 "<span class='dropdown'>" +
-                                    "<input id='" + this.list_name + "_{{felgarcarb}}' type='text' class='form-control dropdown-toggle' " + this.data_source + "='{{felgarcarb}}' data-toggle='dropdown' placeholder='" + this.prompt + "' aria-label='" + this.input_label + "' value='{{value}}'>" +
-                                    "<ul class='dropdown-menu pull-right' " + this.data_target + "='" + this.list_name + "_{{felgarcarb}}' role='menu' aria-labelledby='" + this.list_name + "_{{felgarcarb}}' >" +
+                                    "<input id='" + this.list_name + "_{{index}}' type='text' class='form-control dropdown-toggle' " + this.data_source + "='{{index}}' data-toggle='dropdown' placeholder='" + this.prompt + "' aria-label='" + this.input_label + "' value='{{value}}'{{#hashelp}} aria-describedby='" + this.list_name + "_help'{{/hashelp}}>" +
+                                    "<ul class='dropdown-menu pull-right' " + this.data_target + "='" + this.list_name + "_{{index}}' role='menu' aria-labelledby='" + this.list_name + "_{{index}}' >" +
                                         "{{#values}}" +
                                         "<li role='presentation'>" +
                                             "<a " + "role='menuitem' tabindex='-1' href='#'>{{.}}</a>" +
@@ -101,12 +108,15 @@ define
                                 "</span>" +
                             "{{/hasvalues}}" +
                             "{{^values}}" +
-                                "<input type='text' class='form-control' " + this.data_source + "='{{felgarcarb}}' placeholder='" + this.prompt + "' aria-label='" + this.input_label + "' value='{{value}}'>" +
+                                "<input type='text' class='form-control' " + this.data_source + "='{{index}}' placeholder='" + this.prompt + "' aria-label='" + this.input_label + "' value='{{value}}'{{#hashelp}} aria-describedby='" + this.list_name + "_help'{{/hashelp}}>" +
                             "{{/values}}" +
-                            "<span class='input-group-addon btn btn-default' " + this.data_source + "='{{felgarcarb}}'>" +
+                            "<span class='input-group-addon btn btn-default' " + this.data_source + "='{{index}}'>" +
                                 "<i class='glyphicon {{glyph}}'></i>" +
                             "</span>" +
                         "</div>" +
+                        "{{#hashelp}}" +
+                            "{{{help}}}" +
+                        "{{/hashelp}}" +
                     "</div>" +
                 "{{/items}}";
 
@@ -118,16 +128,20 @@ define
             {
                 items: this.items, // list of user entered values
                 values: this.values, // list of pre-composed values for the drop-down list
-                hasvalues: ("undefined" != typeof (this.values)), // boolean to turn on values processing
+                hasvalues: (("undefined" != typeof (this.values)) && (null != this.values) && (0 != this.values.length)), // boolean to turn on values processing
                 glyph: function ()
                 {
-                    return ((0 === temp.items.indexOf (this)) ? "glyphicon-plus" : "glyphicon-minus");
+                    return ((temp.items.length - 1 === temp.items.indexOf (this)) ? "glyphicon-plus" : "glyphicon-minus");
                 },
-                felgarcarb: function ()
+                index: function ()
                 {
                     return (temp.items.indexOf (this));
-                }
-
+                },
+                hashelp: function ()
+                {
+                    return (temp.items.length - 1 == temp.items.indexOf (this));
+                },
+                help: this.help
             };
         }
 
@@ -295,7 +309,7 @@ define
             spans = list.getElementsByTagName ("span");
             for (var k = 0; k < spans.length; k++)
                 if (spans[k].classList.contains ("input-group-addon"))
-                    spans[k].addEventListener ("click", (0 === Number (spans[k].getAttribute (this.data_source))) ? added : removed);
+                    spans[k].addEventListener ("click", (this.items.length - 1 === Number (spans[k].getAttribute (this.data_source))) ? added : removed);
         };
 
         return (

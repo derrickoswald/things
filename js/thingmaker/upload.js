@@ -75,10 +75,13 @@ define
 
                             if (typeof (data.files) == "undefined")
                                 data.files = [];
+                            if (typeof (data.images) == "undefined")
+                                data.images = [];
 
                             // make the list of files for attachment with names adjusted for directory
                             var copy = [];
-                            data.files.forEach (
+                            data.files.forEach
+                            (
                                 function (item)
                                 {
                                     if (1 < data.files.length)
@@ -90,6 +93,9 @@ define
 
                             // add the torrent to the copy of the list of files to be saved
                             copy.push (new File ([bencoder.str2ab (bencoder.encode (data.torrent))], primary_key + ".torrent", { type: "application/octet-stream" }));
+
+                            // add images to the list of files to be saved
+                            copy = copy.concat (data.images);
 
                             records.saveDocWithAttachments.call
                             (
@@ -132,11 +138,17 @@ define
             {
                 getStep: function ()
                 {
-                    var upload_hooks =
-                    [
-                        { id: "upload_button", event: "click", code: upload, obj: this }
-                    ];
-                    return ({ id: "upload", title: "Upload the thing", template: "templates/thingmaker/upload.mst", hooks: upload_hooks });
+                    return (
+                        {
+                            id: "upload",
+                            title: "Upload the thing",
+                            template: "templates/thingmaker/upload.mst",
+                            hooks:
+                            [
+                                { id: "upload_button", event: "click", code: upload, obj: this }
+                            ]
+                        }
+                    );
                 }
             }
         );

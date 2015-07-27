@@ -513,6 +513,25 @@ function upload (tor, directory, files, images)
 }
 
 /**
+ * @summary Generate a unique name.
+ * @param {string} name - the base name from which to start
+ * @param {string[]} list - the list of already existing names
+ */
+function uniquename (name, list)
+{
+    var suffix;
+    var ret;
+
+    ret = name;
+
+    suffix = 0;
+    while (-1 != list.indexOf (ret))
+        ret = name.substring (0, name.lastIndexOf (".")) + "_" + ++suffix + name.substring (name.lastIndexOf ("."));
+
+    return (ret);
+}
+
+/**
  * @summary Send the thing on this page to the things database
  * @param {object} event <em>not used</em>
  */
@@ -531,7 +550,7 @@ function capture (event)
             var directory = encodeURIComponent (make_file_name (get_title ()));
             var filelist = [];
             files.forEach (function (file) { file.data.name = file.name; filelist.push (file.data); });
-            torrent.MakeTorrent (filelist, 16384, directory, null, function (tor)
+            torrent.MakeTorrent (filelist, 16384, directory, function (tor)
             {
                 // set the time to match the upload date
                 var header = document.getElementsByClassName ("thing-header-data")[0];
@@ -567,17 +586,11 @@ function capture (event)
                         function (url, index)
                         {
                             var name;
-                            var test;
-                            var suffix;
                             var mime;
                             var file;
 
                             name = url.substring (url.lastIndexOf ("/") + 1);
-                            test = name;
-                            suffix = 0;
-                            while (-1 != thumbnails.indexOf (test))
-                                test = name.substring (0, name.lastIndexOf (".")) + "_" + ++suffix + name.substring (name.lastIndexOf ("."));
-                            name = test;
+                            name = uniquename (name, thumbnails);
                             thumbnails.push (name);
                             mime = get_image_mime (name);
                             if (null != mime)

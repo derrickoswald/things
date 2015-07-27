@@ -44,5 +44,5 @@ that has similar metadata.</li>
         </div>
     </div>
 </div>
-<div><pre id="torrent_content" class="hidden"></pre></div>
+<div class="expert"><pre id="torrent_content" class="hidden"></pre></div>
 

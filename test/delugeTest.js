@@ -119,7 +119,7 @@ define
                                 }
                             );
                             // var error = callbacks.addErrback ("make_torrent");
-                            torrent.MakeTorrent ([this._File], 16384, null, null, ok); // no directory or template
+                            torrent.MakeTorrent ([this._File], 16384, null, ok); // no directory
                         }
                     );
 

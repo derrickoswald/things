@@ -131,14 +131,13 @@ define
         /**
          * @summary Make a torrent object.
          * @description Create a torrent from the given files.
-         * @param {Array} files - the list of files to compute hashes for.
-         * @param piece_length - the size at which to cut up the file(s).
-         * @param directory - the directory name for torrents with multiple files.
-         * @param template - torrent object to use as a template, otherwise if null, newly generated default properties are used.
-         * @param callback - the function(passed-torrent) to call when processing is complete.
+         * @param {Array} files - the list of files to compute hashes for
+         * @param {number} piece_length - the size at which to cut up the file(s)
+         * @param {string} directory - the directory name for torrents with multiple files
+         * @param {function} callback - the function(passed-torrent) to call when processing is complete
          * @memberOf module:torrent
          */
-        function MakeTorrent (files, piece_length, directory, template, callback)
+        function MakeTorrent (files, piece_length, directory, callback)
         {
             var timestamp;
             var infohash;
@@ -159,45 +158,41 @@ define
                 if (null === directory)
                 {
                     directory = "directory" + "_" + Math.floor ((Math.random () * 1000) + 1);
-                    alert ("generating required directory " + directory);
+                    console.log ("torrent.MakeTorrent generating required directory " + directory);
                 }
                 var filedata = [];
                 for (var i = 0; i < files.length; i++)
-                    filedata[filedata.length] = {
-                        "length": files[i].size,
-                        "path" : [files[i].name]
-                        };
-                infohash = {
-                        "files": filedata,
-                        "name": directory,
-                        "piece length": piece_length,
-                        "pieces": "placeholder until hashes are computed"
+                    filedata[filedata.length] =
+                    {
+                        length: files[i].size,
+                        path : [files[i].name]
                     };
-            }
-            if (null === template)
-                torrent =
+                infohash =
                 {
-                    "created by": "ThingMaker v2.0",
-                    "creation date": timestamp,
-                    "encoding": "UTF-8",
-                    "info": infohash
+                    files: filedata,
+                    name: directory,
+                    "piece length": piece_length,
+                    pieces: "placeholder until hashes are computed"
                 };
-            else
-            {
-                torrent = template;
-                thing = ret.info.thing; // keep the thing details from the info section - if any
-                torrent["creation date"] = timestamp;
-                torrent.info = infohash;
-                if (null !== thing)
-                    torrent.info.thing = thing;
             }
+            torrent =
+            {
+                "created by": "ThingMaker v2.0",
+                "creation date": timestamp,
+                encoding: "UTF-8",
+                info: infohash
+            };
 
-            ComputeHashes (files, piece_length,
+            ComputeHashes
+            (
+                files,
+                piece_length,
                 function (hashes)
                 {
                     torrent.info.pieces = hashes;
                     callback (torrent);
-                });
+                }
+            );
         }
 
         /**
