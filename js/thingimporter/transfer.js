@@ -15,9 +15,6 @@ define
      */
     function (home, configuration, page)
     {
-        var db = configuration.getConfigurationItem ("pending_database");
-        var view_name = "Things";
-
         /**
          * @summary Initialize the transfer page.
          * @description Sets up the DOM elements for the transfer page
@@ -28,6 +25,9 @@ define
          */
         function init ()
         {
+            var db = configuration.getConfigurationItem ("pending_database");
+            var view_name = "Things";
+
             home.build_content (db, view_name, "listing", { del: home.delete_document, transfer: home.transfer_to_local });
         }
 

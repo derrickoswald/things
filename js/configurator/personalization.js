@@ -19,6 +19,30 @@ define
         var userdata = null;
 
         /**
+         * Show or hide admin elements on the page.
+         * @param {boolean} admin - if <code>true</> show the elements with the admin class
+         * @function show_hide_admin
+         * @memberOf module:configurator/personalization
+         */
+        function show_hide_admin (admin)
+        {
+            var elements;
+
+            elements = document.getElementsByClassName ("admin");
+            for (var i = 0; i < elements.length; i++)
+                if (admin)
+                    elements[i].classList.remove ("hidden");
+                else
+                    elements[i].classList.add ("hidden");
+            elements = document.getElementsByClassName ("nonadmin");
+            for (var i = 0; i < elements.length; i++)
+                if (admin)
+                    elements[i].classList.add ("hidden");
+                else
+                    elements[i].classList.remove ("hidden");
+        }
+
+        /**
          * @summary Get the current proxies from the CouchDB local configuration.
          * @description Gets all options from the httpd_global_handlers section.
          * @function get_proxy
@@ -34,10 +58,7 @@ define
                     success: function (data)
                     {
                         if (data.keybase)
-                        {
                             proxy.innerHTML = data.keybase;
-                            get_user_data ();
-                        }
                     },
                 },
                 "httpd_global_handlers"
@@ -77,10 +98,12 @@ define
         /**
          * @summary Create the Keybase.io proxy and restart the CouchDB server.
          * @description Event handler for the Keybase button.
+         * @param {object} data - the configurator wizard data object, <em>not used</em>
+         * @param {object} event - the click event, <em>not used</em>
          * @function keybase_click
          * @memberOf module:configurator/personalization
          */
-        function keybase_click (event)
+        function keybase_click (data, event)
         {
             create_keybase_proxy
             (
@@ -97,11 +120,12 @@ define
          * @summary Save button event handler.
          * @description Saves the form values as the current configuration document.
          * If the configuration database doesn't yet exist it is created.
+         * @param {object} data - the configurator wizard data object, <em>not used</em>
          * @param {object} event - the save button press event
          * @function save
          * @memberOf module:configurator/personalization
          */
-        function save (event)
+        function save (data, event)
         {
             event.preventDefault ();
             event.stopPropagation ();
@@ -162,10 +186,12 @@ define
          * @description Fills the form's uuid input element with a new value of the uuid.
          * The uid is either computed from the instance name, user's Keybase name and public key
          * or fetched from CouchDb as the next uuid.
+         * @param {object} data - the configurator wizard data object, <em>not used</em>
+         * @param {object} event - the click event, <em>not used</em>
          * @function create_uuid
          * @memberOf module:configurator/personalization
          */
-        function create_uuid ()
+        function create_uuid (data, event)
         {
             var instance_name = document.getElementById ("instance_name").value.trim ();
             var keybase_username = document.getElementById ("keybase_username").value.trim ();
@@ -199,6 +225,8 @@ define
          * @summary Fill in the elements with the Keybase information.
          * @description Fill in full name, location, picture and public key if available.
          * @param {object} data the data object from Keybase
+         * @function fill_user_data
+         * @memberOf module:configurator/personalization
          */
         function fill_user_data (data)
         {
@@ -229,12 +257,15 @@ define
         /**
          * @summary Get the Keybase information for the current user.
          * @description Query the Keybase lookup API with the keybase_username.
-         * @param {object} event that triggered the lookup.
+         * @param {object} data - the configurator wizard data object, <em>not used</em>
+         * @param {object} event - the event that triggered the lookup.
+         * @function get_user_data
+         * @memberOf module:configurator/personalization
          */
-        function get_user_data (event)
+        function get_user_data (data, event)
         {
             var username = document.getElementById ("keybase_username").value;
-            if (("" != username) && ("" != document.getElementById ("keybase_proxy").innerHTML))
+            if ("" != username)
                 keybase.lookup
                 (
                     username,
@@ -266,15 +297,23 @@ define
          * @summary Initialize the personalization page of the configurator wizard.
          * @description Fills the form with existing configuration data and attaches handlers for the
          * various operations.
+         * @param {object} data the data object for the configurator
+         * @param {object} event the tab being shown event
          * @function init
          * @memberOf module:configurator/personalization
          */
-        function init ()
+        function init (data, event)
         {
+            var admin;
+
             document.getElementById ("instance_name").value = configuration.getConfigurationItem ("instance_name");
             document.getElementById ("keybase_username").value = configuration.getConfigurationItem ("keybase_username");
-            get_proxy ();
+            admin = -1 != data.roles.indexOf ("_admin")
+            if (admin)
+                get_proxy ();
+            get_user_data ();
             get_uuid ();
+            show_hide_admin (admin);
         }
 
         return (

@@ -65,7 +65,7 @@ define
          * @param {number} index - the index at which to store the result doneset array
          * @param callback - the function to call when all blobs have been read in
          * paramater to callback
-         * @memberOf module:torrent
+         * @memberOf module:multipart
          */
         function makeLoadEndFunction (view, offset, doneset, index, callback, array)
         {

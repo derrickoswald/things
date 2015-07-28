@@ -16,7 +16,7 @@ define
      */
     function (mustache, torrent, keybase)
     {
-        function tryit (event)
+        function tryit (data, event)
         {
             keybase.login (
                 "derrickoswald",

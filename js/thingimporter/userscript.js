@@ -17,15 +17,15 @@ define
     {
         /**
          * Check if the user script is set up for thingiverse.com.
-         * @memberOf module:thingimporter/setup
+         * @param {object} data - the thingimporter wizard data object, <em>not used</em>
+         * @param {object} event - the event causing the check, <em>not used</em>
+         * @memberOf module:thingimporter/userscript
          */
-        function check_thingiverse ()
+        function check_thingiverse (data, event)
         {
             var ping;
             var xmlhttp;
             var iframe;
-            var scripted;
-            var details;
 
             // get the current value of ping time
             ping = configuration.getDocumentRoot () + "/" +
@@ -60,6 +60,8 @@ define
                                 xmlhttp.onreadystatechange = function ()
                                 {
                                     var next;
+                                    var scripted;
+                                    var details;
 
                                     if (4 == xmlhttp.readyState)
                                     {
@@ -98,7 +100,7 @@ define
          * @param {string} text - the raw user script contents to be edited
          * @param {object} subst - the object with substitution strings, name: value
          * @function customize_user_script
-         * @memberOf module:thingimporter/setup
+         * @memberOf module:thingimporter/userscript
          */
         function customize_user_script (text, subst)
         {
@@ -131,7 +133,7 @@ define
          * @param {string} name the name of the script to retrieve (including directories)
          * @param {object} options callback functions success() and error()
          * @function get_script
-         * @memberOf module:thingimporter/setup
+         * @memberOf module:thingimporter/userscript
          */
         function get_script (name, options)
         {
@@ -166,7 +168,7 @@ define
          * @param {string} text the text to replace within
          * @param {object} options callback functions for results
          * @function replace_placeholders
-         * @memberOf module:thingimporter/setup
+         * @memberOf module:thingimporter/userscript
          */
         function replace_placeholders (text, options)
         {
@@ -209,7 +211,7 @@ define
          * @description Create a customizer user script and make it available as
          * a data URL downloaded when the button is pressed.
          * @function prepare_user_script
-         * @memberOf module:thingimporter/setup
+         * @memberOf module:thingimporter/userscript
          */
         function prepare_user_script ()
         {

@@ -15,7 +15,7 @@ server is used within the system for signing things and making version inheritan
 for example by duplicating a Raspberry Pi SD Card or starting an AMI on Amazon, you will need to generate a new
 uuid by clicking the button. The uuid is created, if possible, as the SHA1 hash of the concatenation of the
 instance name, Keybase username, and public key. Otherwise it is a random uuid from CouchDB.</p>
-<p>The keybase proxy is the CouchDB configuration entry that allows this client side program to access the Keybase
+<p class="admin">The keybase proxy is the CouchDB configuration entry that allows this client side program to access the Keybase
 site without using CORS (cross site scripting). It needs to be created on new installations.
 Normally this should be set to <a href="https://keybase.io" target="_blank">https://keybase.io</a>.
 (TBD) See if we still need this since some API calls on keybase.io offer CORS support. (end TBD)</p>    
@@ -47,11 +47,11 @@ Normally this should be set to <a href="https://keybase.io" target="_blank">http
                 </div>
             </div>
         </div>
-        <div class="form-group">
+        <div class="form-group admin">
             <label class="col-sm-3 control-label" for="keybase_proxy">Keybase.io proxy</label>
             <div class="col-sm-9"><span id="keybase_proxy" class="form-control form-control-result"></span></div>
         </div>
-        <div class="form-group">
+        <div class="form-group admin">
             <label class="col-sm-3 control-label" for="configure_keybase_proxy"></label>
             <div class="col-sm-9">
                 <button id="configure_keybase_proxy" class="btn btn-primary start">

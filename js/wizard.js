@@ -111,27 +111,15 @@ define
                         for (var i = 0; i < step.hooks.length; i++)
                         {
                             var element = document.getElementById (step.hooks[i].id);
-                            var handler =
-                            (
-                                function ()
-                                {
-                                    var fn = step.hooks[i].code;
-                                    return (
-                                        function (event)
-                                        {
-                                            fn (event, data);
-                                        }
-                                    );
-                                }
-                            )();
-                            element.addEventListener (step.hooks[i].event, handler.bind (step.hooks[i].obj));
+                            var fn = step.hooks[i].code.bind (step.hooks[i].obj, data);
+                            element.addEventListener (step.hooks[i].event, fn);
                         }
 
                     if (active)
                     {
                         var transitions = step.transitions;
                         if (transitions && transitions.enter)
-                            transitions.enter.call (transitions.obj, null, data);
+                            transitions.enter.call (transitions.obj, data);
                     }
                 }
             };
@@ -214,15 +202,8 @@ define
                  * Use event.target and event.relatedTarget to target the
                  * current active tab and the new soon-to-be-active tab, respectively.
                  */
-                fn = step.transitions.leave.bind (step.transitions.obj);
-                $ (link).on
-                (
-                    "hide.bs.tab",
-                    function (event)
-                    {
-                        fn (event, data);
-                    }
-                );
+                fn = step.transitions.leave.bind (step.transitions.obj ? step.transitions.obj : this, data);
+                $ (link).on ("hide.bs.tab", fn);
             }
 
             if (step.transitions && step.transitions.enter)
@@ -234,18 +215,8 @@ define
                  * Use event.target and event.relatedTarget to target the
                  * active tab and the previous active tab (if available) respectively.
                  */
-                if (step.transitions.obj)
-                    fn = step.transitions.enter.bind (step.transitions.obj);
-                else
-                    fn = step.transitions.enter;
-                $ (link).on
-                (
-                    "show.bs.tab",
-                    function (event)
-                    {
-                        fn (event, data);
-                    }
-                );
+                fn = step.transitions.enter.bind (step.transitions.obj ? step.transitions.obj : this, data);
+                $ (link).on ("show.bs.tab", fn);
             }
 
             // render the page contents

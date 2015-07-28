@@ -5,7 +5,7 @@
  * @version 1.0
  */
 define (
-    ["mustache"],
+    ["mustache", "configuration"],
     /**
      * @summary Login dialog for CouchDB access.
      * @description Handles the UI for login/logout as well as local storage if requested,
@@ -14,12 +14,12 @@ define (
      * @exports login
      * @version 1.0
      */
-    function (mustache)
+    function (mustache, configuration)
     {
         /**
          * Checks for logged in state.
          * @param {object} options to process the login:
-         * success: function(userCtx) to call when the user is logged in
+         * success: function({name: xxx, roles: yyy}) to call when the user is logged in
          * error: function to call when a problem occurs or the user is not logged in
          * @return <em>nothing</em>
          * @function isLoggedIn
@@ -33,6 +33,7 @@ define (
                 {
                     // {"ok":true,"userCtx":{"name":null,"roles":[]},"info":{"authentication_db":"_users","authentication_handlers":["oauth","cookie","default"]}}
                     // {"ok":true,"userCtx":{"name":"admin","roles":["_admin"]},"info":{"authentication_db":"_users","authentication_handlers":["oauth","cookie","default"],"authenticated":"cookie"}}
+                    // {"ok":true,"userCtx":{"name":"derrick","roles":["user"]},"info":{"authentication_db":"_users","authentication_handlers":["oauth","cookie","default"],"authenticated":"cookie"}}
                     success : function (data)
                     {
                         var credentials;
@@ -40,9 +41,9 @@ define (
                         if (data.ok) // logged in
                             if (data.userCtx.name)
                             {
-                                menu_adjust (true);
+                                menu_adjust (data.userCtx.name);
                                 if (options.success)
-                                    options.success (data.userCtx);
+                                    options.success ({ name: data.userCtx.name, roles: data.userCtx.roles });
                             }
                             else
                             {
@@ -54,11 +55,12 @@ define (
                                         {
                                             name: credentials.name,
                                             password: credentials.password,
-                                            success: function (result) // { ok: true, name: null, roles: Array[1] }, not sure why name is null
+                                            success: function (result)
                                             {
-                                                menu_adjust (true);
+                                                delete result.ok;
+                                                menu_adjust (result.name);
                                                 if (options.success)
-                                                    options.success ( {name: credentials.username, roles: result.roles });
+                                                    options.success (result);
                                                 // let registered listeners know about the login
                                                 _login.trigger ("login");
                                             },
@@ -200,8 +202,8 @@ define (
         }
 
         /**
-         * @summary Handler for submit events.
-         * @param event the submit-button-pressed event from the .dropdown list item
+         * @summary Handler for login submit events.
+         * @param {object} event - the submit-button-pressed event from the .dropdown list item
          * @function submit
          * @memberOf module:login
          */
@@ -232,20 +234,49 @@ define (
         }
 
         /**
+         * @summary Handler for create submit events.
+         * @param {object} event - the submit-button-pressed event from the .dropdown list item
+         * @function create
+         * @memberOf module:login
+         */
+        function create (event)
+        {
+            var username;
+            var password1;
+            var password2;
+
+            event.preventDefault ();
+            event.stopPropagation ();
+
+            // retrieve the form values
+            username = document.getElementById ("newuser").value;
+            password1 = document.getElementById ("password1").value;
+            password2 = document.getElementById ("password2").value;
+
+            if (password1 == password2)
+                // create the user
+                do_create ({ username: username, password: password1 });
+            else
+                alert ("password fields are not the same, please re-enter them");
+        }
+
+        /**
          * @summary Swap menu items.
          * Change the menu from Login to Logout or vice versa.
-         * @param {boolean} logged_in If <em>true</em>, make it say logout, otherwise make it say login.
+         * @param {string} user - logged in user, if <code>undefined</code> or <code>null</code> make it say login.
          * @function menu_adjust
          * @memberOf module:login
          */
-        function menu_adjust (logged_in)
+        function menu_adjust (user)
         {
-            if (logged_in)
+            if (user)
             {
                 // hide the login item
                 document.getElementById ("login").classList.add ("hidden");
                 // show the logout item
                 document.getElementById ("logout").classList.remove ("hidden");
+                // show the user name
+                document.getElementById ("loggedin_user").innerHTML = " " + user;
             }
             else
             {
@@ -253,6 +284,8 @@ define (
                 document.getElementById ("logout").classList.add ("hidden");
                 // show the login item
                 document.getElementById ("login").classList.remove ("hidden");
+                // clear the user name
+                document.getElementById ("loggedin_user").innerHTML = "";
             }
         }
 
@@ -261,38 +294,77 @@ define (
          * Performs login and if successful remembers the credentials if required,
          * closes the dropdown, changes the menu and notifies listeners;
          * otherwise just displays an alert of failure.
-         * @param {object} credentials The username, password, and autologin request as a plain object.
-         * @param {boolean} remember If true, store the credentials if possible.
+         * @param {object} credentials - the username, password, and autologin request as a plain object
+         * @param {boolean} remember - if true, store the credentials if possible
          * @function do_login
          * @memberOf module:login
          */
         function do_login (credentials, remember)
         {
             // try login
-            $.couch.login (
-            {
-                name: credentials.username,
-                password: credentials.password,
-                success: function (data)
+            $.couch.login
+            (
                 {
-                    if (remember)
-                        storeCredentials (credentials.username, credentials.password, credentials.autologin);
-                    else
-                        clearCredentials ();
-                    // close the dropdown
-                    $(document.getElementById ("login_button_link")).dropdown ("toggle");
-                    // fix the menu
-                    menu_adjust (true);
-                    // let registered listeners know about the login
-                    _login.trigger ("login");
-                },
-                error: function (status)
-                {
-                    console.log (status);
-                    alert ("Login failed.");
+                    name: credentials.username,
+                    password: credentials.password,
+                    success: function (data)
+                    {
+                        if (remember)
+                            storeCredentials (credentials.username, credentials.password, credentials.autologin);
+                        else
+                            clearCredentials ();
+                        // close the dropdown
+                        $("#login_button_link").dropdown ("toggle");
+                        // fix the menu
+                        menu_adjust (credentials.username);
+                        // let registered listeners know about the login
+                        _login.trigger ("login");
+                    },
+                    error: function (status)
+                    {
+                        console.log (status);
+                        alert ("Login failed.");
+                    }
                 }
-            });
+            );
+        }
 
+        /**
+         * @summary Create the user.
+         * Calls the user_manager process to create the new user.
+         * @param {object} credentials - the username, and password as a plain object
+         * @function do_create
+         * @memberOf module:login
+         */
+        function do_create (credentials)
+        {
+            var url;
+            var xmlhttp;
+
+            url = configuration.getDocumentRoot () + "/user_manager/" +
+                "?username=" + encodeURIComponent (credentials.username) +
+                "&password=" + encodeURIComponent (credentials.password);
+            xmlhttp = new XMLHttpRequest ();
+            xmlhttp.open ("GET", url, true);
+            xmlhttp.onreadystatechange = function ()
+            {
+                if (4 == xmlhttp.readyState)
+                    if (200 == xmlhttp.status)
+                    {
+                        // clear the form
+                        document.getElementById ("newuser").value = "";
+                        document.getElementById ("password1").value = "";
+                        document.getElementById ("password2").value = "";
+                        // close the dropdown
+                        $("#create_user_link").dropdown ("toggle");
+                        alert ("Account " + credentials.username + " created");
+                    }
+                    else
+                        alert ("Could not create account " + credentials.username +
+                               " because of error: " + xmlhttp.status +
+                               " " + xmlhttp.responseText);
+            };
+            xmlhttp.send ();
         }
 
         /**
@@ -308,16 +380,18 @@ define (
         {
             var credentials;
 
+            event.preventDefault ();
+            event.stopPropagation ();
             credentials = getCredentials ();
             if (null !== credentials) // the user really wants to logout, so reset autologin
                 storeCredentials (credentials.name, credentials.password, false);
             $.couch.logout
             (
                 {
-                    success : function (data)
+                    success : function ()
                     {
                         // fix the menu
-                        menu_adjust (false);
+                        menu_adjust (null);
                         // let registered listeners know about the logout
                         _login.trigger ("logout");
                     },
@@ -356,6 +430,7 @@ define (
                     $ (dropdown).on ("show.bs.dropdown", show);
                     $ (dropdown).on ("shown.bs.dropdown", shown);
                     $ ("#login_form").on ("submit", submit);
+                    $ ("#create_user_form").on ("submit", create);
                     document.getElementById ("logout_button_link").onclick = do_logout;
                 }
             );

@@ -20,7 +20,7 @@ define
          * @summary Get the current proxy from the CouchDB local configuration.
          * @description Gets all options from the httpd_global_handlers section.
          * @function get_proxy
-         * @memberOf module:bittorrent
+         * @memberOf module:configurator/bittorrent
          */
         function get_proxy ()
         {
@@ -44,7 +44,7 @@ define
          * @description Creates an http proxy entry for the provided name and url.
          * @param {object} options - functions for success and error callback
          * @function create_proxy
-         * @memberOf module:bittorrent
+         * @memberOf module:configurator/bittorrent
          */
         function create_proxy (name, url, options)
         {
@@ -62,7 +62,7 @@ define
          * @description Creates an http proxy entry for deluge.
          * @param {object} options - functions for success and error callback
          * @function create_deluge_proxy
-         * @memberOf module:bittorrent
+         * @memberOf module:configurator/bittorrent
          */
         function create_deluge_proxy (options)
         {
@@ -72,10 +72,12 @@ define
         /**
          * @summary Create the deluge proxy and restart the CouchDB server.
          * @description Event handler for the Deluge button.
+         * @param {object} data - the configurator wizard data object, <em>not used</em>
+         * @param {object} event - the click event, <em>not used</em>
          * @function deluge
-         * @memberOf module:bittorrent
+         * @memberOf module:configurator/bittorrent
          */
-        function deluge (event)
+        function deluge (data, event)
         {
             create_deluge_proxy
             (
@@ -92,11 +94,12 @@ define
          * @summary Save button event handler.
          * @description Saves the form values as the current configuration document.
          * If the configuration database doesn't yet exist it is created.
+         * @param {object} data - the configurator wizard data object, <em>not used</em>
          * @param {object} event - the save button press event
          * @function save
-         * @memberOf module:bittorrent
+         * @memberOf module:configurator/bittorrent
          */
-        function save (event)
+        function save (data, event)
         {
             event.preventDefault ();
             event.stopPropagation ();
@@ -138,7 +141,7 @@ define
          * @description Fills the form with existing configuration data and attaches handlers for the
          * various operations.
          * @function init
-         * @memberOf module:bittorrent
+         * @memberOf module:configurator/bittorrent
          */
         function init ()
         {

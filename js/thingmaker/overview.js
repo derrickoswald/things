@@ -30,7 +30,7 @@ define
                                 {
                                     id: "expert",
                                     event: "change",
-                                    code: function (event, data)
+                                    code: function (data, event)
                                     {
                                         data.expert = event.target.checked;
                                         configuration.storeProperty ("thingmaker_expert", data.expert.toString ());
@@ -39,7 +39,7 @@ define
                             ],
                             transitions:
                             {
-                                enter: function (event, data)
+                                enter: function (data, event)
                                 {
                                     var expert = configuration.loadProperty ("thingmaker_expert");
                                     if (null != expert)

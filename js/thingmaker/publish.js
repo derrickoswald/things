@@ -11,6 +11,37 @@ define
      * @summary Publish a thing.
      * @description Provides the functionality to publish a thing to the
      * public database, deluge and the thingtracker network.
+     * <pre>
+     *    webseeds
+     *
+     *    Metadata Extension
+     *
+     *    In the main area of the metadata file and not part of the "info" section,
+     *    will be a new key, "url-list". This key will refer to a one or more URLs,
+     *    and will contain a list of web addresses where torrent data can be retrieved.
+     *    This key may be safely ignored if the client is not capable of using it.
+     *
+     *    For example:
+     *        d 8:announce27:http://tracker.com/announce 8:url-list26:http://mirror.com/file.exe 4:info...
+     *
+     *    If the "url-list" URL ends in a slash, "/" the client must add the "name"
+     *    from the torrent to make the full URL. This allows .torrent generators to
+     *    treat this field same for single file and multi-file torrents.
+     *
+     *    Multi-File Torrents
+     *
+     *    BitTorrent clients normally use the "name" from the torrent info section
+     *    to make a folder, then use the "path/file" items from the info section
+     *    within that folder. For the case of Multi-File torrents, the "url-list"
+     *    must be a root folder where a client could add the same "name" and
+     *    "path/file" to create the URL for the request.
+     *
+     *    For example:
+     *
+     *        ... 8:url-list22:http://mirror.com/pub/ 4:infod5:filesld6:lengthi949e4:pathl10:Readme.txte e4:name7:michael
+     *
+     *        A client would use all that to build a url: http://mirror.com/pub/michael/Readme.txt
+     * </pre>
      * @name thingmaker/publish
      * @exports thingmaker/publish
      * @version 1.0
@@ -226,13 +257,13 @@ define
 
         /**
          * Publish button pushed event handler
-         * @param event the triggering event
-         * @param data the ThingMaker data object.
+         * @param {object} data - the ThingMaker data object.
+         * @param {object} event - the triggering event
          * @return <em>nothing</em>
          * @function publish_handler
          * @memberOf module:thingmaker/publish
          */
-        function publish_handler (event, data)
+        function publish_handler (data, event)
         {
             var parameters;
 
@@ -273,7 +304,15 @@ define
             login.isLoggedIn (parameters);
         }
 
-        function init (event, data)
+        /**
+         * Initialization function.
+         *
+         * @param {object} data the data object for the thingmaker
+         * @param {object} event the tab being shown event
+         * @function init
+         * @memberOf module:thingmaker/publish
+         */
+        function init (data, event)
         {
             tracker_chooser = new chooser.Chooser ("tracker_list", "Trackers", trackers[0], trackers);
             tracker_chooser.render ();
@@ -283,11 +322,27 @@ define
             {
                 getStep: function ()
                 {
-                    var publish_hooks =
-                    [
-                        { id: "publish_button", event: "click", code: publish_handler, obj: this },
-                    ];
-                    return ({ id: "publish", title: "Publish the thing", template: "templates/thingmaker/publish.mst", hooks: publish_hooks, transitions: { enter: init, obj: this } } );
+                    return (
+                        {
+                            id: "publish",
+                            title: "Publish the thing",
+                            template: "templates/thingmaker/publish.mst",
+                            hooks:
+                            [
+                                {
+                                    id: "publish_button",
+                                    event: "click",
+                                    code: publish_handler,
+                                    obj: this
+                                },
+                            ],
+                            transitions:
+                            {
+                                enter: init,
+                                obj: this
+                            }
+                        }
+                    );
                 },
                 announce: announce
             }

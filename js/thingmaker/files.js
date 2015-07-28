@@ -128,10 +128,12 @@ define
         /**
          * @summary Handler for file change events.
          * @description Add files to the collection and update the display.
-         * @param {object} event - the file change event
          * @param {object} data - the thingmaker wizard data object
+         * @param {object} event - the file change event
+         * @function file_change
+         * @memberOf module:thingmaker/files
          */
-        function file_change (event, data)
+        function file_change (data, event)
         {
             add_files (event.target.files, data);
             update (data);
@@ -142,11 +144,11 @@ define
          * @description Attached to the drop target, this handler responds to dropped files,
          * adding them to the list of files.
          * @see {module:thingmaker/files.add_files}
-         * @param {event} event - the drop event
-         * @param data - the context object for the wizard
+         * @param {object} data - the context object for the wizard
+         * @param {object} event - the drop event
          * @memberOf module:thingmaker/files
          */
-        function file_drop (event, data)
+        function file_drop (data, event)
         {
             event.stopPropagation ();
             event.preventDefault ();
@@ -158,11 +160,11 @@ define
          * @summary Event handler for dragging files.
          * @description Attached to the drop target, this handler simply modifies the effect to copy,
          * (which produces the typical hand cursor).
-         * @param {event} event - the dragover event
-         * @param data - the context object for the wizard
+         * @param {object} data - the context object for the wizard
+         * @param {object} event - the dragover event
          * @memberOf module:thingmaker/files
          */
-        function file_drag (event, data)
+        function file_drag (data, event)
         {
             event.stopPropagation ();
             event.preventDefault ();
@@ -172,12 +174,12 @@ define
         /**
          * @summary Event handler for a directory change.
          * @description Attached to the directory input box .
-         * @param {event} event - the keyup event
-         * @param data - the context object for the wizard
+         * @param {object} data - the context object for the wizard
+         * @param {object} event - the keyup event
          * @function directory_change
          * @memberOf module:thingmaker/files
          */
-        function directory_change (event, data)
+        function directory_change (data, event)
         {
             var dir;
 
@@ -192,12 +194,12 @@ define
 
         /**
          * Initialize the page based on the wizard data object.
-         * @param {object} event the tab being shown event
          * @param {object} data the data object for the thingmaker
+         * @param {object} event the tab being shown event
          * @function init
          * @memberOf module:thingmaker/files
          */
-        function init (event, data)
+        function init (data, event)
         {
             update (data);
         }

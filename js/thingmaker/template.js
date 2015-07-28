@@ -46,7 +46,6 @@ define
                     elements[i].classList.remove ("hidden");
         }
 
-
         /**
          * Update the metadata, thumbnail and files information on screen.
          * @param {object} data - the wizard data object containing a list of files,
@@ -99,12 +98,12 @@ define
 
         /**
          * Handles the file change event.
-         * @param {event} event - the file change event
-         * @param data - the context object for the wizard
+         * @param {object} data - the context object for the wizard
+         * @param {object} event - the file change event
          * @function file_change
          * @memberOf module:thingmaker/template
          */
-        function file_change (event, data)
+        function file_change (data, event)
         {
             select_template (event.target.files, data);
         }
@@ -114,12 +113,12 @@ define
          * @description Attached to the drop target, this handler responds to dropped files,
          * by triggering the asynchronous reading.
          * @see {module:thingmaker/files.ReadFilesAsync}
-         * @param {event} event - the drop event
-         * @param data - the context object for the wizard
+         * @param {object} data - the context object for the wizard
+         * @param {object} event - the drop event
          * @function file_drop
          * @memberOf module:thingmaker/template
          */
-        function file_drop (event, data)
+        function file_drop (data, event)
         {
             event.stopPropagation ();
             event.preventDefault ();
@@ -130,12 +129,12 @@ define
          * @summary Event handler for dragging files.
          * @description Attached to the drop target, this handler simply modifies the effect to copy,
          * (which produces the typical hand cursor).
-         * @param {event} event - the dragover event
-         * @param data - the context object for the wizard
+         * @param {object} data - the context object for the wizard
+         * @param {object} event - the dragover event
          * @function file_drag
          * @memberOf module:thingmaker/template
          */
-        function file_drag (event, data)
+        function file_drag (data, event)
         {
             event.stopPropagation ();
             event.preventDefault ();
@@ -322,12 +321,12 @@ define
 
         /**
          * Template form initialization function.
-         * @param {object} event the tab being shown event
-         * @param {object} data the data object for the thingmaker
+         * @param {object} data - the data object for the thingmaker
+         * @param {object} event - the tab being shown event
          * @function init
          * @memberOf module:thingmaker/template
          */
-        function init (event, data)
+        function init (data, event)
         {
             var template =
                 "<div class='dropdown'>" +

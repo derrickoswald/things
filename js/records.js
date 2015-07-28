@@ -267,7 +267,7 @@ define
          *            ajaxOptions <a href="http://api.jquery.com/
          *            jQuery.ajax/#jQuery-ajax-settings">jQuery ajax settings</a>
          * @function fetchDoc
-         * @memberOf module:record
+         * @memberOf module:records
 
          */
         function fetchDoc (db, docId, attachment, options, ajaxOptions)
@@ -369,7 +369,7 @@ define
          * @param {callback} fn - not used yet
          * @returns {Deferred} with the {jqXHR} ajax object Promise
          * @function read_attachment
-         * @memberOf module:record
+         * @memberOf module:records
          */
         function read_attachment (db, id, name, fn)
         {
@@ -399,7 +399,7 @@ define
          * @param {string} type - the mime type to attach to the blob
          * @param {number} size - the processing chunk size
          * @function base64toBlob
-         * @memberOf module:record
+         * @memberOf module:records
          */
         function base64toBlob (data, type, size)
         {

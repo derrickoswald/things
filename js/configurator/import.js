@@ -97,9 +97,11 @@ define
 
         /**
          * Set up CORS support for http://thingiverse.com.
+         * @param {object} data - the configurator wizard data object, <em>not used</em>
+         * @param {object} event - the click event, <em>not used</em>
          * @memberOf module:configurator/import
          */
-        function setup_cors ()
+        function setup_cors (data, event)
         {
             enable_cors
             (
@@ -130,9 +132,11 @@ define
 
         /**
          * Initialize the import setup page.
+         * @param {object} data the data object for the configurator
+         * @param {object} event the tab being shown event
          * @memberOf module:configurator/import
          */
-        function init (event, data)
+        function init (data, event)
         {
             check_CORS ();
         }

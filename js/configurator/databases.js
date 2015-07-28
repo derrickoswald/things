@@ -26,6 +26,30 @@ define
         var list = null;
 
         /**
+         * Show or hide admin elements on the page.
+         * @param {boolean} admin - if <code>true</> show the elements with the admin class
+         * @function show_hide_admin
+         * @memberOf module:configurator/databases
+         */
+        function show_hide_admin (admin)
+        {
+            var elements;
+
+            elements = document.getElementsByClassName ("admin");
+            for (var i = 0; i < elements.length; i++)
+                if (admin)
+                    elements[i].classList.remove ("hidden");
+                else
+                    elements[i].classList.add ("hidden");
+            elements = document.getElementsByClassName ("nonadmin");
+            for (var i = 0; i < elements.length; i++)
+                if (admin)
+                    elements[i].classList.add ("hidden");
+                else
+                    elements[i].classList.remove ("hidden");
+        }
+
+        /**
          * @summary Creates a database.
          * @description Creates the configured database and optionally
          * adds standard views and logged-in security.
@@ -50,7 +74,7 @@ define
                             (
                                 name,
                                 {
-                                    success: update_database_state,
+                                    success: update_database_state ({name: "admin", roles: ["_admin"]}), // ToDo, how not to fake this?
                                     error: function () { alert (name + " _security creation failed"); }
                                 },
                                 security
@@ -76,17 +100,19 @@ define
          * @summary Save button event handler.
          * @description Saves the form values as the current configuration document.
          * If the configuration database doesn't yet exist it is created.
+         * @param {object} data - the configurator wizard data object
          * @param {object} event - the save button press event
          * @function save
          * @memberOf module:configurator/databases
          */
-        function save (event)
+        function save (data, event)
         {
             event.preventDefault ();
             event.stopPropagation ();
 
+            var update = update_database_state.bind (this, data);
             var cb = {};
-            cb.success = function (data)
+            cb.success = function (xxx)
             {
                 var db;
                 var secure;
@@ -115,7 +141,7 @@ define
                                         (
                                             configuration.getConfigurationItem ("local_database"),
                                             {
-                                                success: update_database_state,
+                                                success: update,
                                                 error: function (status)
                                                 {
                                                     alert (name + " _security deletion failed " + JSON.stringify (status, null, 4));
@@ -127,7 +153,7 @@ define
                                         (
                                             configuration.getConfigurationItem ("local_database"),
                                             {
-                                                success: update_database_state,
+                                                success: update,
                                                 error: function ()
                                                 {
                                                     alert (name + " _security creation failed");
@@ -254,20 +280,22 @@ define
 
         /**
          * @summary Update the form state for creating databases.
+         * @param {object} data - the configurator wizard data object
          * @param {object} event - the event that triggered the update request
          * @function update_database_state
          * @memberOf module:configurator/databases
          */
-        function update_database_state (event)
+        function update_database_state (data, event)
         {
+            var admin = -1 != data.roles.indexOf ("_admin");
             if (null == list)
                 $.couch.allDbs
                 (
                     {
-                        success: function (data)
+                        success: function (l)
                         {
-                            list = data;
-                            update_database_state ();
+                            list = l;
+                            update_database_state (data);
                         }
                     }
                 );
@@ -278,14 +306,16 @@ define
                     update_addon ("pending_database", "pending_database_state");
                     update_addon ("public_database", "public_database_state");
                     update_addon ("tracker_database", "tracker_database_state");
-                    update_local_security_state (document.getElementById ("local_database").value.trim ());
+                    if (admin)
+                        update_local_security_state (document.getElementById ("local_database").value.trim ());
                 }
                 else
                 {
                     update_addon (event.target.id, event.target.getAttribute ("aria-describedby"));
-                    if ("local_database" == event.target.id)
+                    if (admin && ("local_database" == event.target.id))
                         update_local_security_state (document.getElementById (event.target.id).value.trim ());
                 }
+            show_hide_admin (admin);
         }
 
         /**
@@ -294,21 +324,24 @@ define
          * @summary Initialize the database setup UI.
          * @description Fills the form with existing configuration data and attaches handlers for the
          * various operations.
+         * @param {object} data the data object for the configurator
+         * @param {object} event the tab being shown event
          * @function init
          * @memberOf module:configurator/databases
          */
-        function init ()
+        function init (data, event)
         {
             document.getElementById ("local_database").value = configuration.getConfigurationItem ("local_database");
             document.getElementById ("pending_database").value = configuration.getConfigurationItem ("pending_database");
             document.getElementById ("public_database").value = configuration.getConfigurationItem ("public_database");
             document.getElementById ("tracker_database").value = configuration.getConfigurationItem ("tracker_database");
 
-            document.getElementById ("local_database").oninput = update_database_state;
-            document.getElementById ("pending_database").oninput = update_database_state;
-            document.getElementById ("public_database").oninput = update_database_state;
-            document.getElementById ("tracker_database").oninput = update_database_state;
-            update_database_state (); // set up initial values
+            var update = update_database_state.bind (this, data);
+            document.getElementById ("local_database").oninput = update;
+            document.getElementById ("pending_database").oninput = update;
+            document.getElementById ("public_database").oninput = update;
+            document.getElementById ("tracker_database").oninput = update;
+            update (); // set up initial values
         }
 
         return (

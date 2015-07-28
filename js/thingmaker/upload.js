@@ -20,45 +20,14 @@ define
         /**
          * @summary Upload to the public database.
          * @description Upload a thing to the public database.
-         * <pre>
-         *    webseeds
-         *
-         *    Metadata Extension
-         *
-         *    In the main area of the metadata file and not part of the "info" section,
-         *    will be a new key, "url-list". This key will refer to a one or more URLs,
-         *    and will contain a list of web addresses where torrent data can be retrieved.
-         *    This key may be safely ignored if the client is not capable of using it.
-         *
-         *    For example:
-         *        d 8:announce27:http://tracker.com/announce 8:url-list26:http://mirror.com/file.exe 4:info...
-         *
-         *    If the "url-list" URL ends in a slash, "/" the client must add the "name"
-         *    from the torrent to make the full URL. This allows .torrent generators to
-         *    treat this field same for single file and multi-file torrents.
-         *
-         *    Multi-File Torrents
-         *
-         *    BitTorrent clients normally use the "name" from the torrent info section
-         *    to make a folder, then use the "path/file" items from the info section
-         *    within that folder. For the case of Multi-File torrents, the "url-list"
-         *    must be a root folder where a client could add the same "name" and
-         *    "path/file" to create the URL for the request.
-         *
-         *    For example:
-         *
-         *        ... 8:url-list22:http://mirror.com/pub/ 4:infod5:filesld6:lengthi949e4:pathl10:Readme.txte e4:name7:michael
-         *
-         *        A client would use all that to build a url: http://mirror.com/pub/michael/Readme.txt
-         * </pre>
-         * @param {object} event - the button push event
          * @param {object} data - the ThingMaker data object
+         * @param {object} event - the button push event
          * @return <em>nothing</em>
          * @see http://www.bittorrent.org/beps/bep_0019.html
          * @function upload
          * @memberOf module:thingmaker/upload
          */
-        function upload (event, data)
+        function upload (data, event)
         {
             event.preventDefault ();
 

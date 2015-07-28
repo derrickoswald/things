@@ -83,7 +83,7 @@ define
          * Deletes the property from local storage.
          * @param {string} property the property name
          * @function clearProperty
-         * @memberOf module:Configuration
+         * @memberOf module:configuration
          */
         function clearProperty (property)
         {
@@ -94,7 +94,7 @@ define
         /**
          * Get the nanme of the configuration database.
          * @function getConfigurationDatabase
-         * @memberOf module:Configuration
+         * @memberOf module:configuration
          */
         function getConfigurationDatabase ()
         {

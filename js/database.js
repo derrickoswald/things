@@ -19,12 +19,6 @@ define
         // expected views in a things database
         var standard_views =
             {
-                // view to count "things" (that have an info section) in the database
-                Count:
-                {
-                    map: "function(doc) { if (doc.info)  emit (doc._id, 1); }",
-                    reduce: "function (keys, values) { return (sum (values)); }"
-                },
                 // view of only "things" (that have an info section) in the database
                 Things:
                 {
@@ -286,4 +280,4 @@ define
             }
         );
     }
-)
+);

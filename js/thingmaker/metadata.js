@@ -60,12 +60,12 @@ define
         /**
          * @summary Add a file to the thumbnails list.
          * @description Adds an on screen input element to accept a remote URL as a thumbnail.
-         * @param {object} event - the event triggering the file addition
          * @param  {object} data - the thingmaker data object
+         * @param {object} event - the event triggering the file addition
          * @function add_file
          * @memberOf module:thingmaker/metadata
          */
-        function add_file (event, data)
+        function add_file (data, event)
         {
             if (typeof (data.thumbnails) == "undefined")
                 data.thumbnails = [];
@@ -184,37 +184,25 @@ define
                 removes[j].addEventListener ("click", remove);
 
             // add element function
-            document.getElementById ("add_thumbnail").addEventListener ("click", function (event)
-            {
-                add_file (event, data);
-            });
+            document.getElementById ("add_thumbnail").addEventListener ("click", add_file.bind (this, data));
 
             // add file change listener
-            document.getElementById ("choose_thing_thumbnails").addEventListener ("change", function (event)
-            {
-                file_change (event, data);
-            });
+            document.getElementById ("choose_thing_thumbnails").addEventListener ("change", file_change.bind (this, data));
 
             // add drop zone handlers
-            document.getElementById ("thumbnails_drop_zone").addEventListener ("dragover", function (event)
-            {
-                file_drag (event, data);
-            });
-            document.getElementById ("thumbnails_drop_zone").addEventListener ("drop", function (event)
-            {
-                file_drop (event, data);
-            });
+            document.getElementById ("thumbnails_drop_zone").addEventListener ("dragover", file_drag.bind (this, data));
+            document.getElementById ("thumbnails_drop_zone").addEventListener ("drop", file_drop.bind (this, data));
         }
 
         /**
          * @summary Handler for file change events.
          * @description Add files to the collection and update the display.
-         * @param {object} event - the file change event
          * @param {object} data - the thingmaker wizard data object
+         * @param {object} event - the file change event
          * @function file_change
          * @memberOf module:thingmaker/metadata
          */
-        function file_change (event, data)
+        function file_change (data, event)
         {
             add_files (event.target.files, data);
             update (data);
@@ -225,12 +213,12 @@ define
          * @description Attached to the drop target, this handler responds to
          *              dropped files, adding them to the list of files.
          * @see {module:thingmaker/metadata.add_files}
-         * @param {event} event - the drop event
-         * @param data - the context object for the wizard
+         * @param {object} data - the context object for the wizard
+         * @param {object} event - the drop event
          * @function file_drop
          * @memberOf module:thingmaker/metadata
          */
-        function file_drop (event, data)
+        function file_drop (data, event)
         {
             event.stopPropagation ();
             event.preventDefault ();
@@ -243,11 +231,11 @@ define
          * @description Attached to the drop target, this handler simply modifies
          *              the effect to copy, (which produces the typical hand
          *              cursor).
-         * @param {event} event - the dragover event
-         * @param data - the context object for the wizard
+         * @param {object} data - the context object for the wizard
+         * @param {object} event - the dragover event
          * @memberOf module:thingmaker/metadata
          */
-        function file_drag (event, data)
+        function file_drag (data, event)
         {
             event.stopPropagation ();
             event.preventDefault ();
@@ -299,14 +287,14 @@ define
         }
 
         /**
-         * Event handler for the make button.
-         *
-         * @param {object} event the button pressed event
-         * @param {object} data the data object for the thingmaker
+         * @summary Event handler for the make button.
+         * @description Creates the in memory torrent object.
+         * @param {object} data - the data object for the thingmaker
+         * @param {object} event - the button pressed event
          * @function make
          * @memberOf module:thingmaker/metadata
          */
-        function make (event, data)
+        function make (data, event)
         {
             var dir;
 
@@ -414,14 +402,14 @@ define
         }
 
         /**
-         * For initialization function.
+         * Form initialization function.
          *
-         * @param {object} event the tab being shown event
          * @param {object} data the data object for the thingmaker
+         * @param {object} event the tab being shown event
          * @function init
          * @memberOf module:thingmaker/metadata
          */
-        function init (event, data)
+        function init (data, event)
         {
             var authors_help;
             var licenses_help;

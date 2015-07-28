@@ -162,6 +162,12 @@ table.file_list tr:nth-child(even)
     display: inline;
 }
 
+#loggedin_user
+{
+    font-style: italic;
+    font-weight: bold;
+}
+
 .thing_property_list
 {
     list-style: none;

@@ -53,7 +53,7 @@ define
             login.isLoggedIn
             (
                 {
-                    success: function ()
+                    success: function (context)
                     {
                         wiz.wizard
                         (
@@ -65,7 +65,7 @@ define
                                 imp.getStep (),
                                 bittorrent.getStep ()
                             ],
-                            {}
+                            context
                         );
 
                     },
