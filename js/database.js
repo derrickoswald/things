@@ -161,7 +161,7 @@ define
          * @function make_insecure
          * @memberOf module:database
          */
-        function make_insecure (name)
+        function make_insecure (name, options)
         {
             $.couch.db (name).openDoc
             (
@@ -261,7 +261,6 @@ define
                         delete options.success;
                     make_designdoc (dbname, options, views, validation);
                     databases = null;
-                    update_database_state ();
                 };
             $.couch.db (dbname).create (options);
         }

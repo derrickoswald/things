@@ -16,6 +16,25 @@ define
      */
     function (configuration)
     {
+        /**
+         * Form initialization function.
+         *
+         * @param {object} event - the tab being shown event, <em>not used</em>
+         * @function init
+         * @memberOf module:thingmaker/overview
+         */
+        function init (event)
+        {
+            var ex = configuration.loadProperty ("thingmaker_expert");
+            if (null != ex)
+            {
+                this.expert = (ex.toLowerCase () === "true");
+                document.getElementById ("expert").checked = this.expert;
+            }
+            else
+                delete this.expert;
+        }
+
         return (
             {
                 getStep: function ()
@@ -30,28 +49,16 @@ define
                                 {
                                     id: "expert",
                                     event: "change",
-                                    code: function (data, event)
+                                    code: function (event)
                                     {
-                                        data.expert = event.target.checked;
-                                        configuration.storeProperty ("thingmaker_expert", data.expert.toString ());
+                                        this.expert = event.target.checked;
+                                        configuration.storeProperty ("thingmaker_expert", this.expert.toString ());
                                     }
                                 }
                             ],
                             transitions:
                             {
-                                enter: function (data, event)
-                                {
-                                    var expert = configuration.loadProperty ("thingmaker_expert");
-                                    if (null != expert)
-                                    {
-                                        expert = (expert.toLowerCase () === "true");
-                                        data.expert = expert;
-                                        document.getElementById ("expert").checked = data.expert;
-                                    }
-                                    else
-                                        delete data.expert;
-                                },
-                                obj: this
+                                enter: init
                             }
                         }
                     );

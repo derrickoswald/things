@@ -98,12 +98,11 @@ define
         /**
          * @summary Create the Keybase.io proxy and restart the CouchDB server.
          * @description Event handler for the Keybase button.
-         * @param {object} data - the configurator wizard data object, <em>not used</em>
          * @param {object} event - the click event, <em>not used</em>
          * @function keybase_click
          * @memberOf module:configurator/personalization
          */
-        function keybase_click (data, event)
+        function keybase_click (event)
         {
             create_keybase_proxy
             (
@@ -120,12 +119,11 @@ define
          * @summary Save button event handler.
          * @description Saves the form values as the current configuration document.
          * If the configuration database doesn't yet exist it is created.
-         * @param {object} data - the configurator wizard data object, <em>not used</em>
          * @param {object} event - the save button press event
          * @function save
          * @memberOf module:configurator/personalization
          */
-        function save (data, event)
+        function save (event)
         {
             event.preventDefault ();
             event.stopPropagation ();
@@ -186,12 +184,11 @@ define
          * @description Fills the form's uuid input element with a new value of the uuid.
          * The uid is either computed from the instance name, user's Keybase name and public key
          * or fetched from CouchDb as the next uuid.
-         * @param {object} data - the configurator wizard data object, <em>not used</em>
          * @param {object} event - the click event, <em>not used</em>
          * @function create_uuid
          * @memberOf module:configurator/personalization
          */
-        function create_uuid (data, event)
+        function create_uuid (event)
         {
             var instance_name = document.getElementById ("instance_name").value.trim ();
             var keybase_username = document.getElementById ("keybase_username").value.trim ();
@@ -257,12 +254,11 @@ define
         /**
          * @summary Get the Keybase information for the current user.
          * @description Query the Keybase lookup API with the keybase_username.
-         * @param {object} data - the configurator wizard data object, <em>not used</em>
          * @param {object} event - the event that triggered the lookup.
          * @function get_user_data
          * @memberOf module:configurator/personalization
          */
-        function get_user_data (data, event)
+        function get_user_data (event)
         {
             var username = document.getElementById ("keybase_username").value;
             if ("" != username)
@@ -297,18 +293,17 @@ define
          * @summary Initialize the personalization page of the configurator wizard.
          * @description Fills the form with existing configuration data and attaches handlers for the
          * various operations.
-         * @param {object} data the data object for the configurator
-         * @param {object} event the tab being shown event
+         * @param {object} event - the tab being shown event, <em>not used</em>
          * @function init
          * @memberOf module:configurator/personalization
          */
-        function init (data, event)
+        function init (event)
         {
             var admin;
 
             document.getElementById ("instance_name").value = configuration.getConfigurationItem ("instance_name");
             document.getElementById ("keybase_username").value = configuration.getConfigurationItem ("keybase_username");
-            admin = -1 != data.roles.indexOf ("_admin")
+            admin = -1 != this.roles.indexOf ("_admin");
             if (admin)
                 get_proxy ();
             get_user_data ();
@@ -327,15 +322,14 @@ define
                             template: "templates/configurator/personalization.mst",
                             hooks:
                             [
-                                { id: "save_personalization", event: "click", code: save, obj: this },
-                                { id: "configure_keybase_proxy", event: "click", code: keybase_click, obj: this },
-                                { id: "generate_uuid", event: "click", code: create_uuid, obj: this },
-                                { id: "keybase_username", event: "input", code: get_user_data, obj: this }
+                                { id: "save_personalization", event: "click", code: save },
+                                { id: "configure_keybase_proxy", event: "click", code: keybase_click },
+                                { id: "generate_uuid", event: "click", code: create_uuid },
+                                { id: "keybase_username", event: "input", code: get_user_data }
                             ],
                             transitions:
                             {
-                                enter: init,
-                                obj: this
+                                enter: init
                             }
                         }
                     );

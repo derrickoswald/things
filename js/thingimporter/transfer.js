@@ -19,11 +19,12 @@ define
          * @summary Initialize the transfer page.
          * @description Sets up the DOM elements for the transfer page
          * by calling home.build_content.
+         * @param {object} event - the tab being shown event, <em>not used</em>
          * @function init
          * @memberOf module:thingimporter/transfer
          * @return <em>nothing</em>
          */
-        function init ()
+        function init (event)
         {
             var db = configuration.getConfigurationItem ("pending_database");
             var view_name = "Things";
@@ -40,7 +41,10 @@ define
                         id : "transfer",
                         title : "Transfer Things",
                         template : "templates/thingimporter/transfer.mst",
-                        transitions: { enter: init, obj: this }
+                        transitions:
+                        {
+                            enter: init
+                        }
                     });
                 }
             }

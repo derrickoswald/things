@@ -72,12 +72,11 @@ define
         /**
          * @summary Create the deluge proxy and restart the CouchDB server.
          * @description Event handler for the Deluge button.
-         * @param {object} data - the configurator wizard data object, <em>not used</em>
          * @param {object} event - the click event, <em>not used</em>
          * @function deluge
          * @memberOf module:configurator/bittorrent
          */
-        function deluge (data, event)
+        function deluge (event)
         {
             create_deluge_proxy
             (
@@ -94,12 +93,11 @@ define
          * @summary Save button event handler.
          * @description Saves the form values as the current configuration document.
          * If the configuration database doesn't yet exist it is created.
-         * @param {object} data - the configurator wizard data object, <em>not used</em>
          * @param {object} event - the save button press event
          * @function save
          * @memberOf module:configurator/bittorrent
          */
-        function save (data, event)
+        function save (event)
         {
             event.preventDefault ();
             event.stopPropagation ();
@@ -140,10 +138,11 @@ define
          * @summary Initialize the personalization page of the configurator wizard.
          * @description Fills the form with existing configuration data and attaches handlers for the
          * various operations.
+         * @param {object} event - the tab being shown event, <em>not used</em>
          * @function init
          * @memberOf module:configurator/bittorrent
          */
-        function init ()
+        function init (event)
         {
             document.getElementById ("deluge_password").value = configuration.getConfigurationItem ("deluge_password");
             document.getElementById ("torrent_directory").value = configuration.getConfigurationItem ("torrent_directory");
@@ -161,13 +160,12 @@ define
                             template: "templates/configurator/bittorrent.mst",
                             hooks:
                             [
-                                { id: "save_bittorrent", event: "click", code: save, obj: this },
-                                { id: "configure_deluge_proxy", event: "click", code: deluge, obj: this },
+                                { id: "save_bittorrent", event: "click", code: save },
+                                { id: "configure_deluge_proxy", event: "click", code: deluge },
                             ],
                             transitions:
                             {
-                                enter: init,
-                                obj: this
+                                enter: init
                             }
                         }
                     );

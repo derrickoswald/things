@@ -257,18 +257,18 @@ define
 
         /**
          * Publish button pushed event handler
-         * @param {object} data - the ThingMaker data object.
          * @param {object} event - the triggering event
          * @return <em>nothing</em>
          * @function publish_handler
          * @memberOf module:thingmaker/publish
          */
-        function publish_handler (data, event)
+        function publish_handler (event)
         {
             var parameters;
+            var data;
 
             event.preventDefault ();
-
+            data = this;
             parameters =
             {
                 success: function ()
@@ -306,13 +306,11 @@ define
 
         /**
          * Initialization function.
-         *
-         * @param {object} data the data object for the thingmaker
-         * @param {object} event the tab being shown event
+         * @param {object} event - the tab being shown event, <em>not used</em>
          * @function init
          * @memberOf module:thingmaker/publish
          */
-        function init (data, event)
+        function init (event)
         {
             tracker_chooser = new chooser.Chooser ("tracker_list", "Trackers", trackers[0], trackers);
             tracker_chooser.render ();
@@ -332,14 +330,12 @@ define
                                 {
                                     id: "publish_button",
                                     event: "click",
-                                    code: publish_handler,
-                                    obj: this
+                                    code: publish_handler
                                 },
                             ],
                             transitions:
                             {
-                                enter: init,
-                                obj: this
+                                enter: init
                             }
                         }
                     );

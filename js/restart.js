@@ -17,7 +17,7 @@ define
      */
     function (configuration)
     {
-        template =
+        var template =
             "<div id='restart_required' class='modal fade' tabindex='-1' role='dialog' aria-labelledby='couchdb_restart' aria-hidden='true'>" +
               "<div class='modal-dialog'>" +
                 "<div class='modal-content'>" +
@@ -73,8 +73,9 @@ define
                                     dialog.getElementsByClassName ("modal-title")[0].innerHTML = title;
                                     dialog.getElementsByClassName ("modal-body")[0].innerHTML = body;
                                     dialog.getElementsByClassName ("modal-footer")[0].classList.remove ("hidden");
+                                    // ToDo: callback for updating the display?
                                     // update the display
-                                    get_proxy ();
+                                    // get_proxy ();
                                 },
                                 error: function ()
                                 {

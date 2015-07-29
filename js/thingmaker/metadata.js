@@ -78,12 +78,11 @@ define
          * @description Alter the file list in the data element to remove the one
          *              that has a name given by the event target data-file
          *              attribute.
-         * @param {object} data - the context object for the wizard
          * @param {object} event - the event that triggers this method
          * @function remove_file
          * @memberOf module:thingmaker/metadata
          */
-        function remove_file (data, event)
+        function remove_file (event)
         {
             var target;
             var name;
@@ -93,14 +92,14 @@ define
             while (target && (null === (name = target.getAttribute ("data-file"))))
                 target = target.parentElement;
             // remove it from the list
-            for (var i = 0; i < data.thumbnails.length; i++)
-                if (data.thumbnails[i].name == name)
+            for (var i = 0; i < this.thumbnails.length; i++)
+                if (this.thumbnails[i].name == name)
                 {
-                    data.thumbnails.splice (i, 1);
+                    this.thumbnails.splice (i, 1);
                     break;
                 }
             // update the display
-            update (data);
+            update (this);
         }
 
         /**
@@ -179,7 +178,7 @@ define
 
             // add delete function to each file
             var removes = document.getElementById ("thumbnails").getElementsByClassName ("remove");
-            var remove = remove_file.bind (this, data);
+            var remove = remove_file.bind (data);
             for (var j = 0; j < removes.length; j++)
                 removes[j].addEventListener ("click", remove);
 
@@ -187,25 +186,24 @@ define
             document.getElementById ("add_thumbnail").addEventListener ("click", add_file.bind (this, data));
 
             // add file change listener
-            document.getElementById ("choose_thing_thumbnails").addEventListener ("change", file_change.bind (this, data));
+            document.getElementById ("choose_thing_thumbnails").addEventListener ("change", file_change.bind (data));
 
             // add drop zone handlers
-            document.getElementById ("thumbnails_drop_zone").addEventListener ("dragover", file_drag.bind (this, data));
-            document.getElementById ("thumbnails_drop_zone").addEventListener ("drop", file_drop.bind (this, data));
+            document.getElementById ("thumbnails_drop_zone").addEventListener ("dragover", file_drag.bind (data));
+            document.getElementById ("thumbnails_drop_zone").addEventListener ("drop", file_drop.bind (data));
         }
 
         /**
          * @summary Handler for file change events.
          * @description Add files to the collection and update the display.
-         * @param {object} data - the thingmaker wizard data object
          * @param {object} event - the file change event
          * @function file_change
          * @memberOf module:thingmaker/metadata
          */
-        function file_change (data, event)
+        function file_change (event)
         {
-            add_files (event.target.files, data);
-            update (data);
+            add_files (event.target.files, this);
+            update (this);
         }
 
         /**
@@ -213,17 +211,16 @@ define
          * @description Attached to the drop target, this handler responds to
          *              dropped files, adding them to the list of files.
          * @see {module:thingmaker/metadata.add_files}
-         * @param {object} data - the context object for the wizard
          * @param {object} event - the drop event
          * @function file_drop
          * @memberOf module:thingmaker/metadata
          */
-        function file_drop (data, event)
+        function file_drop (event)
         {
             event.stopPropagation ();
             event.preventDefault ();
-            add_files (event.dataTransfer.files, data);
-            update (data);
+            add_files (event.dataTransfer.files, this);
+            update (this);
         }
 
         /**
@@ -231,11 +228,10 @@ define
          * @description Attached to the drop target, this handler simply modifies
          *              the effect to copy, (which produces the typical hand
          *              cursor).
-         * @param {object} data - the context object for the wizard
          * @param {object} event - the dragover event
          * @memberOf module:thingmaker/metadata
          */
-        function file_drag (data, event)
+        function file_drag (event)
         {
             event.stopPropagation ();
             event.preventDefault ();
@@ -289,21 +285,18 @@ define
         /**
          * @summary Event handler for the make button.
          * @description Creates the in memory torrent object.
-         * @param {object} data - the data object for the thingmaker
          * @param {object} event - the button pressed event
          * @function make
          * @memberOf module:thingmaker/metadata
          */
-        function make (data, event)
+        function make (event)
         {
-            var dir;
-
-            dir = data.directory ? data.directory : null;
+            var data = this;
             torrent.MakeTorrent
             (
                 data.files,
                 data.piece_length,
-                dir,
+                data.directory,
                 function (tor)
                 {
                     var thing;
@@ -404,19 +397,18 @@ define
         /**
          * Form initialization function.
          *
-         * @param {object} data the data object for the thingmaker
-         * @param {object} event the tab being shown event
+         * @param {object} event - the tab being shown event, <em>not used</em>
          * @function init
          * @memberOf module:thingmaker/metadata
          */
-        function init (data, event)
+        function init (event)
         {
             var authors_help;
             var licenses_help;
             var tags_help;
             var thing;
 
-            if ((null === form_initialized_with) || (data.torrent && (form_initialized_with !== data.torrent._id)))
+            if ((null === form_initialized_with) || (this.torrent && (form_initialized_with !== this.torrent._id)))
             {
                 authors_help =
                     "<span id='authors_help' class='help-block nonexpert'>" +
@@ -433,12 +425,12 @@ define
                         "The list of keywords or phrases that describe the salient aspects of the <em>thing</em>." +
                     "</span>";
                 tag_chooser = new chooser.Chooser ("tags", "Tags", "Tag", null, tags_help);
-                if (data.torrent && ((null === form_initialized_with) || (form_initialized_with !== data.torrent._id)))
+                if (this.torrent && ((null === form_initialized_with) || (form_initialized_with !== this.torrent._id)))
                 {
-                    form_initialized_with = data.torrent._id;
-                    if (data.torrent.info && data.torrent.info.thing)
+                    form_initialized_with = this.torrent._id;
+                    if (this.torrent.info && this.torrent.info.thing)
                     {
-                        thing = data.torrent.info.thing;
+                        thing = this.torrent.info.thing;
 
                         if (thing.title)
                             document.getElementById ("title").value = thing.title;
@@ -507,13 +499,13 @@ define
                         // just by name
                         // if (thing.thumbnailURL)
                         // {
-                        // data.thumbnails = [];
+                        // this.thumbnails = [];
                         // if ('[object Array]' === Object.prototype.toString.call
                         // (thing.thumbnailURL))
                         // for (var l = 0; l < thing.thumbnailURL.length; l++)
-                        // data.thumbnails.push ({ value: thing.thumbnailURL[l] });
+                        // this.thumbnails.push ({ value: thing.thumbnailURL[l] });
                         // else
-                        // data.thumbnails.push ({ value: thing.thumbnailURL.toString ()
+                        // this.thumbnails.push ({ value: thing.thumbnailURL.toString ()
                         // });
                         // }
                     }
@@ -522,8 +514,8 @@ define
             author_chooser.render ();
             license_chooser.render ();
             tag_chooser.render ();
-            update (data);
-            show_hide_expert (data.expert);
+            update (this);
+            show_hide_expert (this.expert);
         }
 
         return (
@@ -540,14 +532,12 @@ define
                             {
                                 id : "make_thing_button",
                                 event : "click",
-                                code : make,
-                                obj : this
+                                code : make
                             }
                         ],
                         transitions :
                         {
-                            enter : init,
-                            obj : this
+                            enter : init
                         }
                     });
                 }

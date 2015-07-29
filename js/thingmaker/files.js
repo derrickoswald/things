@@ -41,21 +41,20 @@ define
          * @description Alter the file list in the data element
          * to remove the one that has a name given by the event target
          * data-file attribute.
-         * @param {object} data - the context object for the wizard
          * @param {object} event - the event that triggers this method
          * @function remove_file
          * @memberOf module:thingmaker/files
          */
-        function remove_file (data, event)
+        function remove_file (event)
         {
             var name = event.target.getAttribute ("data-file");
-            for (var i = 0; i < data.files.length; i++)
-                if (data.files[i].name == name)
+            for (var i = 0; i < this.files.length; i++)
+                if (this.files[i].name == name)
                 {
-                    data.files.splice (i, 1);
+                    this.files.splice (i, 1);
                     break;
                 }
-            update (data);
+            update (this);
         }
 
         /**
@@ -120,7 +119,7 @@ define
                 document.getElementById ("next").setAttribute ("disabled", "disabled");
             // add delete function to each file
             var removes = document.getElementById ("file_table").getElementsByClassName ("glyphicon-remove");
-            var remove = remove_file.bind (this, data);
+            var remove = remove_file.bind (data);
             for (var i = 0; i < removes.length; i++)
                 removes[i].addEventListener ("click", remove);
         }
@@ -128,15 +127,14 @@ define
         /**
          * @summary Handler for file change events.
          * @description Add files to the collection and update the display.
-         * @param {object} data - the thingmaker wizard data object
          * @param {object} event - the file change event
          * @function file_change
          * @memberOf module:thingmaker/files
          */
-        function file_change (data, event)
+        function file_change (event)
         {
-            add_files (event.target.files, data);
-            update (data);
+            add_files (event.target.files, this);
+            update (this);
         }
 
         /**
@@ -144,27 +142,25 @@ define
          * @description Attached to the drop target, this handler responds to dropped files,
          * adding them to the list of files.
          * @see {module:thingmaker/files.add_files}
-         * @param {object} data - the context object for the wizard
          * @param {object} event - the drop event
          * @memberOf module:thingmaker/files
          */
-        function file_drop (data, event)
+        function file_drop (event)
         {
             event.stopPropagation ();
             event.preventDefault ();
-            add_files (event.dataTransfer.files, data);
-            update (data);
+            add_files (event.dataTransfer.files, this);
+            update (this);
         }
 
         /**
          * @summary Event handler for dragging files.
          * @description Attached to the drop target, this handler simply modifies the effect to copy,
          * (which produces the typical hand cursor).
-         * @param {object} data - the context object for the wizard
          * @param {object} event - the dragover event
          * @memberOf module:thingmaker/files
          */
-        function file_drag (data, event)
+        function file_drag (event)
         {
             event.stopPropagation ();
             event.preventDefault ();
@@ -173,35 +169,33 @@ define
 
         /**
          * @summary Event handler for a directory change.
-         * @description Attached to the directory input box .
-         * @param {object} data - the context object for the wizard
+         * @description Attached to the directory input box.
          * @param {object} event - the keyup event
          * @function directory_change
          * @memberOf module:thingmaker/files
          */
-        function directory_change (data, event)
+        function directory_change (event)
         {
             var dir;
 
             dir = event.target.value;
             dir = dir.trim ();
             if (0 !== dir.length)
-                data.directory = dir;
+                this.directory = dir;
             else
-                delete data.directory;
-            update (data);
+                delete this.directory;
+            update (this);
         }
 
         /**
          * Initialize the page based on the wizard data object.
-         * @param {object} data the data object for the thingmaker
-         * @param {object} event the tab being shown event
+         * @param {object} event - the tab being shown event, <em>not used</em>
          * @function init
          * @memberOf module:thingmaker/files
          */
-        function init (data, event)
+        function init (event)
         {
-            update (data);
+            update (this);
         }
 
         return (
@@ -215,16 +209,15 @@ define
                             template: "templates/thingmaker/files.mst",
                             hooks:
                             [
-                                { id: "thing_files", event: "change", code: file_change, obj: this },
-                                { id: "thing_directory", event: "keyup", code: directory_change, obj: this },
+                                { id: "thing_files", event: "change", code: file_change },
+                                { id: "thing_directory", event: "keyup", code: directory_change },
                                 // drag and drop listeners
-                                { id: "files_drop_zone", event: "dragover", code: file_drag, obj: this },
-                                { id: "files_drop_zone", event: "drop", code: file_drop, obj: this }
+                                { id: "files_drop_zone", event: "dragover", code: file_drag },
+                                { id: "files_drop_zone", event: "drop", code: file_drop }
                             ],
                             transitions:
                             {
-                                enter: init,
-                                obj: this
+                                enter: init
                             }
                         }
                     );

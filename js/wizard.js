@@ -111,7 +111,7 @@ define
                         for (var i = 0; i < step.hooks.length; i++)
                         {
                             var element = document.getElementById (step.hooks[i].id);
-                            var fn = step.hooks[i].code.bind (step.hooks[i].obj, data);
+                            var fn = step.hooks[i].code.bind (data);
                             element.addEventListener (step.hooks[i].event, fn);
                         }
 
@@ -119,7 +119,7 @@ define
                     {
                         var transitions = step.transitions;
                         if (transitions && transitions.enter)
-                            transitions.enter.call (transitions.obj, data);
+                            transitions.enter.call (data);
                     }
                 }
             };
@@ -188,7 +188,7 @@ define
                         next_button.classList.remove ("hide");
                     else
                         next_button.classList.add ("hide");
-                    $(link).tab ("show");
+                    $ (link).tab ("show");
                 }
             );
 
@@ -202,7 +202,7 @@ define
                  * Use event.target and event.relatedTarget to target the
                  * current active tab and the new soon-to-be-active tab, respectively.
                  */
-                fn = step.transitions.leave.bind (step.transitions.obj ? step.transitions.obj : this, data);
+                fn = step.transitions.leave.bind (data);
                 $ (link).on ("hide.bs.tab", fn);
             }
 
@@ -215,7 +215,7 @@ define
                  * Use event.target and event.relatedTarget to target the
                  * active tab and the previous active tab (if available) respectively.
                  */
-                fn = step.transitions.enter.bind (step.transitions.obj ? step.transitions.obj : this, data);
+                fn = step.transitions.enter.bind (data);
                 $ (link).on ("show.bs.tab", fn);
             }
 

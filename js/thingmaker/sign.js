@@ -16,7 +16,7 @@ define
      */
     function (mustache, torrent, keybase)
     {
-        function tryit (data, event)
+        function tryit (event)
         {
             keybase.login (
                 "derrickoswald",
@@ -45,7 +45,7 @@ define
                             template: "templates/thingmaker/sign.mst",
                             hooks:
                             [
-                                { id: "tryit_button", event: "click", code: tryit, obj: this },
+                                { id: "tryit_button", event: "click", code: tryit },
                             ]
                         }
                     );

@@ -17,11 +17,10 @@ define
     {
         /**
          * Check if the user script is set up for thingiverse.com.
-         * @param {object} data - the thingimporter wizard data object, <em>not used</em>
          * @param {object} event - the event causing the check, <em>not used</em>
          * @memberOf module:thingimporter/userscript
          */
-        function check_thingiverse (data, event)
+        function check_thingiverse (event)
         {
             var ping;
             var xmlhttp;
@@ -268,11 +267,12 @@ define
         /**
          * @summary Initialize the user script installation page.
          * @description Creates the download artifact and optionally tests the installation.
+         * @param {object} event - the tab being shown event, <em>not used</em>
          * @return <em>nothing</em>
          * @function init
          * @memberOf module:thingimporter/userscript
          */
-        function init ()
+        function init (event)
         {
             // set up the download script button
             prepare_user_script ();
@@ -289,9 +289,12 @@ define
                         template : "templates/thingimporter/userscript.mst",
                         hooks:
                         [
-                            { id: "test_user_script_button", event: "click", code: check_thingiverse, obj: this }
+                            { id: "test_user_script_button", event: "click", code: check_thingiverse }
                         ],
-                        transitions: { enter: init, obj: this }
+                        transitions:
+                        {
+                            enter: init
+                        }
                     });
                 }
             }

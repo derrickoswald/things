@@ -20,17 +20,17 @@ define
         /**
          * @summary Upload to the public database.
          * @description Upload a thing to the public database.
-         * @param {object} data - the ThingMaker data object
          * @param {object} event - the button push event
          * @return <em>nothing</em>
          * @see http://www.bittorrent.org/beps/bep_0019.html
          * @function upload
          * @memberOf module:thingmaker/upload
          */
-        function upload (data, event)
+        function upload (event)
         {
             event.preventDefault ();
 
+            var data = this;
             if (data.torrent)
                 login.isLoggedIn
                 (
@@ -114,7 +114,7 @@ define
                             template: "templates/thingmaker/upload.mst",
                             hooks:
                             [
-                                { id: "upload_button", event: "click", code: upload, obj: this }
+                                { id: "upload_button", event: "click", code: upload }
                             ]
                         }
                     );

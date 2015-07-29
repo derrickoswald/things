@@ -98,43 +98,39 @@ define
 
         /**
          * Handles the file change event.
-         * @param {object} data - the context object for the wizard
          * @param {object} event - the file change event
          * @function file_change
          * @memberOf module:thingmaker/template
          */
-        function file_change (data, event)
+        function file_change (event)
         {
-            select_template (event.target.files, data);
+            select_template (event.target.files, this);
         }
 
         /**
          * @summary Event handler for dropped files.
          * @description Attached to the drop target, this handler responds to dropped files,
          * by triggering the asynchronous reading.
-         * @see {module:thingmaker/files.ReadFilesAsync}
-         * @param {object} data - the context object for the wizard
          * @param {object} event - the drop event
          * @function file_drop
          * @memberOf module:thingmaker/template
          */
-        function file_drop (data, event)
+        function file_drop (event)
         {
             event.stopPropagation ();
             event.preventDefault ();
-            select_template (event.dataTransfer.files, data);
+            select_template (event.dataTransfer.files, this);
         }
 
         /**
          * @summary Event handler for dragging files.
          * @description Attached to the drop target, this handler simply modifies the effect to copy,
          * (which produces the typical hand cursor).
-         * @param {object} data - the context object for the wizard
          * @param {object} event - the dragover event
          * @function file_drag
          * @memberOf module:thingmaker/template
          */
-        function file_drag (data, event)
+        function file_drag (event)
         {
             event.stopPropagation ();
             event.preventDefault ();
@@ -195,9 +191,9 @@ define
                             {
                                 var url = doc.info.thing.thumbnailURL[k];
                                 if ("data:" == url.substring (0, 5))
-                                    thumbnails.push ({type: "embedded", url: url, file: new File ([blob], "name")});
+                                    thumbnails.push ({type: "embedded", url: url, file: new File ([blob], "name")}); // ToDo: get binary image data out of the data url
                                 else if (("http:" == url.substring (0, 5)) || ("https:" == url.substring (0, 6)))
-                                    thumbnails.push ({type: "remote", url: url, file: new File ([blob], "name")});
+                                    thumbnails.push ({type: "remote", url: url, file: new File ([blob], "name")}); // ToDo: get the binary image from the URL using CORS
                                 else
                                 {
                                     blob = records.base64toBlob (doc._attachments[url].data, doc._attachments[url].content_type);
@@ -231,17 +227,16 @@ define
 
         /**
          * @summary Event handler for thing chooser links.
-         * @param {object} data - the thingwizard data object
          * @param {event} event - the click event
          * @function choose_thing
          * @memberOf module:thingmaker/template
          */
-        function choose_thing (data, event)
+        function choose_thing (event)
         {
             event.preventDefault ();
             var id = event.target.getAttribute ("href");
             var db = document.getElementById ("source_database_name").innerHTML;
-            fetch_thing_details (data, db, id);
+            fetch_thing_details (this, db, id);
         }
 
         /**
@@ -284,7 +279,7 @@ define
                         // hook up the links
                         var links = chooser.getElementsByTagName ("a");
                         for (var i = 0; i < links.length; i++)
-                            links[i].addEventListener ("click", choose_thing.bind (this, data));
+                            links[i].addEventListener ("click", choose_thing.bind (data));
                     }
                 }
             );
@@ -292,18 +287,17 @@ define
 
         /**
          * @summary Event handler for database chooser button dropdown selection.
-         * @param {object} data - the thingwizard data object
          * @param {event} event - the click event
          * @function choose_database
          * @memberOf module:thingmaker/template
          */
-        function choose_database (data, event)
+        function choose_database (event)
         {
             event.preventDefault ();
             var db = event.target.innerHTML;
             // update current in databases list
             var dbs = [];
-            data.databases.forEach
+            this.databases.forEach
             (
                 function (item)
                 {
@@ -314,19 +308,18 @@ define
                     dbs.push (item);
                 }
             );
-            data.databases = dbs;
+            this.databases = dbs;
             document.getElementById ("source_database_name").innerHTML = db;
-            fill_database_list (data, db, "Things");
+            fill_database_list (this, db, "Things");
         }
 
         /**
          * Template form initialization function.
-         * @param {object} data - the data object for the thingmaker
-         * @param {object} event - the tab being shown event
+         * @param {object} event - the tab being shown event, <em>not used</em>
          * @function init
          * @memberOf module:thingmaker/template
          */
-        function init (data, event)
+        function init (event)
         {
             var template =
                 "<div class='dropdown'>" +
@@ -344,22 +337,22 @@ define
                         "{{/.}}" +
                     "</ul>" +
                 "</div>";
-            if (null == data.databases)
-                data.databases = page.getDatabases ();
+            if (null == this.databases)
+                this.databases = page.getDatabases ();
             var chooser = document.getElementById ("source_database_chooser");
-            chooser.innerHTML = mustache.render (template, data.databases);
+            chooser.innerHTML = mustache.render (template, this.databases);
             // hook up drop down menu items
             var links = chooser.getElementsByTagName ("a");
             for (var i = 0; i < links.length; i++)
-                links[i].addEventListener ("click", choose_database.bind (this, data));
+                links[i].addEventListener ("click", choose_database.bind (this));
 
             // show the initial list
             var db = "public_things";
-            data.databases.forEach (function (item) { if (item.current) db = item.database; });
-            fill_database_list (data, db, "Things");
+            this.databases.forEach (function (item) { if (item.current) db = item.database; });
+            fill_database_list (this, db, "Things");
 
             // show files and torrent
-            update (data);
+            update (this);
         }
 
         return (
@@ -373,15 +366,14 @@ define
                             template: "templates/thingmaker/template.mst",
                             hooks:
                             [
-                                { id: "thing_template", event: "change", code: file_change, obj: this },
+                                { id: "thing_template", event: "change", code: file_change },
                                 // drag and drop listeners
-                                { id: "template_drop_zone", event: "dragover", code: file_drag, obj: this },
-                                { id: "template_drop_zone", event: "drop", code: file_drop, obj: this }
+                                { id: "template_drop_zone", event: "dragover", code: file_drag },
+                                { id: "template_drop_zone", event: "drop", code: file_drop }
                             ],
                             transitions:
                             {
-                                enter: init,
-                                obj: this
+                                enter: init
                             }
                         }
                     );

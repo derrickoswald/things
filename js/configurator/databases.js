@@ -74,7 +74,7 @@ define
                             (
                                 name,
                                 {
-                                    success: update_database_state ({name: "admin", roles: ["_admin"]}), // ToDo, how not to fake this?
+                                    success: update_database_state.call ({name: "admin", roles: ["_admin"]}), // ToDo, how not to fake this?
                                     error: function () { alert (name + " _security creation failed"); }
                                 },
                                 security
@@ -100,17 +100,16 @@ define
          * @summary Save button event handler.
          * @description Saves the form values as the current configuration document.
          * If the configuration database doesn't yet exist it is created.
-         * @param {object} data - the configurator wizard data object
          * @param {object} event - the save button press event
          * @function save
          * @memberOf module:configurator/databases
          */
-        function save (data, event)
+        function save (event)
         {
             event.preventDefault ();
             event.stopPropagation ();
 
-            var update = update_database_state.bind (this, data);
+            var update = update_database_state.bind (this);
             var cb = {};
             cb.success = function (xxx)
             {
@@ -280,14 +279,14 @@ define
 
         /**
          * @summary Update the form state for creating databases.
-         * @param {object} data - the configurator wizard data object
          * @param {object} event - the event that triggered the update request
          * @function update_database_state
          * @memberOf module:configurator/databases
          */
-        function update_database_state (data, event)
+        function update_database_state (event)
         {
-            var admin = -1 != data.roles.indexOf ("_admin");
+            var admin = -1 != this.roles.indexOf ("_admin");
+            var data = this;
             if (null == list)
                 $.couch.allDbs
                 (
@@ -295,7 +294,7 @@ define
                         success: function (l)
                         {
                             list = l;
-                            update_database_state (data);
+                            update_database_state.call (data);
                         }
                     }
                 );
@@ -324,23 +323,22 @@ define
          * @summary Initialize the database setup UI.
          * @description Fills the form with existing configuration data and attaches handlers for the
          * various operations.
-         * @param {object} data the data object for the configurator
-         * @param {object} event the tab being shown event
+         * @param {object} event - the tab being shown event, <em>not used</em>
          * @function init
          * @memberOf module:configurator/databases
          */
-        function init (data, event)
+        function init (event)
         {
             document.getElementById ("local_database").value = configuration.getConfigurationItem ("local_database");
             document.getElementById ("pending_database").value = configuration.getConfigurationItem ("pending_database");
             document.getElementById ("public_database").value = configuration.getConfigurationItem ("public_database");
             document.getElementById ("tracker_database").value = configuration.getConfigurationItem ("tracker_database");
 
-            var update = update_database_state.bind (this, data);
-            document.getElementById ("local_database").oninput = update;
-            document.getElementById ("pending_database").oninput = update;
-            document.getElementById ("public_database").oninput = update;
-            document.getElementById ("tracker_database").oninput = update;
+            var update = update_database_state.bind (this);
+            document.getElementById ("local_database").addEventListener ("input", update);
+            document.getElementById ("pending_database").addEventListener ("input", update);
+            document.getElementById ("public_database").addEventListener ("input", update);
+            document.getElementById ("tracker_database").addEventListener ("input", update);
             update (); // set up initial values
         }
 
@@ -355,12 +353,11 @@ define
                             template: "templates/configurator/databases.mst",
                             hooks:
                             [
-                                { id: "save_databases", event: "click", code: save, obj: this }
+                                { id: "save_databases", event: "click", code: save }
                             ],
                             transitions:
                             {
-                                enter: init,
-                                obj: this
+                                enter: init
                             }
                         }
                     );
