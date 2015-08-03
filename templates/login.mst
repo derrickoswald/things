@@ -55,5 +55,5 @@
     </div>
 </li>
 <li id="logout" class="hidden">
-    <a id="logout_button_link" href="#">Logout<span id="loggedin_user"></span></a>
+    <a id="logout_button_link" href="#">Logout <span id="loggedin_user"></span></a>
 </li>

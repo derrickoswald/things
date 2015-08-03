@@ -19,7 +19,7 @@ define (
         /**
          * Checks for logged in state.
          * @param {object} options to process the login:
-         * success: function({name: xxx, roles: yyy}) to call when the user is logged in
+         * success: function({name: yadda, roles: [yadda, yadda]}) to call when the user is logged in
          * error: function to call when a problem occurs or the user is not logged in
          * @return <em>nothing</em>
          * @function isLoggedIn
@@ -34,7 +34,7 @@ define (
                     // {"ok":true,"userCtx":{"name":null,"roles":[]},"info":{"authentication_db":"_users","authentication_handlers":["oauth","cookie","default"]}}
                     // {"ok":true,"userCtx":{"name":"admin","roles":["_admin"]},"info":{"authentication_db":"_users","authentication_handlers":["oauth","cookie","default"],"authenticated":"cookie"}}
                     // {"ok":true,"userCtx":{"name":"derrick","roles":["user"]},"info":{"authentication_db":"_users","authentication_handlers":["oauth","cookie","default"],"authenticated":"cookie"}}
-                    success : function (data)
+                    success: function (data)
                     {
                         var credentials;
 
@@ -61,8 +61,8 @@ define (
                                                 menu_adjust (result.name);
                                                 if (options.success)
                                                     options.success (result);
-                                                // let registered listeners know about the login
-                                                _login.trigger ("login");
+                                                // reset the application
+                                                reinitialize ("login");
                                             },
                                             error: function (status)
                                             {
@@ -173,7 +173,7 @@ define (
         }
 
         /**
-         * Retrive the username and password from local storage.
+         * Retrieve the username and password from local storage.
          * @return Either <code>null</code> or an object with properties <code>name</code> and <code>password</code>.
          * @function getCredentials
          * @memberOf module:login
@@ -276,7 +276,7 @@ define (
                 // show the logout item
                 document.getElementById ("logout").classList.remove ("hidden");
                 // show the user name
-                document.getElementById ("loggedin_user").innerHTML = " " + user;
+                document.getElementById ("loggedin_user").innerHTML = user;
             }
             else
             {
@@ -289,9 +289,38 @@ define (
             }
         }
 
+        function dummy () // just here so Eclipse's brain dead outline mode works
+        {
+        }
+
+        /**
+         * @summary Restart the application as a different user.
+         * @description Fixes up the configuration as the new user and issues the login/logout notification.
+         * @param {string} notification - the event to trigger
+         * @function reinitialize
+         * @memberOf module:login
+         */
+        function reinitialize (notification)
+        {
+            function notify ()
+            {
+                // let registered listeners know about the login/logout
+                _login.trigger (notification);
+            };
+            // setup configuration to agree with current user
+            configuration.configuration_setup
+            (
+                {
+                    success: notify,
+                    error: notify
+                }
+            );
+
+        }
+
         /**
          * @summary Do the CouchDb login.
-         * Performs login and if successful remembers the credentials if required,
+         * @description Performs login and if successful remembers the credentials if required,
          * closes the dropdown, changes the menu and notifies listeners;
          * otherwise just displays an alert of failure.
          * @param {object} credentials - the username, password, and autologin request as a plain object
@@ -317,8 +346,8 @@ define (
                         $("#login_button_link").dropdown ("toggle");
                         // fix the menu
                         menu_adjust (credentials.username);
-                        // let registered listeners know about the login
-                        _login.trigger ("login");
+                        // reset the application
+                        reinitialize ("login");
                     },
                     error: function (status)
                     {
@@ -360,23 +389,26 @@ define (
                         alert ("Account " + credentials.username + " created");
                     }
                     else
-                        alert ("Could not create account " + credentials.username +
-                               " because of error: " + xmlhttp.status +
+                        alert ("Could not create account '" + credentials.username +
+                               "' because of error: " + xmlhttp.status +
                                " " + xmlhttp.responseText);
             };
             xmlhttp.send ();
+        }
+
+        function dummmy () // just here so Eclipse's brain dead outline mode works
+        {
         }
 
         /**
          * @summary Do the CouchDb logout.
          * Performs logout and if successful changes the menu and notifies listeners;
          * otherwise just displays an alert of failure.
-         * @param {object} credentials The username, password, and autologin request as a plain object.
-         * @param {boolean} remember If true, store the credentials if possible.
+         * @param {object} event - the logout button click event
          * @function do_logout
          * @memberOf module:login
          */
-        function do_logout ()
+        function do_logout (event)
         {
             var credentials;
 
@@ -392,8 +424,8 @@ define (
                     {
                         // fix the menu
                         menu_adjust (null);
-                        // let registered listeners know about the logout
-                        _login.trigger ("logout");
+                        // reset the application
+                        reinitialize ("logout");
                     },
                     error : function (status)
                     {

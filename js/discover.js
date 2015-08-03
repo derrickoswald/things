@@ -638,7 +638,7 @@ define
          * @summary Get the list of databases.
          * @description Get all databases and filter out known databases.
          * @param {object} options - options for result handling
-         * @function fetch_databases
+         * @function get_databases
          * @memberOf module:discover
          */
         function get_databases (options)

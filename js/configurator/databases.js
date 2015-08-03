@@ -74,7 +74,7 @@ define
                             (
                                 name,
                                 {
-                                    success: update_database_state.call ({name: "admin", roles: ["_admin"]}), // ToDo, how not to fake this?
+                                    success: update_database_state.call ({name: "admin", roles: ["_admin"]}), // ToDo: how not to fake this?
                                     error: function () { alert (name + " _security creation failed"); }
                                 },
                                 security
@@ -213,7 +213,7 @@ define
         /**
          * @summary Update the checkbox for security of the local database.
          * @param {string} db - the name of the database to interrogate
-         * @function create_proxies
+         * @function update_local_security_state
          * @memberOf module:configurator/databases
          */
         function update_local_security_state (db)

@@ -28,16 +28,10 @@ Normally this should be set to <a href="https://keybase.io" target="_blank">http
             </div>
         </div>
         <div class="form-group">
-            <label class="col-sm-3 control-label" for="keybase_username">Keybase user name</label>
-            <div class="col-sm-9">
-                <input id="keybase_username" class="form-control" type="text" name="keybase_username" placeholder="user name from https://keybase.io">
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-3 control-label" for="couchdb_uuid">CouchDB instance UUID</label>
+            <label class="col-sm-3 control-label" for="instance_uuid">Instance UUID</label>
             <div class="col-sm-9">
                 <div class="input-group">
-                    <input id="couchdb_uuid" class="form-control" type="text" name="couchdb_uuid" placeholder="uuid">
+                    <input id="instance_uuid" class="form-control" type="text" name="instance_uuid" placeholder="uuid">
                     <span class="input-group-btn">
                         <button id="generate_uuid" class="btn btn-default" type="button">
                             <i class="glyphicon glyphicon-save"></i>
@@ -45,6 +39,12 @@ Normally this should be set to <a href="https://keybase.io" target="_blank">http
                         </button>
                     </span>
                 </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="keybase_username">Keybase user name</label>
+            <div class="col-sm-9">
+                <input id="keybase_username" class="form-control" type="text" name="keybase_username" placeholder="user name from https://keybase.io">
             </div>
         </div>
         <div class="form-group admin">
@@ -70,7 +70,7 @@ Normally this should be set to <a href="https://keybase.io" target="_blank">http
             </div>
         </div>
     </div>
-    <div class="configuration_group">
+    <div id="user_information" class="configuration_group hidden">
         <div id="fullname"></div>
         <div id="location"></div>
         <div id="picture"></div>

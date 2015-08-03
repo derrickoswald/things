@@ -19,6 +19,78 @@ var log = function (mesg)
     console.log (JSON.stringify (["log", mesg]));
 };
 
+// expected views in a things database
+var standard_views =
+    {
+        // view of only "things" (that have an info section) in the database
+        Things:
+        {
+            map: "function(doc) { if (doc.info) emit (doc._id, doc); }"
+        }
+    };
+
+// validation function limiting create, update and delete to logged in users
+var standard_validation =
+    "function (newDoc, oldDoc, userCtx, secObj)" +
+    "{" +
+        "secObj.admins = secObj.admins || {};" +
+        "secObj.admins.names = secObj.admins.names || [];" +
+        "secObj.admins.roles = secObj.admins.roles || [];" +
+
+        "var IS_DB_ADMIN = false;" +
+        "if (~userCtx.roles.indexOf ('_admin'))" +
+            "IS_DB_ADMIN = true;" +
+        "if (~secObj.admins.names.indexOf (userCtx.name))" +
+            "IS_DB_ADMIN = true;" +
+        "for (var i = 0; i < userCtx.roles; i++)" +
+            "if (~secObj.admins.roles.indexOf (userCtx.roles[i]))" +
+                "IS_DB_ADMIN = true;" +
+
+        "var IS_LOGGED_IN_USER = false;" +
+        "if (null != userCtx.name)" +
+            "IS_LOGGED_IN_USER = true;" +
+
+        "if (IS_DB_ADMIN || IS_LOGGED_IN_USER)" +
+            "log ('User : ' + userCtx.name + ' changing document: ' + newDoc._id);" +
+        "else " +
+            "throw { 'forbidden': 'Only admins and users can alter documents' };" +
+    "}";
+
+// security document limiting CRUD to the owning user
+var standard_security =
+{
+    _id: "_security",
+    admins:
+    {
+        names:
+        [
+            "admin"
+        ],
+        roles:
+        [
+            "_admin"
+        ]
+    },
+    members:
+    {
+        names: [ ], // TBD
+        roles: [ ]
+    }
+};
+
+function eat_cookie (headers)
+{
+    // change the cookie if couchdb tells us to
+    if (headers && headers["set-cookie"])
+        nano = require ("nano")
+        (
+            {
+                url : "http://localhost:5984",
+                cookie: headers["set-cookie"]
+            }
+        );
+}
+
 function keybase_test (req, resp)
 {
     var username = "joe";
@@ -105,14 +177,7 @@ function login (callback)
                             else
                             {
                                 log ("login as " + username + " was successful");
-                                if (headers && headers["set-cookie"])
-                                    nano = require ("nano")
-                                    (
-                                        {
-                                            url : "http://localhost:5984",
-                                            cookie: headers["set-cookie"]
-                                        }
-                                    );
+                                eat_cookie (headers);
                                 callback ();
                             }
                         }
@@ -123,14 +188,270 @@ function login (callback)
     );
 }
 
-function createuser (options)
+function get_uuid (options)
 {
+    // get a uuid for the new instance
+    nano.request
+    (
+        {
+            db: "_uuids",
+            method: "get",
+            params: { count: 1 }
+        },
+        function (err, body, headers)
+        {
+            if (err)
+            {
+                options.response.writeHead (500, {"Content-Type": "text/plain"});
+                options.response.end (JSON.stringify (err, null, 4) + "\n");
+            }
+            else
+            {
+                options.document.instance_uuid = body.uuids[0];
+                var configuration = nano.use ("configuration");
+                configuration.insert
+                (
+                    options.document,
+                    function (err, body, headers)
+                    {
+                        if (err)
+                        {
+                            options.response.writeHead (500, {"Content-Type": "text/plain"});
+                            options.response.end (JSON.stringify (err, null, 4) + "\n");
+                        }
+                        else
+                        {
+                            eat_cookie (headers);
+                            options.response.writeHead (200, {"Content-Type": "text/plain"});
+                            options.response.end ("User org.couchdb.user:" + options.username + " created.\n");
+                        }
+                    }
+                );
+            }
+        }
+    );
+}
+
+function make_configuration (options)
+{
+    var configuration = nano.use ("configuration");
+    configuration.get
+    (
+        "default_configuration",
+        {},
+        function (err, body, headers)
+        {
+            if (err)
+            {
+                options.response.writeHead (500, {"Content-Type": "text/plain"});
+                options.response.end (JSON.stringify (err, null, 4) + "\n");
+            }
+            else
+            {
+                eat_cookie (headers);
+                body._id = options.configuration;
+                delete body._rev;
+                delete body.keybase_username;
+                body.instance_name = options.username;
+                body.local_database = options.local_database;
+                body.public_database = options.public_database;
+                body.pending_database = options.pending_database;
+//                body.torrent_directory = ??
+                options.document = body;
+                get_uuid (options);
+            }
+        }
+    );
+}
+
+function make_pending (options)
+{
+    options.pending_database = options.username + "_pending";
+    nano.request
+    (
+        {
+            db: options.pending_database,
+            method: "put"
+        },
+        function (err, body, headers)
+        {
+            if (err)
+            {
+                options.response.writeHead (500, {"Content-Type": "text/plain"});
+                options.response.end (JSON.stringify (err, null, 4) + "\n");
+            }
+            else
+            {
+                eat_cookie (headers);
+                var doc =
+                {
+                    _id: "_design/" + options.pending_database,
+                    views: standard_views,
+                };
+                nano.request
+                (
+                    {
+                        db: options.pending_database,
+                        path: doc._id,
+                        method: "put",
+                        body: doc
+                    },
+                    function (err, body, headers)
+                    {
+                        if (err)
+                        {
+                            options.response.writeHead (500, {"Content-Type": "text/plain"});
+                            options.response.end (JSON.stringify (err, null, 4) + "\n");
+                        }
+                        else
+                        {
+                            eat_cookie (headers);
+                            make_configuration (options);
+                        }
+                    }
+                );
+            }
+        }
+    );
+}
+
+function make_public (options)
+{
+    options.public_database = options.username + "_public";
+    nano.request
+    (
+        {
+            db: options.public_database,
+            method: "put"
+        },
+        function (err, body, headers)
+        {
+            if (err)
+            {
+                options.response.writeHead (500, {"Content-Type": "text/plain"});
+                options.response.end (JSON.stringify (err, null, 4) + "\n");
+            }
+            else
+            {
+                eat_cookie (headers);
+                var doc =
+                {
+                    _id: "_design/" + options.public_database,
+                    views: standard_views,
+                    validate_doc_update: standard_validation
+                };
+                nano.request
+                (
+                    {
+                        db: options.public_database,
+                        path: doc._id,
+                        method: "put",
+                        body: doc
+                    },
+                    function (err, body, headers)
+                    {
+                        if (err)
+                        {
+                            options.response.writeHead (500, {"Content-Type": "text/plain"});
+                            options.response.end (JSON.stringify (err, null, 4) + "\n");
+                        }
+                        else
+                        {
+                            eat_cookie (headers);
+                            make_pending (options);
+                        }
+                    }
+                );
+            }
+        }
+    );
+}
+
+function make_local (options)
+{
+    options.local_database = options.username + "_local";
+    nano.request
+    (
+        {
+            db: options.local_database,
+            method: "put"
+        },
+        function (err, body, headers)
+        {
+            if (err)
+            {
+                options.response.writeHead (500, {"Content-Type": "text/plain"});
+                options.response.end (JSON.stringify (err, null, 4) + "\n");
+            }
+            else
+            {
+                eat_cookie (headers);
+                var doc =
+                {
+                    _id: "_design/" + options.local_database,
+                    views: standard_views,
+                    validate_doc_update: standard_validation
+                };
+                nano.request
+                (
+                    {
+                        db: options.local_database,
+                        path: doc._id,
+                        method: "put",
+                        body: doc
+                    },
+                    function (err, body, headers)
+                    {
+                        if (err)
+                        {
+                            options.response.writeHead (500, {"Content-Type": "text/plain"});
+                            options.response.end (JSON.stringify (err, null, 4) + "\n");
+                        }
+                        else
+                        {
+                            eat_cookie (headers);
+                            var security = JSON.parse (JSON.stringify (standard_security));
+                            security.members.names.push (options.username);
+                            nano.request
+                            (
+                                {
+                                    db: options.local_database,
+                                    path: security._id,
+                                    method: "put",
+                                    body: security
+                                },
+                                function (err, body, headers)
+                                {
+                                    if (err)
+                                    {
+                                        options.response.writeHead (500, {"Content-Type": "text/plain"});
+                                        options.response.end (JSON.stringify (err, null, 4) + "\n");
+                                    }
+                                    else
+                                    {
+                                        eat_cookie (headers);
+                                        make_public (options);
+                                    }
+                                }
+                            );
+                        }
+                    }
+                );
+            }
+        }
+    );
+}
+
+function create_user (options)
+{
+    options.configuration = options.username + "_configuration";
     var data =
     {
         type: "user",
         name: options.username,
         roles: ["user"],
-        password: options.password
+        password: options.password,
+        configuration: options.configuration 
     };
     nano.request
     (
@@ -149,26 +470,24 @@ function createuser (options)
             }
             else
             {
-                // change the cookie if couchdb tells us to
-                if (headers && headers["set-cookie"])
-                    nano = require ("nano")
-                    (
-                        {
-                            url : "http://localhost:5984",
-                            cookie: headers["set-cookie"]
-                        }
-                    );
-                options.response.writeHead (200, {"Content-Type": "text/plain"});
-                options.response.end ("User org.couchdb.user:" + options.username + " created.\n");
+                eat_cookie (headers);
+                make_local (options); // which chains to make_public and make_pending
             }
         }
     );
-
 }
 
-function makeuser (options)
+function valid_name (name)
 {
-    log ("makeuser ('" + options.username + "', '" + options.password + "')\n");
+    // Only lowercase characters (a-z), digits (0-9), and any of the characters _, $, (, ), +, -, and / are allowed.
+    // Must begin with a letter.
+    var regex = /^[a-z](?:[a-z]|[0-9]|\_|\$|\(|\)|\+|\-|\/|)*$/;
+    return (regex.test (name));  
+}
+
+function make_user (options)
+{
+    log ("make_user ('" + options.username + "', '" + options.password + "')\n");
     // get the current list of users
     nano.request
     (
@@ -187,15 +506,7 @@ function makeuser (options)
             }
             else
             {
-                // change the cookie if couchdb tells us to
-                if (headers && headers["set-cookie"])
-                    nano = require ("nano")
-                    (
-                        {
-                            url : "http://localhost:5984",
-                            cookie: headers["set-cookie"]
-                        }
-                    );
+                eat_cookie (headers);
                 exists = false;
                 for (var i = 0; i < body.rows.length; i++)
                 {
@@ -208,11 +519,7 @@ function makeuser (options)
                     options.response.end ("User org.couchdb.user:" + options.username + " already exists.\n");
                 }
                 else
-                    createuser (options);
-                {
-                    options.response.writeHead (200, {"Content-Type": "text/plain"});
-                    options.response.end ("User org.couchdb.user:" + options.username + " created.\n");
-                }
+                    create_user (options);
             }
         }
     );
@@ -230,26 +537,32 @@ var server = http.createServer
         log (JSON.stringify (query, null, 4) + "\n");
         if (query.username && query.password)
         {
-            try
-            {
-                login
-                (
-                    makeuser.bind
+            if (valid_name (query.username))
+                try
+                {
+                    login
                     (
-                        this,
-                        {
-                            request: req,
-                            response: resp,
-                            username: query.username,
-                            password: query.password
-                        }
-                    )
-                );
-            }
-            catch (exception)
+                        make_user.bind
+                        (
+                            this,
+                            {
+                                request: req,
+                                response: resp,
+                                username: query.username,
+                                password: query.password
+                            }
+                        )
+                    );
+                }
+                catch (exception)
+                {
+                    options.response.writeHead (500, {"Content-Type": "text/plain"});
+                    options.response.end (JSON.stringify (exception, null, 4) + "\n");
+                }
+            else
             {
-                options.response.writeHead (500, {"Content-Type": "text/plain"});
-                options.response.end (JSON.stringify (exception, null, 4) + "\n");
+                resp.writeHead (400, {"Content-Type": "text/plain"});
+                resp.end ("Invalid name. User names must adhere to the CouchDB format for database names.\n");
             }
         }
         else

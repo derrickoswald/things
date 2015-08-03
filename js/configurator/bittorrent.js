@@ -17,6 +17,30 @@ define
     function (configuration, page, mustache, login, database, restart)
     {
         /**
+         * Show or hide admin elements on the page.
+         * @param {boolean} admin - if <code>true</> show the elements with the admin class
+         * @function show_hide_admin
+         * @memberOf module:configurator/bittorrent
+         */
+        function show_hide_admin (admin)
+        {
+            var elements;
+
+            elements = document.getElementsByClassName ("admin");
+            for (var i = 0; i < elements.length; i++)
+                if (admin)
+                    elements[i].classList.remove ("hidden");
+                else
+                    elements[i].classList.add ("hidden");
+            elements = document.getElementsByClassName ("nonadmin");
+            for (var i = 0; i < elements.length; i++)
+                if (admin)
+                    elements[i].classList.add ("hidden");
+                else
+                    elements[i].classList.remove ("hidden");
+        }
+
+        /**
          * @summary Get the current proxy from the CouchDB local configuration.
          * @description Gets all options from the httpd_global_handlers section.
          * @function get_proxy
@@ -144,9 +168,14 @@ define
          */
         function init (event)
         {
+            var admin;
+
             document.getElementById ("deluge_password").value = configuration.getConfigurationItem ("deluge_password");
             document.getElementById ("torrent_directory").value = configuration.getConfigurationItem ("torrent_directory");
-            get_proxy ();
+            admin = -1 != this.roles.indexOf ("_admin");
+            if (admin)
+                get_proxy ();
+            show_hide_admin (admin);
         }
 
         return (

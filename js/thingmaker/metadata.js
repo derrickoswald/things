@@ -104,8 +104,6 @@ define
 
         /**
          * @summary Update the file list and enable/disable the next button.
-         * @function update
-         * @memberOf module:thingmaker/metadata
          * @param {object} data - thingmaker data object
          * @function update
          * @memberOf module:thingmaker/metadata
@@ -337,7 +335,7 @@ define
                     data.images = [];
                     data.thumbnails.forEach
                     (
-                        function (thumbnail) // {type: "xxx", url: "yyy", file: zzz}
+                        function (thumbnail) // { type: "local or remote or embedded", url: "data:1fcd.. or http://yadda", file: f }
                         {
                             var name;
                             switch (thumbnail.type)

@@ -22,7 +22,7 @@ define
             "login",
             function ()
             {
-                // if Discover Things is the active page, re-initialize
+                // if Configuration is the active page, re-initialize
                 if (document.getElementById ("configurator").parentElement.classList.contains ("active"))
                     initialize ();
             }
@@ -32,7 +32,7 @@ define
             "logout",
             function ()
             {
-                // if Discover Things is the active page, re-initialize
+                // if Configuration is the active page, re-initialize
                 if (document.getElementById ("configurator").parentElement.classList.contains ("active"))
                     initialize ();
             }

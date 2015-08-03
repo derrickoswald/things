@@ -221,7 +221,7 @@ define
         {
             var doc =
             {
-                _id: "_design/" + dbname,
+                _id: "_design/" + dbname
             };
             if (views)
                doc.views = views;
@@ -260,7 +260,6 @@ define
                     else
                         delete options.success;
                     make_designdoc (dbname, options, views, validation);
-                    databases = null;
                 };
             $.couch.db (dbname).create (options);
         }

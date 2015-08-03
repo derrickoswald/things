@@ -221,6 +221,15 @@ define
         {
         }
 
+        /**
+         * @summary Fetch the torrent file and apply the given function.
+         * @description Fetch the torrent file specified by
+         * the parameters in options (database, _id, name) and call
+         * the success function with the result.
+         * @param {object} options - values to use and callback function
+         * @function view_torrent
+         * @memberOf module:home
+         */
         function view_torrent (options)
         {
             var url;
@@ -422,7 +431,7 @@ define
          * @description Uses CouchDB replication to replicate the documents
          * given by docs from the pending database into the local database.
          * @param {array} docs list of document SHA1 hash codes as strings
-         * @function transfer
+         * @function transfer_to_local
          * @memberOf module:home
          * @return <em>nothing</em>
          */

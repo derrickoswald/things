@@ -134,6 +134,7 @@ define
                 error: function (status) { console.log (status); alert ("Configuration save failed."); }
             };
             configuration.setConfigurationItem ("instance_name", document.getElementById ("instance_name").value.trim ());
+            configuration.setConfigurationItem ("instance_uuid", document.getElementById ("instance_uuid").value.trim ());
             configuration.setConfigurationItem ("keybase_username", document.getElementById ("keybase_username").value.trim ());
 
             configuration.configuration_exists
@@ -161,28 +162,9 @@ define
         }
 
         /**
-         * @summary Get the current CouchDB unique uuid.
-         * @description Fills the form's uuid input element with the current value of the uuid.
-         * @function get_uuid
-         * @memberOf module:configurator/personalization
-         */
-        function get_uuid ()
-        {
-            $.get
-            (
-                configuration.getDocumentRoot (),
-                function (welcome) // {"couchdb":"Welcome","uuid":"fe736197b3e3e543fdba84b1c2385111","version":"1.6.1","vendor":{"version":"14.04","name":"Ubuntu"}}
-                {
-                    welcome = JSON.parse (welcome);
-                    document.getElementById ("couchdb_uuid").value = welcome.uuid;
-                }
-            );
-        }
-
-        /**
          * @summary Create a new CouchDB unique uuid.
          * @description Fills the form's uuid input element with a new value of the uuid.
-         * The uid is either computed from the instance name, user's Keybase name and public key
+         * The uuid is either computed from the instance name, user's Keybase name and public key
          * or fetched from CouchDb as the next uuid.
          * @param {object} event - the click event, <em>not used</em>
          * @function create_uuid
@@ -204,7 +186,7 @@ define
                     instance_name + "\n" +
                     keybase_username + "\n" +
                     public_key;
-                document.getElementById ("couchdb_uuid").value = sha1.sha1 (plaintext, false);
+                document.getElementById ("instance_uuid").value = sha1.sha1 (plaintext, false);
             }
             else
                 $.get
@@ -213,7 +195,7 @@ define
                     function (uuids) // {"uuids": ["75480ca477454894678e22eec6002413"]}
                     {
                         uuids = JSON.parse (uuids);
-                        document.getElementById ("couchdb_uuid").value = uuids.uuids[0];
+                        document.getElementById ("instance_uuid").value = uuids.uuids[0];
                     }
                 );
         }
@@ -227,12 +209,14 @@ define
          */
         function fill_user_data (data)
         {
+            document.getElementById ("user_information").classList.add ("hidden");
             document.getElementById ("fullname").innerHTML = "";
             document.getElementById ("location").innerHTML = "";
             document.getElementById ("picture").innerHTML = "";
             document.getElementById ("public_key").innerHTML = "";
             if (null != data)
             {
+                document.getElementById ("user_information").classList.remove ("hidden");
                 if (data.them[0].profile)
                 {
                     if (data.them[0].profile.full_name)
@@ -260,6 +244,7 @@ define
          */
         function get_user_data (event)
         {
+            userdata = null;
             var username = document.getElementById ("keybase_username").value;
             if ("" != username)
                 keybase.lookup
@@ -268,7 +253,6 @@ define
                     {
                         success: function (data)
                         {
-                            userdata = null;
                             if (data.them)
                                 if (Array.isArray (data.them))
                                     if (0 != data.them.length && (null != data.them[0]))
@@ -277,16 +261,12 @@ define
                         },
                         error: function ()
                         {
-                            userdata = null;
                             fill_user_data (userdata);
                         }
                     }
                 );
             else
-            {
-                userdata = null;
                 fill_user_data (userdata);
-            }
         }
 
         /**
@@ -302,12 +282,12 @@ define
             var admin;
 
             document.getElementById ("instance_name").value = configuration.getConfigurationItem ("instance_name");
+            document.getElementById ("instance_uuid").value = configuration.getConfigurationItem ("instance_uuid");
             document.getElementById ("keybase_username").value = configuration.getConfigurationItem ("keybase_username");
             admin = -1 != this.roles.indexOf ("_admin");
             if (admin)
                 get_proxy ();
             get_user_data ();
-            get_uuid ();
             show_hide_admin (admin);
         }
 

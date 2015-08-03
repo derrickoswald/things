@@ -35,6 +35,12 @@ define
             "</div>" +
             "<div id='info'></div>";
 
+        /**
+         * @summary Return the list of databases for the current user.
+         * @return {object[]} array of database objects each containing { database, name, url }
+         * @function getDatabases
+         * @memberOf module:page
+         */
         function getDatabases ()
         {
             return (databases);
@@ -95,7 +101,7 @@ define
          * @summary Return the layout for the main page.
          * @return {object} containing { left, middle, right } elements for
          * the left quarter, middle half and right quarter respectively.
-         * @function layout
+         * @function get_layout
          * @memberOf module:page
          */
         function get_layout ()
@@ -232,15 +238,66 @@ define
         }
 
         /**
-         * @summary Get the list of databases.
-         * @description Get all databases and filter out non-thing databases.
+         * @summary Get any database aliases.
+         * @description Get all foreign databases and set their names in the lookup list.
          * @param {object} options - options for result handling
-         * @function fetch_databases
+         * @function fetch_aliases
          * @memberOf module:page
          */
-        function fetch_databases (options)
+        function fetch_aliases (options)
         {
-            var initial = configuration.getConfigurationItem ("public_database"); // initial database
+            var self = configuration.getConfigurationItem ("instance_uuid");
+            var pub = configuration.getConfigurationItem ("public_database");
+            var database = configuration.getConfigurationItem ("tracker_database");
+            var view = "Trackers";
+            $.couch.db (database).view
+            (
+                database + "/" + view,
+                {
+                    success : function (result)
+                    {
+                        result.rows.forEach
+                        (
+                            function (row)
+                            {
+                                var localname = (self == row.value._id) ? pub : "z" + row.value._id;
+                                var name = row.value.name;
+                                var url = row.value.url;
+                                databases.forEach
+                                (
+                                    function (item)
+                                    {
+                                        if (item.name == localname)
+                                        {
+                                            item.name = name;
+                                            item.url = url;
+                                        }
+                                    }
+                                );
+                            }
+                        );
+                        if (options.success)
+                            options.success ();
+                    },
+                    error: function ()
+                    {
+                        if (options.error)
+                            options.error ();
+                    }
+                }
+            );
+        }
+
+        /**
+         * @summary Get all the databases.
+         * @description Get all databases and filter out non-thing databases.
+         * @param {object} options - options for result handling
+         * @function fetch_all_databases
+         * @memberOf module:page
+         */
+        function fetch_all_databases (options)
+        {
+            var initial = get_current ();
             $.couch.allDbs
             (
                 {
@@ -275,49 +332,100 @@ define
         }
 
         /**
-         * @summary Get any database aliases.
-         * @description Get all foreign databases and set their names in the lookup list.
+         * @summary Get the list of databases.
+         * @description Get all databases and filter out non-thing databases.
          * @param {object} options - options for result handling
-         * @function fetch_aliases
+         * @function fetch_databases
          * @memberOf module:page
          */
-        function fetch_aliases (options)
+        function fetch_databases (options)
         {
-            var database = configuration.getConfigurationItem ("tracker_database");
-            var view = "Trackers";
-            $.couch.db (database).view
+            var current = get_current ();
+            $.couch.session
             (
-                database + "/" + view,
                 {
-                    success : function (result)
+                    success: function (data)
                     {
-                        result.rows.forEach
-                        (
-                            function (row)
-                            {
-                                var localname = "z" + row.value._id;
-                                var name = row.value.name;
-                                var url = row.value.url;
-                                databases.forEach
-                                (
-                                    function (item)
+
+                        if (-1 == data.userCtx.roles.indexOf ("_admin")) // non-admin
+                        {
+                            var nam = configuration.getConfigurationItem ("instance_name");
+                            var pub = configuration.getConfigurationItem ("public_database");
+                            var loc = configuration.getConfigurationItem ("local_database");
+                            var pen = configuration.getConfigurationItem ("pending_database");
+                            databases =
+                            [
+                                { database: pub, name: nam, url: pub },
+                                { database: loc, name: "Local", url: loc }, // ToDo: exclude local db from the list if it's secured
+                                { database: pen, name: "Pending", url: pen }
+                            ];
+                            var uuid = configuration.getInstanceUUID ();
+                            var self = configuration.getConfigurationItem ("instance_uuid");
+                            var database = configuration.getConfigurationItem ("tracker_database");
+                            var view = "Trackers";
+                            $.couch.db (database).view
+                            (
+                                database + "/" + view,
+                                {
+                                    success : function (result)
                                     {
-                                        if (item.name == localname)
-                                        {
-                                            item.name = name;
-                                            item.url = url;
-                                        }
+                                        result.rows.forEach
+                                        (
+                                            function (row)
+                                            {
+                                                if (row.id != self) // the public database is already in the list
+                                                {
+                                                    var db;
+
+                                                    if (row.id == uuid)
+                                                    {
+                                                        // reconstruct the public database name from the public URL
+                                                        db = row.value.public_url;
+                                                        db = db.substring (configuration.getDocumentRoot ().length + 1);
+                                                        db = db.substring (0, db.length - 1);
+                                                    }
+                                                    else
+                                                        // the local database name has a Z prefix
+                                                        db = "z" + row.id;
+                                                    databases.push
+                                                    (
+                                                        {
+                                                            database: db,
+                                                            name: row.value.name,
+                                                            url: row.value.url
+                                                        }
+                                                    );
+                                                }
+                                            }
+                                        );
+                                        // try and set the current database to what it was
+                                        var set = false;
+                                        databases.forEach
+                                        (
+                                            function (item)
+                                            {
+                                                if (item.database == current)
+                                                {
+                                                    item.current = true;
+                                                    set = true;
+                                                }
+                                            }
+                                        );
+                                        if (!set) // revert to public database
+                                            set_current (pub);
+                                        if (options.success)
+                                            options.success ();
+                                    },
+                                    error: function ()
+                                    {
+                                        if (options.error)
+                                            options.error ();
                                     }
-                                );
-                            }
-                        );
-                        if (options.success)
-                            options.success ();
-                    },
-                    error: function ()
-                    {
-                        if (options.error)
-                            options.error ();
+                                }
+                            );
+                        }
+                        else
+                            fetch_all_databases (options);
                     }
                 }
             );
@@ -345,6 +453,10 @@ define
             // switch to chosen database
             next = event.target.parentElement.getAttribute ("data-target");
             set_current (next);
+        }
+
+        function dummy () // just here so Eclipse's brain dead outline mode works
+        {
         }
 
         /**
@@ -425,6 +537,24 @@ define
         {
             build_index (right.id);
         }
+
+        // register for login/logout events
+        login.on
+        (
+            "login",
+            function ()
+            {
+                fetch_databases ({ success: draw });
+            }
+        );
+        login.on
+        (
+            "logout",
+            function ()
+            {
+                fetch_databases ({ success: draw });
+            }
+        );
 
         var _page = $.eventable
         (
