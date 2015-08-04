@@ -532,3 +532,139 @@ and a prefix is added to all the CouchDB jQuery plugin calls by setting the pref
 \$.couch.urlPrefix = “/root”;
 
 in main.js.
+
+Node
+====
+
+(
+
+Lots of things didn't work... don't do these:
+
+Set up the apt-get repo source
+
+doesn't work: curl -sL https://deb.nodesource.com/setup | sudo bash -
+
+From here: https://github.com/nodesource/distributions/issues/44
+
+Doesn't work either:
+
+sudo su -c 'echo "deb https://deb.nodesource.com/armv6l-node/ weezy main" \>\> /etc/apt/sources.list'
+
+curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | sudo apt-key add -
+
+sudo apt-get update
+
+)
+
+Try Adafruit (https://learn.adafruit.com/node-embedded-development/installing-node-dot-js):
+
+curl -sLS https://apt.adafruit.com/add | sudo bash
+
+Install node :
+
+not: sudo apt-get install nodejs
+
+but:
+
+sudo apt-get install node
+
+logout and back in and check:
+
+node --version
+
+v0.12.0
+
+Install nano (couchdb access in node):
+
+sudo npm install nano -g
+
+To allow starting node from within CouchDB, add the path to node modules:
+
+sudo vi /usr/bin/couchdb or /usr/local/bin/couchdb
+
+and add:
+
+export NODE\_PATH=/usr/local/lib/node\_modules
+
+user\_manager
+=============
+
+Add the proxy server for user\_management into /etc/couchdb/local.ini in three places:
+
+sudo vi /usr/local/etc/couchdb/local.ini
+
+(or sudo vi /etc/couchdb/local.ini, see where couchdb has it's configuration with **couchdb -c** )
+
+under httpd\_global\_handlers:
+
+[httpd\_global\_handlers]
+
+...
+
+**user\_manager = {couch\_httpd\_proxy, handle\_proxy\_req, \<\<"http://127.0.0.1:8000"\>\>}**
+
+under os\_daemons:
+
+[os\_daemons]
+
+**user\_manager = /usr/local/bin/node /home/pi/user\_manager.js**
+
+matching the path where node is installed (which node) and where you placed the server side javascript file (user\_manager.js), for example on my host system I reach into the git clone directly:
+
+user\_manager = /usr/bin/node /home/derrick/code/things/server/js/user\_manager.js
+
+and under a custom properties section called user\_manager (this is the way the sample node-hello-world.js program is written http://docs.couchdb.org/en/1.6.1/externals.html, but the parameters could be passed on the command line above):
+
+**[user\_manager]**
+
+**port = 8000**
+
+**username = admin**
+
+**password = secret**
+
+where the 8000 agrees with the httpod\_global\_handlers setting and the username and password will login administrative access to create new users.
+
+Restart couchdb:
+
+sudo service couchdb restart
+
+Monitor the log:
+
+pi@raspberrypi \~ \$ **couchdb -c**
+
+/usr/local/etc/couchdb/default.ini
+
+/usr/local/etc/couchdb/local.ini
+
+pi@raspberrypi \~ \$ **grep log /usr/local/etc/couchdb/default.ini**
+
+;server\_options = [{backlog, 128}, {acceptor\_pool\_size, 16}]
+
+log\_max\_chunk\_size = 1000000
+
+[log]
+
+file = **/usr/local/var/log/couchdb/couch.log**
+
+timeout = 600 ; number of seconds before automatic logout
+
+\_log = {couch\_httpd\_misc\_handlers, handle\_log\_req}
+
+; a particular database or view index, a warning message is logged.
+
+pi@raspberrypi \~ \$ **sudo tail -f /usr/local/var/log/couchdb/couch.log**
+
+Should see something like:
+
+[Mon, 03 Aug 2015 15:23:35 GMT] [info] [\<0.96.0\>] Daemon "user\_manager" :: listening on port 8000 as user admin/\*\*\*\*
+
+To restart the service just kill the one that's running:
+
+pi@raspberrypi \~ \$ ps -ef | grep node
+
+couchdb **15502** 15479 4 17:25 ? 00:00:10 /usr/local/bin/node /home/pi/user\_manager.js
+
+pi@raspberrypi \~ \$ sudo kill -9 15502
+
+

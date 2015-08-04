@@ -17,6 +17,11 @@ define
     function (mustache, torrent, records, login, chooser)
     {
         /**
+         * One time initialization flag.
+         */
+        var initialized = null;
+
+        /**
          * The SHA1 hash of the currently displayed torrent file.
          */
         var form_initialized_with = null;
@@ -60,17 +65,16 @@ define
         /**
          * @summary Add a file to the thumbnails list.
          * @description Adds an on screen input element to accept a remote URL as a thumbnail.
-         * @param  {object} data - the thingmaker data object
          * @param {object} event - the event triggering the file addition
          * @function add_file
          * @memberOf module:thingmaker/metadata
          */
-        function add_file (data, event)
+        function add_file (event)
         {
-            if (typeof (data.thumbnails) == "undefined")
-                data.thumbnails = [];
-            data.thumbnails.push ({type: "remote", url: "", file: null});
-            update (data);
+            if (typeof (this.thumbnails) == "undefined")
+                this.thumbnails = [];
+            this.thumbnails.push ({type: "remote", url: "", file: null});
+            update (this);
         }
 
         /**
@@ -93,7 +97,7 @@ define
                 target = target.parentElement;
             // remove it from the list
             for (var i = 0; i < this.thumbnails.length; i++)
-                if (this.thumbnails[i].name == name)
+                if (this.thumbnails[i].url == name)
                 {
                     this.thumbnails.splice (i, 1);
                     break;
@@ -158,8 +162,8 @@ define
                                     "<li><a href='#'>Embedded</a></li>" +
                                 "</ul>" +
                             "</div>" +
-                            "<input id='url{{index}}' class='form-control' type='text' name='url{{index}}' placeholder='URL' value='{{filename}}'>" +
-                            "<span class='input-group-addon btn btn-default remove' data-file='{{filename}}'>" +
+                            "<input id='url{{index}}' class='form-control' type='text' name='url{{index}}' placeholder='URL' value='{{url}}'>" +
+                            "<span class='input-group-addon btn btn-default remove' data-file='{{url}}'>" +
                                 "<i class='glyphicon glyphicon-minus'></i>" +
                             "</span>" +
                         "</div>" +
@@ -179,16 +183,6 @@ define
             var remove = remove_file.bind (data);
             for (var j = 0; j < removes.length; j++)
                 removes[j].addEventListener ("click", remove);
-
-            // add element function
-            document.getElementById ("add_thumbnail").addEventListener ("click", add_file.bind (this, data));
-
-            // add file change listener
-            document.getElementById ("choose_thing_thumbnails").addEventListener ("change", file_change.bind (data));
-
-            // add drop zone handlers
-            document.getElementById ("thumbnails_drop_zone").addEventListener ("dragover", file_drag.bind (data));
-            document.getElementById ("thumbnails_drop_zone").addEventListener ("drop", file_drop.bind (data));
         }
 
         /**
@@ -512,6 +506,23 @@ define
             author_chooser.render ();
             license_chooser.render ();
             tag_chooser.render ();
+
+            if (null == initialized)
+            {
+                // add element function
+                document.getElementById ("add_thumbnail").addEventListener ("click", add_file.bind (this));
+
+                // add file change listener
+                document.getElementById ("choose_thing_thumbnails").addEventListener ("change", file_change.bind (this));
+
+                // add drop zone handlers
+                document.getElementById ("thumbnails_drop_zone").addEventListener ("dragover", file_drag.bind (this));
+                document.getElementById ("thumbnails_drop_zone").addEventListener ("drop", file_drop.bind (this));
+
+                initialized = true;
+            }
+
+            // add file list and handlers
             update (this);
             show_hide_expert (this.expert);
         }

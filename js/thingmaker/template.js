@@ -64,7 +64,7 @@ define
             }
 
             // refresh the list of things
-            var db = document.getElementById ("source_database_name").innerHTML;
+            var db = document.getElementById ("source_database_name").getAttribute ("href");
             fill_database_list (data, db, "Things");
 
             // expert mode
@@ -235,7 +235,7 @@ define
         {
             event.preventDefault ();
             var id = event.target.getAttribute ("href");
-            var db = document.getElementById ("source_database_name").innerHTML;
+            var db = document.getElementById ("source_database_name").getAttribute ("href");
             fetch_thing_details (this, db, id);
         }
 
@@ -253,7 +253,7 @@ define
                 "<ul>" +
                     "{{#rows}}" +
                         "{{#value}}" +
-                            "<li{{#current}} style='background-color: #e9f3ff;'{{/current}}><a href='{{id}}'>{{info.name}}</a></li>" +
+                            "<li{{#current}} style='background-color: #e9f3ff;'{{/current}}><a href='{{id}}'>{{info.thing.title}}</a></li>" +
                         "{{/value}}" +
                     "{{/rows}}" +
                 "</ul>";
@@ -295,6 +295,7 @@ define
         {
             event.preventDefault ();
             var db = event.target.innerHTML;
+            var url = event.target.getAttribute ("href");
             // update current in databases list
             var dbs = [];
             this.databases.forEach
@@ -310,7 +311,8 @@ define
             );
             this.databases = dbs;
             document.getElementById ("source_database_name").innerHTML = db;
-            fill_database_list (this, db, "Things");
+            document.getElementById ("source_database_name").setAttribute ("href", url);
+            fill_database_list (this, url, "Things");
         }
 
         /**
@@ -324,7 +326,7 @@ define
             var template =
                 "<div class='dropdown'>" +
                     "<button id='source_database' class='form-control' type='button' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>" +
-                        "<span id='source_database_name'>" +
+                        "<span id='source_database_name' href='{{#.}}{{#current}}{{database}}{{/current}}{{/.}}'>" +
                             "{{#.}}" +
                                 "{{#current}}{{name}}{{/current}}" +
                             "{{/.}}" +
@@ -333,7 +335,7 @@ define
                     "</button>" +
                     "<ul class='dropdown-menu' aria-labelledby='source_database'>" +
                         "{{#.}}" +
-                            "<li><a href='{{url}}'>{{name}}</a></li>" +
+                            "<li><a href='{{database}}'>{{name}}</a></li>" +
                         "{{/.}}" +
                     "</ul>" +
                 "</div>";
@@ -347,7 +349,7 @@ define
                 links[i].addEventListener ("click", choose_database.bind (this));
 
             // show the initial list
-            var db = "public_things";
+            var db = configuration.getConfigurationItem ("public_database");
             this.databases.forEach (function (item) { if (item.current) db = item.database; });
             fill_database_list (this, db, "Things");
 

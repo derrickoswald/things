@@ -300,73 +300,66 @@ define
          */
         function post_my_things ()
         {
-            $.get
+            var uuid = configuration.getConfigurationItem ("instance_uuid");
+            var public_name = configuration.getConfigurationItem ("public_database");
+            var tracker_name = configuration.getConfigurationItem ("tracker_database");
+            $.couch.db (public_name).allDocs
             (
-                configuration.getDocumentRoot (),
-                function (welcome) // {"couchdb":"Welcome","uuid":"fe736197b3e3e543fdba84b1c2385111","version":"1.6.1","vendor":{"version":"14.04","name":"Ubuntu"}}
                 {
-                    welcome = JSON.parse (welcome);
-                    var public_name = configuration.getConfigurationItem ("public_database");
-                    var tracker_name = configuration.getConfigurationItem ("tracker_database");
-                    $.couch.db (public_name).allDocs
-                    (
-                        {
-                            success: function (data)
+                    success: function (data)
+                    {
+                        var doc = { _id: uuid };
+                        doc.version = "1.0";
+                        doc.url = document.location.origin + "/";
+                        doc.public_url = configuration.getDocumentRoot () + "/" + public_name + "/";
+                        doc.tracker_url = configuration.getDocumentRoot () + "/" + tracker_name + "/";
+                        doc.name = configuration.getConfigurationItem ("instance_name");
+                        doc.owner = configuration.getConfigurationItem ("keybase_username");
+                        doc.things = [];
+                        data.rows.forEach
+                        (
+                            function (item)
                             {
-                                var doc = { _id: welcome.uuid };
-                                doc.version = "1.0";
-                                doc.url = document.location.origin + "/";
-                                doc.public_url = configuration.getDocumentRoot () + "/" + public_name + "/";
-                                doc.tracker_url = configuration.getDocumentRoot () + "/" + tracker_name + "/";
-                                doc.name = configuration.getConfigurationItem ("instance_name");
-                                doc.owner = configuration.getConfigurationItem ("keybase_username");
-                                doc.things = [];
-                                data.rows.forEach
-                                (
-                                    function (item)
-                                    {
-                                        if ("_" != item.id.charAt (0))
-                                            doc.things.push (item.id);
-                                    }
-                                );
-                                // get the current post
-                                var options =
-                                {
-                                    success: function ()
-                                    {
-                                        alert (tracker_name + " updated");
-                                    },
-                                    error: function (status)
-                                    {
-                                        alert (tracker_name + " update failed " + JSON.stringify (status, null, 4));
-                                    }
-                                };
-                                $.couch.db (tracker_name).openDoc
-                                (
-                                    doc._id,
-                                    {
-                                        success: function (data)
-                                        {
-                                            doc._rev = data._rev;
-                                            $.couch.db (tracker_name).saveDoc
-                                            (
-                                                doc,
-                                                options
-                                            );
-                                        },
-                                        error: function (status)
-                                        {
-                                            $.couch.db (tracker_name).saveDoc
-                                            (
-                                                doc,
-                                                options
-                                            );
-                                        }
-                                    }
-                                );
+                                if ("_" != item.id.charAt (0))
+                                    doc.things.push (item.id);
                             }
-                        }
-                    );
+                        );
+                        // get the current post
+                        var options =
+                        {
+                            success: function ()
+                            {
+                                alert (tracker_name + " updated");
+                            },
+                            error: function (status)
+                            {
+                                alert (tracker_name + " update failed " + JSON.stringify (status, null, 4));
+                            }
+                        };
+                        $.couch.db (tracker_name).openDoc
+                        (
+                            doc._id,
+                            {
+                                success: function (data)
+                                {
+                                    doc._rev = data._rev;
+                                    $.couch.db (tracker_name).saveDoc
+                                    (
+                                        doc,
+                                        options
+                                    );
+                                },
+                                error: function (status)
+                                {
+                                    $.couch.db (tracker_name).saveDoc
+                                    (
+                                        doc,
+                                        options
+                                    );
+                                }
+                            }
+                        );
+                    }
                 }
             );
         }

@@ -11,6 +11,9 @@ var sys = require ("sys");
 var url = require ("url");
 var nano = require ("nano")({ url: "http://localhost:5984" });
 
+var username = "admin";
+var userpass = "secret";
+
 /**
  * Send a log message to be included in CouchDB's log files.
  */
@@ -155,9 +158,6 @@ function dblist_test (req, resp)
 
 function login (callback)
 {
-    var username = "admin";
-    var userpass = "secret";
-
     nano.session
     (
         function (err, body, headers)
@@ -583,8 +583,11 @@ stdin.on
     "data",
     function (data)
     {
-        var port = parseInt (JSON.parse (data));
-        log ("listening on port " + port + "\n");
+        var section = JSON.parse (data);
+        var port = parseInt (section.port);
+        username = section.username;
+        userpass = section.password;
+        log ("listening on port " + port + " as user " + username + "/" + userpass.replace (/./g, "*") + "\n");
         server.listen (port);
     }
 );
@@ -598,5 +601,5 @@ stdin.on
     }
 );
 
-// send the request for the port to listen on
-console.log (JSON.stringify (["get", "user_manager", "port"]));
+// send the request for the port to listen on and credentials
+console.log (JSON.stringify (["get", "user_manager"]));

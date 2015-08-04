@@ -53,21 +53,29 @@ define
             login.isLoggedIn
             (
                 {
-                    success: function (context)
+                    success: function (context) // { name: "admin", roles: ["_admin"] }
                     {
+                        var pages;
+                        if (-1 == context.roles.indexOf ("_admin"))
+                            pages =
+                            [
+                                    personalization.getStep ()
+                            ];
+                        else
+                            pages =
+                            [
+                                    personalization.getStep (),
+                                    databases.getStep (),
+                                    imp.getStep (),
+                                    bittorrent.getStep ()
+                            ];
                         wiz.wizard
                         (
                             areas.left,
                             areas.content,
-                            [
-                                personalization.getStep (),
-                                databases.getStep (),
-                                imp.getStep (),
-                                bittorrent.getStep ()
-                            ],
+                            pages,
                             context
                         );
-
                     },
                     error: function ()
                     {

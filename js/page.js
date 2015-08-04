@@ -238,6 +238,107 @@ define
         }
 
         /**
+         * @summary Create the known database list..
+         * @description Another algorithm for database list creation, this uses the configured
+         * database names and names from the trackers database that have a local copy.
+         * @param {object} options - options for result handling
+         * @function fetch_known_databases
+         * @memberOf module:page
+         */
+        function fetch_known_databases (options)
+        {
+            $.couch.allDbs
+            (
+                {
+                    success: function (local_databases)
+                    {
+                        var nam = configuration.getConfigurationItem ("instance_name");
+                        var pub = configuration.getConfigurationItem ("public_database");
+                        var loc = configuration.getConfigurationItem ("local_database");
+                        var pen = configuration.getConfigurationItem ("pending_database");
+                        databases =
+                        [
+                            { database: pub, name: nam, url: pub },
+                            { database: loc, name: "Local", url: loc }, // ToDo: exclude local db from the list if it's secured
+                            { database: pen, name: "Pending", url: pen }
+                        ];
+                        var url = document.location.origin + "/";
+                        var self = configuration.getConfigurationItem ("instance_uuid");
+                        var database = configuration.getConfigurationItem ("tracker_database");
+                        var view = "Trackers";
+                        $.couch.db (database).view
+                        (
+                            database + "/" + view,
+                            {
+                                success : function (result)
+                                {
+                                    result.rows.forEach
+                                    (
+                                        function (row)
+                                        {
+                                            if (row.id != self) // the public database is already in the list
+                                            {
+                                                var db;
+
+                                                if (row.value.url == url) // local
+                                                {
+                                                    // reconstruct the public database name from the public URL
+                                                    db = row.value.public_url;
+                                                    db = db.substring (configuration.getDocumentRoot ().length + 1);
+                                                    db = db.substring (0, db.length - 1);
+                                                }
+                                                else
+                                                    // otherwise the local database name has a Z prefix (if it exists)
+                                                    db = "z" + row.id;
+                                                if (-1 != local_databases.indexOf (db))
+                                                    databases.push
+                                                    (
+                                                        {
+                                                            database: db,
+                                                            name: row.value.name,
+                                                            url: row.value.url
+                                                        }
+                                                    );
+                                            }
+                                        }
+                                    );
+                                    // try and set the current database to what it was
+                                    var current = get_current ();
+                                    var set = false;
+                                    databases.forEach
+                                    (
+                                        function (item)
+                                        {
+                                            if (item.database == current)
+                                            {
+                                                item.current = true;
+                                                set = true;
+                                            }
+                                        }
+                                    );
+                                    if (!set) // revert to public database
+                                        set_current (pub);
+                                    if (options.success)
+                                        options.success ();
+                                },
+                                error: function ()
+                                {
+                                    if (options.error)
+                                        options.error ();
+                                }
+                            }
+                        );
+                    },
+                    error: function ()
+                    {
+                        if (options.error)
+                            options.error ();
+                    }
+                }
+            );
+        }
+
+        /**
          * @summary Get any database aliases.
          * @description Get all foreign databases and set their names in the lookup list.
          * @param {object} options - options for result handling
@@ -340,7 +441,6 @@ define
          */
         function fetch_databases (options)
         {
-            var current = get_current ();
             $.couch.session
             (
                 {
@@ -348,82 +448,7 @@ define
                     {
 
                         if (-1 == data.userCtx.roles.indexOf ("_admin")) // non-admin
-                        {
-                            var nam = configuration.getConfigurationItem ("instance_name");
-                            var pub = configuration.getConfigurationItem ("public_database");
-                            var loc = configuration.getConfigurationItem ("local_database");
-                            var pen = configuration.getConfigurationItem ("pending_database");
-                            databases =
-                            [
-                                { database: pub, name: nam, url: pub },
-                                { database: loc, name: "Local", url: loc }, // ToDo: exclude local db from the list if it's secured
-                                { database: pen, name: "Pending", url: pen }
-                            ];
-                            var uuid = configuration.getInstanceUUID ();
-                            var self = configuration.getConfigurationItem ("instance_uuid");
-                            var database = configuration.getConfigurationItem ("tracker_database");
-                            var view = "Trackers";
-                            $.couch.db (database).view
-                            (
-                                database + "/" + view,
-                                {
-                                    success : function (result)
-                                    {
-                                        result.rows.forEach
-                                        (
-                                            function (row)
-                                            {
-                                                if (row.id != self) // the public database is already in the list
-                                                {
-                                                    var db;
-
-                                                    if (row.id == uuid)
-                                                    {
-                                                        // reconstruct the public database name from the public URL
-                                                        db = row.value.public_url;
-                                                        db = db.substring (configuration.getDocumentRoot ().length + 1);
-                                                        db = db.substring (0, db.length - 1);
-                                                    }
-                                                    else
-                                                        // the local database name has a Z prefix
-                                                        db = "z" + row.id;
-                                                    databases.push
-                                                    (
-                                                        {
-                                                            database: db,
-                                                            name: row.value.name,
-                                                            url: row.value.url
-                                                        }
-                                                    );
-                                                }
-                                            }
-                                        );
-                                        // try and set the current database to what it was
-                                        var set = false;
-                                        databases.forEach
-                                        (
-                                            function (item)
-                                            {
-                                                if (item.database == current)
-                                                {
-                                                    item.current = true;
-                                                    set = true;
-                                                }
-                                            }
-                                        );
-                                        if (!set) // revert to public database
-                                            set_current (pub);
-                                        if (options.success)
-                                            options.success ();
-                                    },
-                                    error: function ()
-                                    {
-                                        if (options.error)
-                                            options.error ();
-                                    }
-                                }
-                            );
-                        }
+                            fetch_known_databases (options);
                         else
                             fetch_all_databases (options);
                     }

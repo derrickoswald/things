@@ -186,7 +186,9 @@ define
                     instance_name + "\n" +
                     keybase_username + "\n" +
                     public_key;
-                document.getElementById ("instance_uuid").value = sha1.sha1 (plaintext, false);
+                var uuid = sha1.sha1 (plaintext, false);
+                uuid = uuid.substring (0, 32);
+                document.getElementById ("instance_uuid").value = uuid;
             }
             else
                 $.get
