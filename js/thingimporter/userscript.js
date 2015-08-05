@@ -15,6 +15,16 @@ define
      */
     function (login, configuration)
     {
+        var substitutions =
+        {
+            version: "2.1",
+            protocol: location.protocol,
+            host: location.hostname,
+            port: location.port,
+            prefix: $.couch.urlPrefix,
+            database: configuration.getConfigurationItem ("pending_database")
+        };
+
         /**
          * Check if the user script is set up for thingiverse.com.
          * @param {object} event - the event causing the check, <em>not used</em>
@@ -216,15 +226,6 @@ define
         {
             var script;
             var a;
-            var substitutions =
-            {
-                version: "2.1",
-                protocol: location.protocol,
-                host: location.hostname,
-                port: location.port,
-                prefix: $.couch.urlPrefix,
-                database: configuration.getConfigurationItem ("pending_database")
-            };
 
             // get the user script
             script = "js/thingimporter/thingiverse_import.user.js";
@@ -263,6 +264,55 @@ define
             );
         }
 
+        /**
+         * @summary Initialize the ping record in the pending database.
+         * @description Create or update the ping record in the pending database.
+         * @param {object} options callback functions for results
+         * @function prepare_ping
+         * @memberOf module:thingimporter/userscript
+         */
+        function prepare_ping (options)
+        {
+            var pending;
+            var payload;
+
+            // set up response if none provided
+            options = options || {};
+            options.success = options.success || function (data) { console.log (data); };
+            options.error = options.error || function (status) { console.log (status); };
+
+            pending = configuration.getConfigurationItem ("pending_database");
+            payload =
+            {
+                _id: "ping",
+                time: (new Date ()).valueOf (),
+                version: substitutions.version
+            };
+            // try to get the document
+            $.couch.db (pending).openDoc
+            (
+                payload._id,
+                {
+                    success: function (doc)
+                    {
+                        payload._rev = doc._rev;
+                        $.couch.db (pending).saveDoc
+                        (
+                            payload,
+                            options
+                        );
+                    },
+                    error: function ()
+                    {
+                        $.couch.db (pending).saveDoc
+                        (
+                            payload,
+                            options
+                        );
+                    }
+                }
+            );
+        }
 
         /**
          * @summary Initialize the user script installation page.
@@ -276,6 +326,8 @@ define
         {
             // set up the download script button
             prepare_user_script ();
+            // set up the ping record
+            prepare_ping ();
         }
 
         return (
