@@ -327,6 +327,11 @@ function extract_text (id)
     return (ret.trim ());
 }
 
+/**
+ * Get the list of images.
+ * @description Extracts the image URLs (large) from the thumbnail gallery.
+ * @return {string[]} the list of image URLS
+ */
 function get_images ()
 {
     var thumbs;
@@ -344,7 +349,7 @@ function get_images ()
 /**
  * Try to get the author's name from their handle.
  * @description Looks up the user's about page and checks for a real name
- * (or at least what Thingiverse has as their name)
+ * (or at least what Thingiverse has as their name).
  * @param {string} name the handle for the user
  * @param {function} callback the function to call with the users "real" name
  */
@@ -537,6 +542,7 @@ function uniquename (name, list)
  */
 function capture (event)
 {
+    console.log ("start capture");
     var dataurl = document.getElementById ("images_as_dataurl").checked;
     document.getElementById ("import_thing_button").disabled = true;
     thing_metadata.thumbnailURL = get_images (); // this is overwritten below
@@ -620,7 +626,7 @@ function ping (callback)
     var xmlhttp;
     var payload;
 
-    xmlhttp = records.createCORSRequest ("GET", configuration.getCouchDB  () + "/ping");
+    xmlhttp = records.createCORSRequest ("GET", configuration.getCouchDB  () + "/ping", false);
     xmlhttp.setRequestHeader ("Accept", "application/json");
     xmlhttp.onreadystatechange = function ()
     {
@@ -640,7 +646,7 @@ function ping (callback)
                 if (resp.version && (Number(resp.version) > Number (payload.version)))
                     console_log ("A newer version (" + resp.version + ") of this user script (thingiverse_import_user.js " + payload.version + ") exists.");
                 payload._rev = resp._rev;
-                xmlhttp = records.createCORSRequest ("PUT", configuration.getCouchDB () + "/ping");
+                xmlhttp = records.createCORSRequest ("PUT", configuration.getCouchDB () + "/ping", false);
                 xmlhttp.setRequestHeader ("Accept", "application/json");
                 xmlhttp.onreadystatechange = function ()
                 {
@@ -650,7 +656,7 @@ function ping (callback)
                         var ponged = (200 == xmlhttp.status || 201 == xmlhttp.status || 202 == xmlhttp.status);
                         console_log ("Database " + configuration.getDatabase () + " is accessible " + (ponged ? "read-write" : "read-only"));
                         document.getElementById ("import_thing_button").disabled = !ponged;
-                        callback ();
+                        callback (resp.fetch);
                     }
                 };
                 xmlhttp.send (JSON.stringify (payload, null, 4));
@@ -687,7 +693,7 @@ function display_contents (callback)
 (
     function initialize ()
     {
-        function isThing ()
+        function thing_number ()
         {
             var triggers =
             [
@@ -698,20 +704,21 @@ function display_contents (callback)
             var thing;
             var ret;
 
-            ret = false;
+            ret = -1;
             url = document.URL;
-            for (var i = 0; !ret && (i < triggers.length); i++)
+            for (var i = 0; (0 > ret) && (i < triggers.length); i++)
                 if (url.substring (0, triggers[i].length) == triggers[i])
                 {
                     thing = url.substring (triggers[i].length);
                     if (String (Number (thing)) == thing)
-                        ret = true;
+                        ret = Number (thing);
                 }
 
             return (ret);
         }
 
-        if (isThing ())
+        var num = thing_number ();
+        if (num > 0)
         {
             console.log ("initializing thingiverse_import");
             var ff = document.createElement ("div");
@@ -739,9 +746,14 @@ function display_contents (callback)
                 {
                     ping
                     (
-                        function ()
+                        function (fetch)
                         {
                             console.log ("done initializing thingiverse_import");
+                            if (fetch && (Number (fetch) == num))
+                            {
+                                console.log ("attempting to fetch " + num);
+                                capture ();
+                            }
                         }
                     );
                 }

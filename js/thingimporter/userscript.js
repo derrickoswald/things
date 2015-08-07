@@ -15,9 +15,10 @@ define
      */
     function (login, configuration)
     {
+        var script_version = "2.1";
         var substitutions =
         {
-            version: "2.1",
+            version: script_version,
             protocol: location.protocol,
             host: location.hostname,
             port: location.port,
@@ -26,8 +27,9 @@ define
         };
 
         /**
-         * Check if the user script is set up for thingiverse.com.
+         * @summary Check if the user script is set up for thingiverse.com.
          * @param {object} event - the event causing the check, <em>not used</em>
+         * @function check_thingiverse
          * @memberOf module:thingimporter/userscript
          */
         function check_thingiverse (event)
@@ -227,6 +229,8 @@ define
             var script;
             var a;
 
+            // ToDo: monitor login
+            substitutions.database = configuration.getConfigurationItem ("pending_database");
             // get the user script
             script = "js/thingimporter/thingiverse_import.user.js";
             get_script
@@ -286,7 +290,7 @@ define
             {
                 _id: "ping",
                 time: (new Date ()).valueOf (),
-                version: substitutions.version
+                version: script_version
             };
             // try to get the document
             $.couch.db (pending).openDoc
@@ -332,6 +336,7 @@ define
 
         return (
             {
+                script_version: script_version,
                 getStep : function ()
                 {
                    return (

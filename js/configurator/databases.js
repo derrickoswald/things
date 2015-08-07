@@ -19,35 +19,12 @@ define
     function (configuration, page, mustache, login, database)
     {
         /**
-         * list of current existing databases
+         * List of current existing databases.
+         * This is cached to avoid a round-trip for each character entered in the database name fields.
          * @type {string[]}
          * @memberOf module:configurator/databases
          */
         var list = null;
-
-        /**
-         * Show or hide admin elements on the page.
-         * @param {boolean} admin - if <code>true</> show the elements with the admin class
-         * @function show_hide_admin
-         * @memberOf module:configurator/databases
-         */
-        function show_hide_admin (admin)
-        {
-            var elements;
-
-            elements = document.getElementsByClassName ("admin");
-            for (var i = 0; i < elements.length; i++)
-                if (admin)
-                    elements[i].classList.remove ("hidden");
-                else
-                    elements[i].classList.add ("hidden");
-            elements = document.getElementsByClassName ("nonadmin");
-            for (var i = 0; i < elements.length; i++)
-                if (admin)
-                    elements[i].classList.add ("hidden");
-                else
-                    elements[i].classList.remove ("hidden");
-        }
 
         /**
          * @summary Creates a database.
@@ -69,12 +46,16 @@ define
                 {
                     success: function ()
                     {
+                        // manually add the database to the list
+                        // NOTE: a complete refresh happens after the save operation completes
+                        list.push (name);
+                        update_database_state ();
                         if (security)
                             database.make_secure
                             (
                                 name,
                                 {
-                                    success: update_database_state.call ({name: "admin", roles: ["_admin"]}), // ToDo: how not to fake this?
+                                    success: update_database_state,
                                     error: function () { alert (name + " _security creation failed"); }
                                 },
                                 security
@@ -97,6 +78,53 @@ define
         function create_tracker ()      { create_database (configuration.getConfigurationItem ("tracker_database"), database.tracker_views); };
 
         /**
+         * @summary Set the security on the local database.
+         * @description Applies or removes read_restricted security to a database.
+         * Does nothing if the database is already set to the desired security.
+         * @param {string} db - the database name to make secure/insecure
+         * @param {boolean} secure - the desired security state
+         * @function change_security
+         * @memberOf module:configurator/databases
+         */
+        function change_security (db, secure)
+        {
+            database.is_secure
+            (
+                db,
+                {
+                    success: function (currently_secure)
+                    {
+                        if (currently_secure && !secure)
+                            database.make_insecure
+                            (
+                                db,
+                                {
+                                    success: update_database_state,
+                                    error: function (status)
+                                    {
+                                        alert (name + " _security deletion failed " + JSON.stringify (status, null, 4));
+                                    }
+                                }
+                            );
+                        else if (!currently_secure && secure)
+                            database.make_secure
+                            (
+                                db,
+                                {
+                                    success: update_database_state,
+                                    error: function ()
+                                    {
+                                        alert (name + " _security creation failed");
+                                    }
+                                },
+                                database.read_restricted
+                            );
+                    }
+                }
+            );
+        }
+
+        /**
          * @summary Save button event handler.
          * @description Saves the form values as the current configuration document.
          * If the configuration database doesn't yet exist it is created.
@@ -109,7 +137,6 @@ define
             event.preventDefault ();
             event.stopPropagation ();
 
-            var update = update_database_state.bind (this);
             var cb = {};
             cb.success = function (xxx)
             {
@@ -128,43 +155,9 @@ define
                         else
                             create_local ();
                     else
-                        // no name change, change in security only ?
-                        database.is_secure
-                        (
-                            configuration.getConfigurationItem ("local_database"),
-                            {
-                                success: function (currently_secure)
-                                {
-                                    if (currently_secure && !secure)
-                                        database.make_insecure
-                                        (
-                                            configuration.getConfigurationItem ("local_database"),
-                                            {
-                                                success: update,
-                                                error: function (status)
-                                                {
-                                                    alert (name + " _security deletion failed " + JSON.stringify (status, null, 4));
-                                                }
-                                            }
-                                        );
-                                    else if (!currently_secure && secure)
-                                        database.make_secure
-                                        (
-                                            configuration.getConfigurationItem ("local_database"),
-                                            {
-                                                success: update,
-                                                error: function ()
-                                                {
-                                                    alert (name + " _security creation failed");
-                                                }
-                                            },
-                                            database.read_restricted
-                                        );
-                                }
-                            }
-                        );
+                        // no name change, change in security only?
+                        change_security (configuration.getConfigurationItem ("local_database"), secure);
                 }
-
                 db = configuration.getConfigurationItem ("pending_database");
                 if (("" != db) && (-1 == list.indexOf (db)))
                     create_pending ();
@@ -174,7 +167,9 @@ define
                 db = configuration.getConfigurationItem ("tracker_database");
                 if (("" != db) && (-1 == list.indexOf (db)))
                     create_tracker ();
-
+                // refresh display of databases after the save operation
+                list = null;
+                update_database_state ();
             };
             cb.error = function (status) { console.log (status); alert ("Configuration save failed."); };
 
@@ -285,8 +280,6 @@ define
          */
         function update_database_state (event)
         {
-            var admin = -1 != this.roles.indexOf ("_admin");
-            var data = this;
             if (null == list)
                 $.couch.allDbs
                 (
@@ -294,7 +287,7 @@ define
                         success: function (l)
                         {
                             list = l;
-                            update_database_state.call (data);
+                            update_database_state ();
                         }
                     }
                 );
@@ -305,16 +298,14 @@ define
                     update_addon ("pending_database", "pending_database_state");
                     update_addon ("public_database", "public_database_state");
                     update_addon ("tracker_database", "tracker_database_state");
-                    if (admin)
-                        update_local_security_state (document.getElementById ("local_database").value.trim ());
+                    update_local_security_state (document.getElementById ("local_database").value.trim ());
                 }
                 else
                 {
                     update_addon (event.target.id, event.target.getAttribute ("aria-describedby"));
-                    if (admin && ("local_database" == event.target.id))
+                    if ("local_database" == event.target.id)
                         update_local_security_state (document.getElementById (event.target.id).value.trim ());
                 }
-            show_hide_admin (admin);
         }
 
         /**
@@ -334,12 +325,11 @@ define
             document.getElementById ("public_database").value = configuration.getConfigurationItem ("public_database");
             document.getElementById ("tracker_database").value = configuration.getConfigurationItem ("tracker_database");
 
-            var update = update_database_state.bind (this);
-            document.getElementById ("local_database").addEventListener ("input", update);
-            document.getElementById ("pending_database").addEventListener ("input", update);
-            document.getElementById ("public_database").addEventListener ("input", update);
-            document.getElementById ("tracker_database").addEventListener ("input", update);
-            update (); // set up initial values
+            document.getElementById ("local_database").addEventListener ("input", update_database_state);
+            document.getElementById ("pending_database").addEventListener ("input", update_database_state);
+            document.getElementById ("public_database").addEventListener ("input", update_database_state);
+            document.getElementById ("tracker_database").addEventListener ("input", update_database_state);
+            update_database_state (); // set up initial values
         }
 
         return (

@@ -5,13 +5,16 @@
 }}
 <h2>Database naming, creation and configuration</h2>
 <p>The local database is your private database, and should have added security - that is,
-only logged in users can perform CRUD (Create, Read, Update and Delete) operations. It is used for pre-publish
-things and as the repository for things that you decide should not be public.</p>
+only logged in users can perform CRUD (Create, Read, Update and Delete) operations.
+It holds <em>things</em> in the pre-publish state, as well as published <em>things</em>
+unless they are explicitly deleted after publishing. It is also the repository for
+<em>things</em> that you decide should not be public.</p>
 <p>The pending database on the other hand is the database that should have no restrictions.
-It is used by the import operation, for example, to write things captured from other sites.</p>
+It is used by the import operation, for example, to store <em>things</em> captured from other sites.</p>
 <p>The public database contains the things that are visible to the <em>Thing Tracker Network</em>.
 The items in this database should also be seeded by the BitTorrent client.</p>
-<p>The tracker database is the list of <em>Thing Trackers</em> and the things that they are tracking.
+<p>The tracker database is the list of <em>Thing Trackers</em> and the <em>things</em>
+that they are tracking.
 As such, it is largely an internally used database, but one that should be replicated between 
 nodes on the <em>Thing Tracker Network</em>.
 <div class="form-horizontal">
@@ -20,7 +23,7 @@ nodes on the <em>Thing Tracker Network</em>.
             <label class="col-sm-3 control-label" for="local_database">Local database</label>
             <div class="col-sm-9">
                 <div class="input-group">
-                    <span id="local_database_security" class="input-group-addon admin">
+                    <span id="local_database_security" class="input-group-addon">
                         <input id="local_database_secure" type="checkbox" aria-label="local_secure_label">
                         <span id="local_secure_label">Secure</span>
                     </span>

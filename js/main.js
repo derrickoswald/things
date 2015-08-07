@@ -117,6 +117,7 @@ requirejs
 
                                 // stop the normal link action
                                 event.preventDefault ();
+                                event.stopPropagation ();
                                 // switch class active
                                 parent = event.target.parentElement;
                                 active = parent.parentElement.getElementsByClassName ("active")[0];

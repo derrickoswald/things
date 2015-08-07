@@ -6,7 +6,7 @@
  */
 define
 (
-    ["../page", "wizard", "configuration", "thingimporter/userscript", "thingimporter/transfer"],
+    ["../page", "wizard", "configuration", "thingimporter/userscript", "thingimporter/fetch", "thingimporter/transfer"],
     /**
      * @summary Import things.
      * @description Imports things from Thingiverse by setting up the database,
@@ -15,7 +15,7 @@ define
      * @exports thingimporter/importwizard
      * @version 1.0
      */
-    function (page, wiz, configuration, userscript, transfer)
+    function (page, wiz, configuration, userscript, fetch, transfer)
     {
         /**
          * @summary Create the wizard.
@@ -30,6 +30,7 @@ define
             [
                 { id: "overview", title: "Overview", template: "templates/thingimporter/overview.html"},
                 userscript.getStep (),
+                fetch.getStep (),
                 transfer.getStep ()
             ];
 

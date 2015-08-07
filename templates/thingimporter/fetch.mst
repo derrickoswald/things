@@ -1,0 +1,31 @@
+{{!
+    <link rel="stylesheet" href="../../css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/static/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../../css/things.css">
+}}
+<h2>Fetch Thing</h2>
+<p>Render the Thingiverse page for the thing number given and fetch the thing into the pending database.</p>
+<div class="form-horizontal">
+    <div class="configuration_group">
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="thing_number">Thing number</label>
+            <div class="col-sm-9">
+                <input id="thing_number" class="form-control" type="text" name="thing_number" placeholder="thing number">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="import_thing_button"></label>
+            <div class="col-sm-9">
+                <button id="import_thing_button" class="btn btn-primary start">
+                    <span class="glyphicon glyphicon-save-file" aria-hidden="true"></span>
+                    <span>Fetch things</span>
+                </button>
+                <span id="imported" class="hidden">
+                    <span class="glyphicon glyphicon-ok ok" aria-hidden="true"></span>
+                    <span>Thing fetched from http://thingiverse.com and imported into pending database.</span>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="thingiverse_page"></div>
