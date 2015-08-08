@@ -588,7 +588,8 @@ define
                 layout: layout,
                 get_layout: get_layout,
                 get_current: get_current,
-                set_current: set_current
+                set_current: set_current,
+                draw: draw
             }
         );
 

@@ -22,7 +22,7 @@
                 </button>
                 <span id="imported" class="hidden">
                     <span class="glyphicon glyphicon-ok ok" aria-hidden="true"></span>
-                    <span>Thing fetched from http://thingiverse.com and imported into pending database.</span>
+                    <span>Thing <span id="fetched"></span> fetched into pending database.</span>
                 </span>
             </div>
         </div>

@@ -504,13 +504,16 @@ function upload (tor, directory, files, images)
             console.log ("document " + id + " saved");
             console_log ("Uploaded thing <a href='" + configuration.getCouchDB () + "/" + id + "' target='_blank'>" + id + "</a>");
             document.getElementById ("import_thing_button").disabled = false;
+            ping (function () {}, id);
         },
         error: function (status, msg, reason)
         {
             console.log ("failed to save document " + id + " " + msg + ": " + reason);
             console_log ("Failed to upload thing " + id + " " + msg + ": " + reason);
             document.getElementById ("import_thing_button").disabled = false;
+            ping (function () {});
         },
+
         CORS: configuration.getServer (),
         USE_PUT: true
     };
@@ -619,14 +622,18 @@ function capture (event)
  * @summary Call the CouchDB host to get and put the ping record for this user script.
  * @description Exchange data with the CouchDB database as a sanity check and to assist
  * in configuration checks.
- * @param {function} callback the function to call back when the ping is complete
+ * @param {function} callback - the function to call back when the ping is complete,
+ * two arguments: ponged status (true = ok) and ping response document
+ * @param {string} fetched - optional argument to add as the fetched field in the pong record
  */
-function ping (callback)
+function ping (callback, fetched)
 {
+    var version;
     var xmlhttp;
     var payload;
 
-    xmlhttp = records.createCORSRequest ("GET", configuration.getCouchDB  () + "/ping", false);
+    version = "$$version$$";
+    xmlhttp = records.createCORSRequest ("GET", configuration.getCouchDB  () + "/ping", false); // synchronous because _changes feed will be monitored in onload()
     xmlhttp.setRequestHeader ("Accept", "application/json");
     xmlhttp.onreadystatechange = function ()
     {
@@ -636,17 +643,18 @@ function ping (callback)
             {
                 _id: "ping",
                 time: (new Date ()).valueOf (),
-                version: "$$version$$"
+                version: version
             };
             console.log ("ping status: " + xmlhttp.status);
-            console_log ("Server " + configuration.getServer () + " is online");
             if (200 == xmlhttp.status || 201 == xmlhttp.status || 202 == xmlhttp.status)
             {
                 var resp = JSON.parse (xmlhttp.responseText);
-                if (resp.version && (Number(resp.version) > Number (payload.version)))
-                    console_log ("A newer version (" + resp.version + ") of this user script (thingiverse_import_user.js " + payload.version + ") exists.");
+                if (resp.version && (Number (resp.version) > Number (version)))
+                    console_log ("A newer version (" + resp.version + ") of this user script (thingiverse_import_user.js " + version + ") exists.");
                 payload._rev = resp._rev;
-                xmlhttp = records.createCORSRequest ("PUT", configuration.getCouchDB () + "/ping", false);
+                if (fetched)
+                    payload.fetched = fetched;
+                xmlhttp = records.createCORSRequest ("PUT", configuration.getCouchDB () + "/ping", false);  // synchronous because _changes feed will be monitored in onload()
                 xmlhttp.setRequestHeader ("Accept", "application/json");
                 xmlhttp.onreadystatechange = function ()
                 {
@@ -654,13 +662,13 @@ function ping (callback)
                     {
                         console.log ("pong status: " + xmlhttp.status);
                         var ponged = (200 == xmlhttp.status || 201 == xmlhttp.status || 202 == xmlhttp.status);
-                        console_log ("Database " + configuration.getDatabase () + " is accessible " + (ponged ? "read-write" : "read-only"));
-                        document.getElementById ("import_thing_button").disabled = !ponged;
-                        callback (resp.fetch);
+                        callback (ponged, resp.fetch);
                     }
                 };
                 xmlhttp.send (JSON.stringify (payload, null, 4));
             }
+            else
+                callback (false, null);
         }
     };
     xmlhttp.send ();
@@ -746,13 +754,19 @@ function display_contents (callback)
                 {
                     ping
                     (
-                        function (fetch)
+                        function (ponged, fetch)
                         {
-                            console.log ("done initializing thingiverse_import");
-                            if (fetch && (Number (fetch) == num))
+                            if (fetch)
                             {
-                                console.log ("attempting to fetch " + num);
-                                capture ();
+                                console_log ("Server " + configuration.getServer () + " is online");
+                                console_log ("Database " + configuration.getDatabase () + " is accessible " + (ponged ? "read-write" : "read-only"));
+                                document.getElementById ("import_thing_button").disabled = !ponged;
+                                console.log ("done initializing thingiverse_import");
+                                if (fetch && (Number (fetch) == num))
+                                {
+                                    console.log ("attempting to fetch " + num);
+                                    capture ();
+                                }
                             }
                         }
                     );

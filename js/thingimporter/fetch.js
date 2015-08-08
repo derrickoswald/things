@@ -6,14 +6,14 @@
  */
 define
 (
-    ["../login", "../configuration", "./userscript"],
+    ["../login", "../configuration", "./userscript", "../page"],
     /**
      * @summary Load Thingiverse in an iframe and harvest the thing using a ping fetch value.
      * @name thingimporter/fetch
      * @exports thingimporter/fetch
      * @version 2.1
      */
-    function (login, configuration, userscript)
+    function (login, configuration, userscript, page)
     {
         /**
          * @summary Initialize the ping record in the pending database.
@@ -85,7 +85,11 @@ define
                             alert ("fetch failed, ping still had fetch:" + thing);
                         }
                         else
+                        {
+                            document.getElementById ("fetched").innerHTML = doc.fetched ? doc.fetched : "";
                             document.getElementById ("imported").classList.remove ("hidden");
+                            page.draw ();
+                        }
                     },
                     error: function ()
                     {
@@ -95,6 +99,9 @@ define
             );
             // remove the iframe
             document.getElementById ("thingiverse_page").innerHTML = "";
+            // re-enable the button
+            document.getElementById ("import_thing_button").removeAttribute ("disabled");
+
         }
 
         function wait_for_ping_change (options)
@@ -121,35 +128,31 @@ define
                 {
                     if (200 == xmlhttp.status)
                     {
-                        // {"db_name":"carol_pending","doc_count":5,"doc_del_count":0,"update_seq":47,"purge_seq":0,"compact_running":false,"disk_size":3162216,"data_size":2974925,"instance_start_time":"1438817037439899","disk_format_version":6,"committed_update_seq":47}
                         sequence = JSON.parse (xmlhttp.responseText).update_seq;
                         changes = configuration.getDocumentRoot () + "/" +
                             configuration.getConfigurationItem ("pending_database") +
-                            "/_changes?heartbeat=10000&feed=longpoll&since=" + sequence + "&doc_ids=" +
-                            encodeURIComponent (JSON.stringify (["ping"]));
+                            "/_changes?heartbeat=10000&feed=longpoll&since=" + sequence + "&filter=_doc_ids";
                         xmlhttp = new XMLHttpRequest ();
-                        xmlhttp.open ("GET", changes, true);
+                        xmlhttp.open ("POST", changes, true);
+                        xmlhttp.setRequestHeader ("Content-Type", "application/json");
                         xmlhttp.setRequestHeader ("Accept", "application/json");
                         xmlhttp.onreadystatechange = function ()
                         {
                             if (4 == xmlhttp.readyState)
                             {
                                 if (200 == xmlhttp.status)
-                                {
                                     options.success ();
-                                }
                                 else
                                     options.error ();
                             }
                         };
-                        xmlhttp.send ();
+                        xmlhttp.send (JSON.stringify ({ doc_ids: ["ping"] }));
                     }
-                    else
-                        options.error ();
                 }
-            };
+            }
             xmlhttp.send ();
         }
+
         /**
          * @summary Fetch the thing given by the number from http://thingiverse.com.
          * @param {object} event - the event causing the check, <em>not used</em>
@@ -164,6 +167,8 @@ define
             thing = document.getElementById ("thing_number").value;
             // clean up any mess left over from a previous attempt
             document.getElementById ("thingiverse_page").innerHTML = "";
+            // disable the button to prohibit another attempt while we're in process
+            document.getElementById ("import_thing_button").setAttribute ("disabled", true);
             prepare_ping
             (
                 {
