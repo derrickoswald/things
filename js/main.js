@@ -93,12 +93,12 @@ requirejs
         {
             require
             (
-                ["login", "home", "thingimporter/importwizard", "thingmaker/thingwizard", "discover", "configurator/configwizard", "about"],
+                ["login", "home", "thingimporter/importwizard", "thingmaker/thingwizard", "thingsearcher/searchwizard", "discover", "configurator/configwizard", "about"],
                 /**
                  * Setup index.html JavaScript.
                  * Make all the links and buttons on the static html page work, and show the first page.
                  */
-                function (login, home, importwizard, thingwizard, discover, configwizard, about)
+                function (login, home, importwizard, thingwizard, searchwizard, discover, configwizard, about)
                 {
                     /**
                      * Page activation function generator.
@@ -136,6 +136,7 @@ requirejs
                     document.getElementById ("home").onclick = activate (home.initialize);
                     document.getElementById ("import_thing").onclick = activate (importwizard.initialize);
                     document.getElementById ("new_thing").onclick = activate (thingwizard.initialize);
+                    document.getElementById ("search_thing").onclick = activate (searchwizard.initialize);
                     document.getElementById ("discover_thing").onclick = activate (discover.initialize);
                     document.getElementById ("about").onclick = activate (about.initialize);
                     document.getElementById ("configurator").onclick = activate (configwizard.initialize);

@@ -1,0 +1,51 @@
+{{!
+    <link rel="stylesheet" href="../../css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/static/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../../css/things.css">
+}}
+<h2>Search</h2>
+<p>Search for <em>things</em> in the available databases.</p>
+<p>The search engine under the hood is <a href="http://lucene.apache.org/" target="_blank">Lucene</a>.
+</p>
+<p>When used by a human, it understands this <a href="http://lucene.apache.org/core/3_6_2/queryparsersyntax.html" target="_blank">query syntax</a>,
+but as a quick summary:
+    <ul>
+        <li>search terms are single words, phrases must be enclosed in quotes (e.g. "grease guard")</li>
+        <li>restrict search to a specific field with a field name and a colon (e.g. tags:hub), field names are (case sensitive):
+            <ul>
+                <li>default</li>
+                <li>created_by</li>
+                <li>creation_date</li>
+                <li>name</li>
+                <li>title</li>
+                <li>url</li>
+                <li>authors</li>
+                <li>licenses</li>
+                <li>tags</li>
+                <li>description</li>
+                <li>attachments</li>
+            </ul>
+        </li>
+        <li>escape special characters + - &amp; || ! ( ) { } [ ] ^ " ~ * ? : \ with a backslash, (e.g. great\!)</li>
+        <li>join clauses with AND and OR (e.g. "cell phone" OR "smart phone")</li>
+        <li>wildcards are single (?), multiple (*) and fuzzy (~) (e.g. Y28V980?0), but not at the beginning of a term, and not between terms in phrases</li>
+    </ul>
+</p>
+<div class="form-horizontal">
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="search_query">Query</label>
+        <div class="col-sm-9">
+            <input id="search_query" class="form-control" type="text" name="search_query" placeholder="query"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="search_button"></label>
+        <div class="col-sm-9">
+            <button id="search_button" class="btn btn-primary start">
+                <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                <span>Search</span>
+            </button>
+        </div>
+    </div>
+</div>
+<div id="search_results"></div>

@@ -195,9 +195,9 @@ define
          * @summary Saves the configuration to a document.
          * @description Creates or updates the current configuration document in
          * the configuration database
+         * @param {object} options Handlers (success and error) for the response.
          * @function saveConfiguration
          * @memberOf module:configuration
-         * @param {object} options Handlers (success and error) for the response.
          */
         function saveConfiguration (options)
         {
@@ -249,9 +249,9 @@ define
         /**
          * @summary Loads the configuration from a document.
          * @description Read the configuration from the configuration database
+         * @param {object} options Handlers (success and error) for the response.
          * @function loadConfiguration
          * @memberOf module:configuration
-         * @param {object} options Handlers (success and error) for the response.
          */
         function loadConfiguration (options)
         {
@@ -301,9 +301,9 @@ define
         /**
          * @summary Get a configuration item from the in-memory current configuration.
          * @description Get the configuration string for the key.
+         * @param {string} key the name of the configuration property to get
          * @function getConfigurationItem
          * @memberOf module:configuration
-         * @param {string} key the name of the configuration property to get
          */
         function getConfigurationItem (key)
         {
@@ -313,10 +313,10 @@ define
         /**
          * @summary Set the current value of a configuration item.
          * @description Set the configuration string for the key.
-         * @function setConfigurationItem
-         * @memberOf module:configuration
          * @param {string} key the name of the configuration property to set
          * @param {string} value the value of the configuration property
+         * @function setConfigurationItem
+         * @memberOf module:configuration
          */
         function setConfigurationItem (key, value)
         {
@@ -328,6 +328,8 @@ define
          * @description For a vhosted system, the prefix is usually an entry
          * in the rewrites that accesses the CouchDB api, rather than the
          * vhosted document root at _design/{db}/_rewrite.
+         * @function getPrefix
+         * @memberOf module:configuration
          */
         function getPrefix ()
         {
@@ -374,9 +376,9 @@ define
 
         /**
          * @summary Check for configuration database existence.
+         * @param {object} options Handlers (success and error) for response
          * @function configuration_exists
          * @memberOf module:configuration
-         * @param {object} options Handlers (success and error) for response
          */
         function configuration_exists (options)
         {
@@ -403,9 +405,9 @@ define
          * @summary Configuration setup.
          * @description Check for configuration database existence.
          * Read the configuration from the configuration database.
+         * @param {object} options Handlers (success and error) for response.
          * @function configuration_setup
          * @memberOf module:configuration
-         * @param {object} options Handlers (success and error) for response.
          */
         function configuration_setup (options)
         {

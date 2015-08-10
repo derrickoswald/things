@@ -667,4 +667,138 @@ couchdb **15502** 15479 4 17:25 ? 00:00:10 /usr/local/bin/node /home/pi/user\_ma
 
 pi@raspberrypi \~ \$ sudo kill -9 15502
 
+Search
+======
 
+couchdb-lucene
+--------------
+
+https://github.com/rnewson/couchdb-lucene
+
+java -version
+
+java version "1.7.0\_79"
+
+OpenJDK Runtime Environment (IcedTea 2.5.6) (7u79-2.5.6-0ubuntu1.14.04.1)
+
+OpenJDK 64-Bit Server VM (build 24.79-b02, mixed mode)
+
+sudo apt-get install openjdk-7-jdk
+
+javac -version
+
+javac 1.7.0\_79
+
+sudo apt-get install maven2
+
+mvn --version
+
+Apache Maven 2.2.1 (rdebian-14)
+
+Java version: 1.7.0\_79
+
+Java home: /usr/lib/jvm/java-7-openjdk-amd64/jre
+
+Default locale: en\_US, platform encoding: UTF-8
+
+OS name: "linux" version: "3.13.0-61-generic" arch: "amd64" Family: "unix"
+
+git clone https://github.com/rnewson/couchdb-lucene.git
+
+(( for raspberry pi set JAVA\_HOME: export JAVA\_HOME=/usr/lib/jvm/jdk-8-oracle-arm-vfp-hflt/ to find the javac compiler))
+
+(( then later, so you might as well do it now...
+
+pi@raspberrypi\$ sudo rm /etc/alternatives/java
+
+pi@raspberrypi\$ sudo ln --symbolic /usr/lib/jvm/jdk-8-oracle-arm-vfp-hflt/bin/java /etc/alternatives/java
+
+))
+
+cd couchdb-lucene
+
+mvn
+
+cd target
+
+unzip couchdb-lucene-1.1.0-SNAPSHOT-dist.zip
+
+cd couchdb-lucene-1.1.0-SNAPSHOT
+
+vi conf/couchdb-lucene.ini
+
+and add credentials under local:
+
+[local]
+
+..
+
+url=http://admin:secret@localhost:5984/
+
+make the indexes directory:
+
+mkdir indexes
+
+sudo chown -R couchdb:couchdb indexes
+
+sudo vi /etc/couchdb/local.ini
+
+((or for the raspberry pi: /usr/local/etc/couchdb/local.ini ))
+
+[httpd\_global\_handlers]
+
+...
+
+\_fti = {couch\_httpd\_proxy, handle\_proxy\_req, \<\<"http://127.0.0.1:5985"\>\>}
+
+[os\_daemons]
+
+...
+
+couchdb\_lucene = /home/derrick/code/couchdb-lucene/target/couchdb-lucene-1.1.0-SNAPSHOT/bin/run
+
+(( or for the raspberry pi /home/pi/couchdb-lucene/target/couchdb-lucene-1.1.0-SNAPSHOT/bin/run ))
+
+(( for raspberry pi fix run script:
+
+/home/pi/couchdb-lucene/target/couchdb-lucene-1.1.0-SNAPSHOT/bin/run
+
+Error occurred during initialization of VM
+
+Server VM is only supported on ARMv7+ VFP
+
+pi@raspberrypi\$ vi /home/pi/couchdb-lucene/target/couchdb-lucene-1.1.0-SNAPSHOT/bin/run
+
+and remove -server option.
+
+))
+
+then restart couch:
+
+sudo service couchdb restart
+
+[ ok ] Restarting database server: couchdb.
+
+pi@raspberrypi \~/couchdb-lucene/target/couchdb-lucene-1.1.0-SNAPSHOT \$ ps -ef | grep java
+
+couchdb 1865 1843 26 12:38 ? 00:00:00 java -server -Xmx1g -XX:OnOutOfMemoryError=bin/kill\_ppid -cp conf:lib/apache-mime4j... com.github.rnewson.couchdb.lucene.Main
+
+to search...
+
+http://localhost:5985/local/danny\_public/\_design/search/by\_title?q=test
+
+or via global handler above:
+
+http://swirl:5984/root/\_fti/local/danny\_public/\_design/search/by\_title?q=test
+
+http://swirl:5984/root/\_fti/local/carol\_public/\_design/carol\_public/content?q=stick
+
+curl --verbose --data-urlencode q=holes http://swirl:5984/root/\_fti/local/carol\_public/\_design/carol\_public/content
+
+this only works if you don't add any dates or numbers to the field (default):
+
+curl --verbose --data 'q=default:"music stand"' http://swirl:5984/root/\_fti/local/carol\_public/\_design/carol\_public/content
+
+curl --verbose --data 'q=default:"smart phone"' http://swirl:5984/root/\_fti/local/public\_things/\_design/public\_things/search
+
+curl --verbose --data 'q=default:specifications' http://swirl:5984/root/\_fti/local/andy\_public/\_design/andy\_public/search

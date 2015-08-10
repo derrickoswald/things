@@ -59,6 +59,91 @@ var standard_validation =
             "throw { 'forbidden': 'Only admins and users can alter documents' };" +
     "}";
 
+// standard full text search evaluation function
+var standard_search =
+{
+    // all text content in default field, and everything in individual fields too
+    search:
+    {
+        index:
+            "function (doc)" +
+            "{" +
+                "var ret;" +
+
+                "ret = new Document ();" +
+
+                "if (doc['created by'])" +
+                "{" +
+                    "ret.add (doc['created by']);" +
+                    "ret.add (doc['created by'], { field: 'created_by' });" +
+                "}" +
+                "if (doc['creation date'])" +
+                    "ret.add (new Date (doc['creation date']), { type: 'date', field: 'creation_date' });" +
+
+                "if (doc.info)" +
+                "{" +
+                    "if (doc.info.files)" +
+                        "for (var f = 0; f < doc.info.files.length; f++)" +
+                        "{" +
+                            "ret.add (doc.info.files[f].path[0]);" +
+                            "ret.add (doc.info.files[f].path[0], { field: 'file_name' });" +
+                            "ret.add (doc.info.files[f].length, { type: 'long', field: 'file_size' });" +
+                        "}" +
+                    "if (doc.info.name)" +
+                    "{" +
+                        "ret.add (doc.info.name);" +
+                        "ret.add (doc.info.name, { field: 'name' });" +
+                    "}" +
+                    "if (doc.info.thing)" +
+                    "{" +
+                        "if (doc.info.thing.title)" +
+                        "{" +
+                            "ret.add (doc.info.thing.title);" +
+                            "ret.add (doc.info.thing.title, { field: 'title' });" +
+                        "}" +
+                        "if (doc.info.thing.url)" +
+                        "{" +
+                            "ret.add (doc.info.thing.url);" +
+                            "ret.add (doc.info.thing.url, { field: 'url' });" +
+                        "}" +
+                        "if (doc.info.thing.authors)" +
+                            "for (var a = 0; a < doc.info.thing.authors.length; a++)" +
+                            "{" +
+                                "ret.add (doc.info.thing.authors[a]);" +
+                                "ret.add (doc.info.thing.authors[a], { field: 'authors' });" +
+                            "}" +
+                        "if (doc.info.thing.licenses)" +
+                            "for (var l = 0; l < doc.info.thing.licenses.length; l++)" +
+                            "{" +
+                                "ret.add (doc.info.thing.licenses[l]);" +
+                                "ret.add (doc.info.thing.licenses[l], { field: 'licenses' });" +
+                            "}" +
+                        "if (doc.info.thing.tags)" +
+                            "for (var t = 0; t < doc.info.thing.tags.length; t++)" +
+                            "{" +
+                                "ret.add (doc.info.thing.tags[t]);" +
+                                "ret.add (doc.info.thing.tags[t], { field: 'tags', analyzer: 'keyword' });" +
+                            "}" +
+                        "if (doc.info.thing.description)" +
+                        "{" +
+                            "ret.add (doc.info.thing.description);" +
+                            "ret.add (doc.info.thing.description, { field: 'description' });" +
+                        "}" +
+                    "}" +
+                "}" +
+
+                "if (doc._attachments)" +
+                    "for (var attachment in doc._attachments)" +
+                    "{" +
+                        "ret.attachment ('default', attachment);" +
+                        "ret.attachment ('attachments', attachment);" +
+                    "}" +
+
+                "return (ret);" +
+            "}"
+    }
+};
+
 // security document limiting CRUD to the owning user
 var standard_security =
 {
@@ -287,6 +372,7 @@ function make_pending (options)
                 {
                     _id: "_design/" + options.pending_database,
                     views: standard_views,
+                    fulltext: standard_search
                 };
                 nano.request
                 (
@@ -338,7 +424,8 @@ function make_public (options)
                 {
                     _id: "_design/" + options.public_database,
                     views: standard_views,
-                    validate_doc_update: standard_validation
+                    validate_doc_update: standard_validation,
+                    fulltext: standard_search
                 };
                 nano.request
                 (
@@ -390,7 +477,8 @@ function make_local (options)
                 {
                     _id: "_design/" + options.local_database,
                     views: standard_views,
-                    validate_doc_update: standard_validation
+                    validate_doc_update: standard_validation,
+                    fulltext: standard_search
                 };
                 nano.request
                 (
