@@ -18,13 +18,32 @@ define
     {
         // expected views in a things database
         var standard_views =
+        {
+            // view of only "things" (that have an info section) in the database
+            things:
             {
-                // view of only "things" (that have an info section) in the database
-                Things:
-                {
-                    map: "function(doc) { if (doc.info) emit (doc._id, doc); }"
-                }
-            };
+                map:
+                    "function (doc)" +
+                    "{" +
+                        "if (doc.info)" +
+                            "emit (doc._id, doc);" +
+                    "}"
+            }
+        };
+
+        // view of only "trackers"
+        var tracker_views =
+        {
+            trackers:
+            {
+                map:
+                    "function (doc)" +
+                    "{" +
+                        "if (doc.things)" +
+                            "emit (doc._id, doc);" +
+                    "}"
+            }
+        };
 
         // validation function limiting create, update and delete to logged in users
         var standard_validation =
@@ -53,12 +72,88 @@ define
                     "throw { 'forbidden': 'Only admins and users can alter documents' };" +
             "}";
 
-        // view of only "trackers"
-        var tracker_views =
+        // standard full text search evaluation function
+        var standard_search =
         {
-            Trackers:
+            // all text content in default field, and everything in individual fields too
+            search:
             {
-                map: "function(doc) { if (doc.things) emit (doc._id, doc); }"
+                index:
+                    "function (doc)" +
+                    "{" +
+                        "var ret;" +
+
+                        "ret = new Document ();" +
+
+                        "if (doc['created by'])" +
+                        "{" +
+                            "ret.add (doc['created by']);" +
+                            "ret.add (doc['created by'], { field: 'created_by' });" +
+                        "}" +
+                        "if (doc['creation date'])" +
+                            "ret.add (new Date (doc['creation date']), { type: 'date', field: 'creation_date' });" +
+
+                        "if (doc.info)" +
+                        "{" +
+                            "if (doc.info.files)" +
+                                "for (var f = 0; f < doc.info.files.length; f++)" +
+                                "{" +
+                                    "ret.add (doc.info.files[f].path[0]);" +
+                                    "ret.add (doc.info.files[f].path[0], { field: 'file_name' });" +
+                                    "ret.add (doc.info.files[f].length, { type: 'long', field: 'file_size' });" +
+                                "}" +
+                            "if (doc.info.name)" +
+                            "{" +
+                                "ret.add (doc.info.name);" +
+                                "ret.add (doc.info.name, { field: 'name' });" +
+                            "}" +
+                            "if (doc.info.thing)" +
+                            "{" +
+                                "if (doc.info.thing.title)" +
+                                "{" +
+                                    "ret.add (doc.info.thing.title);" +
+                                    "ret.add (doc.info.thing.title, { field: 'title' });" +
+                                "}" +
+                                "if (doc.info.thing.url)" +
+                                "{" +
+                                    "ret.add (doc.info.thing.url);" +
+                                    "ret.add (doc.info.thing.url, { field: 'url' });" +
+                                "}" +
+                                "if (doc.info.thing.authors)" +
+                                    "for (var a = 0; a < doc.info.thing.authors.length; a++)" +
+                                    "{" +
+                                        "ret.add (doc.info.thing.authors[a]);" +
+                                        "ret.add (doc.info.thing.authors[a], { field: 'authors' });" +
+                                    "}" +
+                                "if (doc.info.thing.licenses)" +
+                                    "for (var l = 0; l < doc.info.thing.licenses.length; l++)" +
+                                    "{" +
+                                        "ret.add (doc.info.thing.licenses[l]);" +
+                                        "ret.add (doc.info.thing.licenses[l], { field: 'licenses' });" +
+                                    "}" +
+                                "if (doc.info.thing.tags)" +
+                                    "for (var t = 0; t < doc.info.thing.tags.length; t++)" +
+                                    "{" +
+                                        "ret.add (doc.info.thing.tags[t]);" +
+                                        "ret.add (doc.info.thing.tags[t], { field: 'tags', analyzer: 'keyword' });" +
+                                    "}" +
+                                "if (doc.info.thing.description)" +
+                                "{" +
+                                    "ret.add (doc.info.thing.description);" +
+                                    "ret.add (doc.info.thing.description, { field: 'description' });" +
+                                "}" +
+                            "}" +
+                        "}" +
+
+                        "if (doc._attachments)" +
+                            "for (var attachment in doc._attachments)" +
+                            "{" +
+                                "ret.attachment ('default', attachment);" +
+                                "ret.attachment ('attachments', attachment);" +
+                            "}" +
+
+                        "return (ret);" +
+                    "}"
             }
         };
 
@@ -214,10 +309,11 @@ define
          * @param {object} options - handlers (success and error) for response
          * @param {object} views - the views to add to the design document
          * @param {string} validation - the validate_doc_update function
+         * @param {string} search - the full text search update functions
          * @function make_designdoc
          * @memberOf module:database
          */
-        function make_designdoc (dbname, options, views, validation)
+        function make_designdoc (dbname, options, views, validation, search)
         {
             var doc =
             {
@@ -225,9 +321,10 @@ define
             };
             if (views)
                doc.views = views;
-
             if (validation)
                 doc.validate_doc_update = validation;
+            if (search)
+                doc.fulltext = search;
             $.couch.db (dbname).saveDoc
             (
                 doc,
@@ -243,23 +340,24 @@ define
          * @param {object} options - handlers (success and error) for response
          * @param {object} views - the views to add to the design document
          * @param {string} validation - the validate_doc_update function
+         * @param {object} search - the search functions to add to the design document
          * @function make_database
          * @memberOf module:database
          */
-        function make_database (dbname, options, views, validation)
+        function make_database (dbname, options, views, validation, search)
         {
             var original_fn;
 
             options = options || {};
             original_fn = options.success;
-            if (views || validation)
+            if (views || validation || search)
                 options.success = function ()
                 {
                     if (original_fn)
                         options.success = original_fn;
                     else
                         delete options.success;
-                    make_designdoc (dbname, options, views, validation);
+                    make_designdoc (dbname, options, views, validation, search);
                 };
             $.couch.db (dbname).create (options);
         }
@@ -267,8 +365,9 @@ define
         return (
             {
                 standard_views: standard_views,
-                standard_validation: standard_validation,
                 tracker_views: tracker_views,
+                standard_validation: standard_validation,
+                standard_search: standard_search,
                 read_restricted: read_restricted,
                 is_secure: is_secure,
                 make_secure: make_secure,

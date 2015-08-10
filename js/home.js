@@ -491,7 +491,7 @@ define
                 options.publish = push_to_public;
             if (database == configuration.getConfigurationItem ("pending_database"))
                 options.transfer = transfer_to_local;
-            build_content (database, "Things", areas.content.id, options);
+            build_content (database, "things", areas.content.id, options);
         }
 
         /**

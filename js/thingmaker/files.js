@@ -101,7 +101,8 @@ define
             );
             // render the directory input box
             if (data.directory)
-                document.getElementById ("thing_directory").value = data.directory;
+                if (document.getElementById ("thing_directory").value != data.directory)
+                    document.getElementById ("thing_directory").value = data.directory;
             // toggle visibility
             if (data.files && (0 != data.files.length))
                 document.getElementById ("file_table").classList.remove ("hidden");

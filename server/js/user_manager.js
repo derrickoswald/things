@@ -26,7 +26,7 @@ var log = function (mesg)
 var standard_views =
     {
         // view of only "things" (that have an info section) in the database
-        Things:
+        things:
         {
             map: "function(doc) { if (doc.info) emit (doc._id, doc); }"
         }

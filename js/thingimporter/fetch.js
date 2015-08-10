@@ -149,7 +149,7 @@ define
                         xmlhttp.send (JSON.stringify ({ doc_ids: ["ping"] }));
                     }
                 }
-            }
+            };
             xmlhttp.send ();
         }
 

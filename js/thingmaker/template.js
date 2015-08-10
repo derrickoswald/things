@@ -65,7 +65,7 @@ define
 
             // refresh the list of things
             var db = document.getElementById ("source_database_name").getAttribute ("href");
-            fill_database_list (data, db, "Things");
+            fill_database_list (data, db, "things");
 
             // expert mode
             show_hide_expert (data.expert);
@@ -312,7 +312,7 @@ define
             this.databases = dbs;
             document.getElementById ("source_database_name").innerHTML = db;
             document.getElementById ("source_database_name").setAttribute ("href", url);
-            fill_database_list (this, url, "Things");
+            fill_database_list (this, url, "things");
         }
 
         /**
@@ -351,7 +351,7 @@ define
             // show the initial list
             var db = configuration.getConfigurationItem ("public_database");
             this.databases.forEach (function (item) { if (item.current) db = item.database; });
-            fill_database_list (this, db, "Things");
+            fill_database_list (this, db, "things");
 
             // show files and torrent
             update (this);

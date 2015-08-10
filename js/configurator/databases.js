@@ -34,11 +34,12 @@ define
          * @param {string} name - the database name
          * @param {object} views - the views to add to the design document
          * @param {string} validation - the validate_doc_update function
+         * @param {object} search - the full text searches to add to the design document
          * @param {boolean} security - <em>optional</em> security document to attach to the database
          * @function create_database
          * @memberOf module:configurator/databases
          */
-        function create_database (name, views, validation, security)
+        function create_database (name, views, validation, search, security)
         {
             database.make_database
             (
@@ -67,14 +68,15 @@ define
                     }
                 },
                 views,
-                validation
+                validation,
+                search
             );
         }
 
-        function create_local ()        { create_database (configuration.getConfigurationItem ("local_database"),   database.standard_views, database.standard_validation); };
-        function create_secure_local () { create_database (configuration.getConfigurationItem ("local_database"),   database.standard_views, database.standard_validation, database.read_restricted ); };
-        function create_pending ()      { create_database (configuration.getConfigurationItem ("pending_database"), database.standard_views); };
-        function create_public ()       { create_database (configuration.getConfigurationItem ("public_database"),  database.standard_views, database.standard_validation); };
+        function create_local ()        { create_database (configuration.getConfigurationItem ("local_database"),   database.standard_views, database.standard_validation, database.standard_search); };
+        function create_secure_local () { create_database (configuration.getConfigurationItem ("local_database"),   database.standard_views, database.standard_validation, database.standard_search, database.read_restricted ); };
+        function create_pending ()      { create_database (configuration.getConfigurationItem ("pending_database"), database.standard_views, null,                         database.standard_search); };
+        function create_public ()       { create_database (configuration.getConfigurationItem ("public_database"),  database.standard_views, database.standard_validation, database.standard_search); };
         function create_tracker ()      { create_database (configuration.getConfigurationItem ("tracker_database"), database.tracker_views); };
 
         /**

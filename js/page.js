@@ -265,7 +265,7 @@ define
                         var url = document.location.origin + "/";
                         var self = configuration.getConfigurationItem ("instance_uuid");
                         var database = configuration.getConfigurationItem ("tracker_database");
-                        var view = "Trackers";
+                        var view = "trackers";
                         $.couch.db (database).view
                         (
                             database + "/" + view,
@@ -350,7 +350,7 @@ define
             var self = configuration.getConfigurationItem ("instance_uuid");
             var pub = configuration.getConfigurationItem ("public_database");
             var database = configuration.getConfigurationItem ("tracker_database");
-            var view = "Trackers";
+            var view = "trackers";
             $.couch.db (database).view
             (
                 database + "/" + view,

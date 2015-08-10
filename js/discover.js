@@ -708,7 +708,7 @@ define
             // get the replications (or not), databases (or not), and then display the page
             function fn ()
             {
-                display (configuration.getConfigurationItem ("tracker_database"), "Trackers");
+                display (configuration.getConfigurationItem ("tracker_database"), "trackers");
             };
             function gn ()
             {

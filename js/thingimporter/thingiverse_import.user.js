@@ -756,17 +756,14 @@ function display_contents (callback)
                     (
                         function (ponged, fetch)
                         {
-                            if (fetch)
+                            console_log ("Server " + configuration.getServer () + " is online");
+                            console_log ("Database " + configuration.getDatabase () + " is accessible " + (ponged ? "read-write" : "read-only"));
+                            document.getElementById ("import_thing_button").disabled = !ponged;
+                            console.log ("done initializing thingiverse_import");
+                            if (fetch && (Number (fetch) == num))
                             {
-                                console_log ("Server " + configuration.getServer () + " is online");
-                                console_log ("Database " + configuration.getDatabase () + " is accessible " + (ponged ? "read-write" : "read-only"));
-                                document.getElementById ("import_thing_button").disabled = !ponged;
-                                console.log ("done initializing thingiverse_import");
-                                if (fetch && (Number (fetch) == num))
-                                {
-                                    console.log ("attempting to fetch " + num);
-                                    capture ();
-                                }
+                                console.log ("attempting to fetch " + num);
+                                capture ();
                             }
                         }
                     );

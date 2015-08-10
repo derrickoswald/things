@@ -27,7 +27,7 @@ define
         function init (event)
         {
             var db = configuration.getConfigurationItem ("pending_database");
-            var view_name = "Things";
+            var view_name = "things";
 
             home.build_content (db, view_name, "listing", { del: home.delete_document, transfer: home.transfer_to_local });
         }
