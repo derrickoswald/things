@@ -6,7 +6,7 @@
  */
 define
 (
-    ["mustache", "../login", "../configuration", "../page"],
+    ["mustache", "../login", "../configuration", "../page", "../home"],
     /**
      * @summary Search for a Lucene expression in a database.
      * @description Allows the user to enter a Lucene search phrase and see the results.
@@ -14,7 +14,7 @@ define
      * @exports thingsearcher/search
      * @version 1.0
      */
-    function (mustache, login, configuration, page)
+    function (mustache, login, configuration, page, home)
     {
         /**
          * @summary Search.
@@ -44,7 +44,17 @@ define
                     if (200 == xmlhttp.status)
                     {
                         var result = JSON.parse (xmlhttp.responseText);
-                        document.getElementById ("search_results").innerHTML = JSON.stringify (result, null, 4);
+                        result.database = db;
+                        // make it look like a view query
+                        result.rows.forEach
+                        (
+                            function (item)
+                            {
+                                item.value = item.doc;
+                                delete item.doc
+                            }
+                        );
+                        home.draw (result, "search_results", {});
                     }
                     else
                         alert ("search error: " + xmlhttp.status);

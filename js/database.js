@@ -362,6 +362,20 @@ define
             $.couch.db (dbname).create (options);
         }
 
+        /**
+         * @summary Deletes a database.
+         * @description Removes the given database.
+         * @param {string} dbname - the name of the database to create
+         * @param {object} options - handlers (success and error) for response
+         * @function delete_database
+         * @memberOf module:database
+         */
+        function delete_database (dbname, options)
+        {
+            options = options || {};
+            $.couch.db (dbname).drop (options);
+        }
+
         return (
             {
                 standard_views: standard_views,
@@ -374,6 +388,7 @@ define
                 make_insecure: make_insecure,
                 make_designdoc: make_designdoc,
                 make_database: make_database,
+                delete_database: delete_database
             }
         );
     }

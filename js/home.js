@@ -147,29 +147,6 @@ define
             "</ul>";
 
         /**
-         * @summary Read the database:view of count information and render the data into html_id.
-         * @description Uses mustache to display the number of documents in the database of <em>things</em>.
-         * @function count
-         * @memberOf module:home
-         */
-        function count (database, view, html_id)
-        {
-            $.couch.db (database).view (database + "/" + view,
-            {
-                success : function (result)
-                {
-
-                    var message = (0 != result.rows.length) ? "" + result.rows[0].value + " documents" : "no documents";
-                    document.getElementById (html_id).innerHTML = message;
-                },
-                error : function (status)
-                {
-                    console.log (status);
-                }
-            });
-        };
-
-        /**
          * @description Return the short form of an _id.
          * @summary Runs in the context of 'this' being a document in mustache template processing to make
          * a shorter version of the id for small devices.
@@ -253,12 +230,131 @@ define
         }
 
         /**
+         * @summary Show a torrent in a new window.
+         * @description Fetch the torrent file specified by the even parameters and show it.
+         * @param {object} event - the click event on the torrent
+         * @function popup_torrent
+         * @memberOf module:home
+         */
+        function popup_torrent (event)
+        {
+            var name = event.target.getAttribute ("data-name");
+            var url = event.target.getAttribute ("data-attachment");
+            var tor = window.open ("", "TorrentWindow", "menubar=yes, status=yes");
+            if (null != tor)
+                tor.document.getElementsByTagName ("body")[0].innerHTML = "Loading...";
+            view_torrent
+            (
+                {
+                    database: event.target.getAttribute ("data-database"),
+                    _id: event.target.getAttribute ("data-id"),
+                    attachment: url,
+                    name: name,
+                    success: function (arraybuffer)
+                    {
+                        var obj = torrent.ReadTorrent (arraybuffer);
+                        var text = torrent.PrintTorrent (obj);
+                        if (null == tor)
+                            alert ("Popup blocked.\nThe first 1000 characters of the torrent file:\n\n" + text.substring (0, 1000));
+                        else
+                            tor.document.getElementsByTagName ("body")[0].innerHTML =
+                                "<p><a href='" + url + "'>" + name + "</a></p>" +
+                                "<pre style='overflow-y: auto;'>" + text + "</pre>";
+                    }
+                }
+            );
+        }
+
+        /**
+         * @summary Render the result set.
+         * @description
+         * @param {object} result - like from things view but has .database property added (name of the database it came from)
+         * @param {string} html_id - the DOM element to add to (you need to clear this before calling draw)
+         * @param {Object} options options to apply to the view (doc={database: duh, id: something, _rev: whatever}):
+         *   select: function (array_of_doc) function to handle selection of the documents
+         *   edit: function (array_of_doc) function to edit the documents
+         *   del: function (array_of_doc) function to delete the documents
+         *   publish: function (array_of_doc) function to publish the documents
+         *   transfer: function (array_of_doc) function to transfer the documents
+         * @function draw
+         * @memberOf module:home
+         */
+        function draw (result, html_id, options)
+        {
+            options = options || {};
+            result.doc_root = configuration.getDocumentRoot () + "/" + result.database + "/";
+            result.rows.forEach
+            (
+                function (item)
+                {
+                    var thing = result.doc_root + item.id + "/";
+                    item.value.filelist = [];
+                    for (var property in item.value._attachments)
+                        if (item.value._attachments.hasOwnProperty (property))
+                            item.value.filelist.push
+                            (
+                                {
+                                    name: property,
+                                    url: (thing + encodeURIComponent (property)),
+                                    torrent: (".torrent" == property.substring (property.length - ".torrent".length)) // show the eye icon
+                                }
+                            );
+                    item.value.thumbnaillist = [];
+                    if (item.value.info.thing.thumbnailURL)
+                        for (var i = 0; i < item.value.info.thing.thumbnailURL.length; i++)
+                        {
+                            var url = item.value.info.thing.thumbnailURL[i];
+                            // if it doesn't start with data: or http: or https: then prepend the thing url
+                            if (!("data:" == url.substring (0, 5)) && !("http:" == url.substring (0, 5)) && !("https:" == url.substring (0, 6)))
+                                url = thing + url;
+                            item.value.thumbnaillist.push
+                            (
+                                {
+                                    index: i,
+                                    image: url,
+                                    active: (0 == i)
+                                }
+                            );
+                        }
+                }
+            );
+            result.options =
+            {
+                edit: options.edit ? true : false,
+                del: options.del ? true : false,
+                publish: options.publish ? true : false,
+                transfer: options.transfer ? true : false,
+                select: options.select ? true : false,
+            };
+            result.short_id = short_id;
+            result.short_title = short_title;
+            var element = document.getElementById (html_id);
+            element.innerHTML = mustache.render (things_template, result);
+            // activate tooltips
+            $("[data-toggle='tooltip']", element).tooltip ();
+            // attach actions
+            if (options.edit)
+                $ (".edit_id").on ("click", function (event) { options.edit ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
+            if (options.del)
+                $ (".delete_id").on ("click", function (event) { options.del ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
+            if (options.publish)
+                $ (".publish_id").on ("click", function (event) { options.publish ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
+            if (options.transfer)
+                $ (".transfer_id").on ("click", function (event) { options.transfer ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
+            if (options.select)
+                $ (".select_id").on ("click", function (event) { options.select ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
+            var torrent_links = element.getElementsByClassName ("view_torrent");
+            for (var t = 0; t < torrent_links.length; t++)
+                torrent_links[t].addEventListener ("click", popup_torrent);
+        }
+
+        /**
          * @summary Read the database:view and render the data into html_id.
          * @description Uses mustache to display the contents of the database of <em>things</em>.
          * @param {String} database name of the database to display
          * @param {String} view name of the view to fetch
          * @param {String} html_id the id of the element that should be filled with the view
-         * @param {Object} options options to apply to the view (doc={_id: something, _rev: whatever}):
+         * @param {Object} options options to apply to the view (doc={database: duh, id: something, _rev: whatever}):
          *   select: function (array_of_doc) function to handle selection of the documents
          *   edit: function (array_of_doc) function to edit the documents
          *   del: function (array_of_doc) function to delete the documents
@@ -269,107 +365,24 @@ define
          */
         function build_content (database, view, html_id, options)
         {
-            $.couch.db (database).view (database + "/" + view,
-            {
-                success : function (result)
+            $.couch.db (database).view
+            (
+                database + "/" + view,
                 {
-                    options = options || {};
-                    result.doc_root = configuration.getDocumentRoot () + "/" + database + "/";
-                    result.rows.forEach (function (item)
+                    success : function (result)
                     {
-                        var thing = result.doc_root + item.id + "/";
-                        var list = [];
-                        for (var property in item.value._attachments)
-                            if (item.value._attachments.hasOwnProperty (property))
-                            {
-                                var eye = (".torrent" == property.substring (property.length - ".torrent".length));
-                                list.push
-                                (
-                                    {
-                                        name: property,
-                                        url: (thing + encodeURIComponent (property)),
-                                        torrent: eye
-                                    }
-                                );
-                            }
-                        item.value.filelist = list;
-                        list = [];
-                        if (item.value.info.thing.thumbnailURL)
-                            for (var i = 0; i < item.value.info.thing.thumbnailURL.length; i++)
-                            {
-                                var url = item.value.info.thing.thumbnailURL[i];
-                                // if it doesn't start with data: or http: or https: then prepend the thing url
-                                if (!("data:" == url.substring (0, 5)) && !("http:" == url.substring (0, 5)) && !("https:" == url.substring (0, 6)))
-                                    url = thing + url;
-                                list.push ({index: i, image: url, active: (0 == i)});
-                            }
-                        item.value.thumbnaillist = list;
-                    });
-                    result.database = database;
-                    result.options =
+                        result.database = database;
+                        document.getElementById (html_id).innerHTML = "";
+                        draw (result, html_id, options);
+                    },
+                    error : function (status)
                     {
-                        edit: options.edit ? true : false,
-                        del: options.del ? true : false,
-                        publish: options.publish ? true : false,
-                        transfer: options.transfer ? true : false,
-                        select: options.select ? true : false,
-                    };
-                    result.short_id = short_id;
-                    result.short_title = short_title;
-                    var element = document.getElementById (html_id);
-                    element.innerHTML = mustache.render (things_template, result);
-                    // activate tooltips
-                    $("[data-toggle='tooltip']", element).tooltip ();
-                    // attach actions
-                    if (options.edit)
-                        $ (".edit_id").on ("click", function (event) { options.edit ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
-                    if (options.del)
-                        $ (".delete_id").on ("click", function (event) { options.del ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
-                    if (options.publish)
-                        $ (".publish_id").on ("click", function (event) { options.publish ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
-                    if (options.transfer)
-                        $ (".transfer_id").on ("click", function (event) { options.transfer ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
-                    if (options.select)
-                        $ (".select_id").on ("click", function (event) { options.select ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
-                    $ (".view_torrent").on
-                    (
-                        "click",
-                        function (event)
-                        {
-                            var name = event.target.getAttribute ("data-name");
-                            var url = event.target.getAttribute ("data-attachment");
-                            var tor = window.open ("", "TorrentWindow", "menubar=yes, status=yes");
-                            if (null != tor)
-                                tor.document.getElementsByTagName ("body")[0].innerHTML = "Loading...";
-                            view_torrent
-                            (
-                                {
-                                    database: event.target.getAttribute ("data-database"),
-                                    _id: event.target.getAttribute ("data-id"),
-                                    attachment: url,
-                                    name: name,
-                                    success: function (arraybuffer)
-                                    {
-                                        var obj = torrent.ReadTorrent (arraybuffer);
-                                        var text = torrent.PrintTorrent (obj);
-                                        if (null == tor)
-                                            alert ("Popup blocked.\nThe first 1000 characters of the torrent file:\n\n" + text.substring (0, 1000));
-                                        else
-                                            tor.document.getElementsByTagName ("body")[0].innerHTML =
-                                                "<p><a href='" + url + "'>" + name + "</a></p>" +
-                                                "<pre>" + text + "</pre>";
-                                    }
-                                }
-                            );
-                        });
-                },
-                error : function (status)
-                {
-                    if (401 == status)
-                        document.getElementById (html_id).innerHTML = "<h1>Unathorized.</h1><p>Login to view this database.</p>";
-                },
-                reduce : false
-            });
+                        if (401 == status)
+                            document.getElementById (html_id).innerHTML = "<h1>Unathorized.</h1><p>Login to view this database.</p>";
+                    },
+                    reduce : false
+                }
+            );
         };
 
         /**
@@ -507,7 +520,7 @@ define
             draw_content ();
         }
 
-        // register for current database change events
+        // register for change of the current database events
         page.on
         (
             "change",
@@ -549,6 +562,7 @@ define
         return (
             {
                 initialize: initialize,
+                draw: draw,
                 build_content: build_content,
                 delete_document: delete_document,
                 push_to_public: push_to_public,

@@ -391,7 +391,12 @@ define
                                 source: remote_url,
                                 target: id,
                                 create_target: false,
-                                continuous: true
+                                continuous: true,
+                                user_ctx:
+                                {
+                                    name: "admin",
+                                    roles: ["_admin"]
+                                }
                             };
                             $.couch.db ("_replicator").saveDoc
                             (
@@ -415,7 +420,8 @@ define
                         }
                     },
                     database.standard_views,
-                    database.standard_validation
+                    database.standard_validation,
+                    database.standard_search
                 );
             }
             else
@@ -446,8 +452,22 @@ define
                                 {
                                     success: function ()
                                     {
-                                        alert ("untracked " + id);
-                                        initialize ();
+                                        database.delete_database
+                                        (
+                                            id,
+                                            {
+                                                success: function ()
+                                                {
+                                                    alert ("untracked " + id);
+                                                    initialize ();
+                                                },
+                                                error: function ()
+                                                {
+                                                    alert ("failed to untrack " + id);
+                                                    initialize ();
+                                                }
+                                            }
+                                        );
                                     },
                                     error: function (status)
                                     {
