@@ -18,56 +18,70 @@ define
     {
         /**
          * @summary Search.
-         * @description User input and serach results.
-         * @param {object} event - the button push event
+         * @description User input and search results.
+         * @param {object} event - the button click event
          * @return <em>nothing</em>
          * @function search
          * @memberOf module:thingsearcher/search
          */
         function search (event)
         {
-            var db;
-            var url;
-            var xmlhttp;
+            var dblist;
 
             event.preventDefault ();
-            // curl --verbose --data 'q=default:"smart phone"' http://swirl:5984/root/_fti/local/public_things/_design/public_things/search
-            db = configuration.getConfigurationItem ("public_database");
-            url = configuration.getDocumentRoot () + "/_fti/local/" + db + "/_design/" + db + "/search";
-            xmlhttp = new XMLHttpRequest ();
-            xmlhttp.open ("POST", url, true);
-            xmlhttp.setRequestHeader ("Content-Type", "application/x-www-form-urlencoded");
-            xmlhttp.setRequestHeader ("Accept", "application/json");
-            xmlhttp.onreadystatechange = function ()
-            {
-                if (4 == xmlhttp.readyState)
-                    if (200 == xmlhttp.status)
-                    {
-                        var result = JSON.parse (xmlhttp.responseText);
-                        result.database = db;
-                        // make it look like a view query
-                        result.rows.forEach
-                        (
-                            function (item)
-                            {
-                                item.value = item.doc;
-                                delete item.doc
-                            }
-                        );
-                        home.draw (result, "search_results", {});
-                    }
-                    else
-                        alert ("search error: " + xmlhttp.status);
 
-            };
-//            xmlhttp.timeout = 500; // half a second - the number of milliseconds a request can take before automatically being terminated. A value of 0 (which is the default) means there is no timeout.
-//            xmlhttp.ontimeout = function () // whenever the request times out
-//            {
-//                alert ("ready state = " +  xmlhttp.readyState + " status = " + xmlhttp.status);
-//            }
-            xmlhttp.send
+            // clear out the current contents
+            document.getElementById ("search_results").innerHTML = "";
+
+            // process each database
+            dblist = page.getDatabases ();
+            dblist.forEach
             (
-                "include_docs=true&q=" + document.getElementById ("search_query").value
+                function (database) // { database: "public_things", name: "PlayThings", url: "public_things" },
+                {
+                    var db;
+                    var url;
+                    var xmlhttp;
+
+                    db = database.database;
+                    url = configuration.getDocumentRoot () + "/_fti/local/" + db + "/_design/" + db + "/search";
+                    xmlhttp = new XMLHttpRequest ();
+                    xmlhttp.open ("POST", url, true);
+                    xmlhttp.setRequestHeader ("Content-Type", "application/x-www-form-urlencoded");
+                    xmlhttp.setRequestHeader ("Accept", "application/json");
+                    xmlhttp.onreadystatechange = function ()
+                    {
+                        if (4 == xmlhttp.readyState)
+                            if (200 == xmlhttp.status)
+                            {
+                                var result = JSON.parse (xmlhttp.responseText);
+                                result.database = db;
+                                result.name = database.name;
+                                // make it look like a view query
+                                result.rows.forEach
+                                (
+                                    function (item)
+                                    {
+                                        item.value = item.doc;
+                                        delete item.doc
+                                    }
+                                );
+                                home.draw (result, "search_results", {});
+                            }
+                            else
+                                alert ("search error: " + xmlhttp.status);
+
+                    };
+        //            xmlhttp.timeout = 500; // half a second - the number of milliseconds a request can take before automatically being terminated. A value of 0 (which is the default) means there is no timeout.
+        //            xmlhttp.ontimeout = function () // whenever the request times out
+        //            {
+        //                alert ("ready state = " +  xmlhttp.readyState + " status = " + xmlhttp.status);
+        //            }
+                    xmlhttp.send
+                    (
+                        "include_docs=true&q=" + document.getElementById ("search_query").value
+                    );
+                }
             );
         }
 

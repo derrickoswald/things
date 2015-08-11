@@ -16,7 +16,7 @@ define
     function (configuration, page, mustache, thingwizard, login, torrent)
     {
         var things_template =
-            "<div id='count_of_things'>{{#total_rows}}{{total_rows}} documents{{/total_rows}}{{^total_rows}}no documents{{/total_rows}}</div>" +
+            "<div>{{name}} {{#total_rows}}{{total_rows}} documents{{/total_rows}}{{^total_rows}}no documents{{/total_rows}}</div>" +
             "<ul class='thing_property_list'>" +
                 "{{#rows}}" +
                     "{{#value}}" +
@@ -267,8 +267,10 @@ define
 
         /**
          * @summary Render the result set.
-         * @description
-         * @param {object} result - like from things view but has .database property added (name of the database it came from)
+         * @description Show the result set in the given DOM element and attach listeners according to
+         * the options argument.
+         * @param {object} result - like from things view but has .database property added (name of the database it came from),
+         * and .name property added (visible name of the database it came from)
          * @param {string} html_id - the DOM element to add to (you need to clear this before calling draw)
          * @param {Object} options options to apply to the view (doc={database: duh, id: something, _rev: whatever}):
          *   select: function (array_of_doc) function to handle selection of the documents
@@ -328,24 +330,35 @@ define
             };
             result.short_id = short_id;
             result.short_title = short_title;
+
+            // build the contents
+            var wrapper = document.createElement ("div");
+            wrapper.innerHTML = mustache.render (things_template, result);
+
+            // add the results to the given element
             var element = document.getElementById (html_id);
-            element.innerHTML = mustache.render (things_template, result);
-            // activate tooltips
-            $("[data-toggle='tooltip']", element).tooltip ();
-            // attach actions
-            if (options.edit)
-                $ (".edit_id").on ("click", function (event) { options.edit ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
-            if (options.del)
-                $ (".delete_id").on ("click", function (event) { options.del ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
-            if (options.publish)
-                $ (".publish_id").on ("click", function (event) { options.publish ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
-            if (options.transfer)
-                $ (".transfer_id").on ("click", function (event) { options.transfer ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
-            if (options.select)
-                $ (".select_id").on ("click", function (event) { options.select ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
-            var torrent_links = element.getElementsByClassName ("view_torrent");
-            for (var t = 0; t < torrent_links.length; t++)
-                torrent_links[t].addEventListener ("click", popup_torrent);
+            while (0 != wrapper.children.length)
+            {
+                var child = element.appendChild (wrapper.children[0]); // yes, zero
+
+                // activate tooltips
+                $("[data-toggle='tooltip']", child).tooltip ();
+
+                // attach actions
+                if (options.edit)
+                    $ (".edit_id", child).on ("click", function (event) { options.edit ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
+                if (options.del)
+                    $ (".delete_id", child).on ("click", function (event) { options.del ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
+                if (options.publish)
+                    $ (".publish_id", child).on ("click", function (event) { options.publish ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
+                if (options.transfer)
+                    $ (".transfer_id", child).on ("click", function (event) { options.transfer ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
+                if (options.select)
+                    $ (".select_id", child).on ("click", function (event) { options.select ([{ database: event.target.getAttribute ("data-database"), _id: event.target.getAttribute ("data-id"), _rev: event.target.getAttribute ("data-rev")}]); });
+                var torrent_links = child.getElementsByClassName ("view_torrent");
+                for (var t = 0; t < torrent_links.length; t++)
+                    torrent_links[t].addEventListener ("click", popup_torrent);
+            }
         }
 
         /**
@@ -372,6 +385,10 @@ define
                     success : function (result)
                     {
                         result.database = database;
+                        // try and set the database name
+                        var dbs = page.getDatabases ();
+                        if (dbs)
+                            dbs.forEach (function (item) { if (item.database == database) result.name = item.name; });
                         document.getElementById (html_id).innerHTML = "";
                         draw (result, html_id, options);
                     },
