@@ -11,6 +11,7 @@
     "test/*",
     "resources/*",
     "server/*",
+    "docker_run/*",
     "credentials*",
     "setpassword.xml"
 ]

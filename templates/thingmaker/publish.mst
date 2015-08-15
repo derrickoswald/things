@@ -23,9 +23,9 @@ they can torrent it with a suitable BitTorrent client program - independent of t
 <p>The third operation provides the Thing Tracker Network with your IP address and/or domain name,
 as well as providing a list of the things you have in your public database - as a list of SHA-1 keys.
 To actually work, this step relies on this <em>thing tracker</em> being federated with the cloud
-of other thing trackers -- see the <b>Discovery</b> tab.</p>
+of other thing trackers -- see the <b>Discover Things</b> tab.</p>
 <p>In this way, users of the Thing Tracker Network can find out about your tracker, find out about your things, and
-get the technical details necessary to download the files published as your thing.</p>
+get the technical details necessary to download the files published as your <em>thing</em>.</p>
 <p>As part of the publish operation, metadata for the torrent file itself can be added or modified.
 Some fields may have already been filled in by the Thingmaker torrent creator,
 like <em>creation date</em> and <em>created by</em>,

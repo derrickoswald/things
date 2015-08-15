@@ -38,42 +38,51 @@ define (
                     {
                         var credentials;
 
-                        if (data.ok) // logged in
-                            if (data.userCtx.name)
+                        if (data.ok)
+                            if (data.userCtx.name) // logged in
                             {
                                 menu_adjust (data.userCtx.name);
                                 if (options.success)
                                     options.success ({ name: data.userCtx.name, roles: data.userCtx.roles });
                             }
-                            else
+                            else // not logged in...
                             {
-                                // not logged in... see if autologin is enabled
-                                credentials = getCredentials ();
-                                if (credentials && credentials.autologin)
-                                    $.couch.login
-                                    (
-                                        {
-                                            name: credentials.name,
-                                            password: credentials.password,
-                                            success: function (result)
-                                            {
-                                                delete result.ok;
-                                                menu_adjust (result.name);
-                                                if (options.success)
-                                                    options.success (result);
-                                                // reset the application
-                                                reinitialize ("login");
-                                            },
-                                            error: function (status)
-                                            {
-                                                if (options.error)
-                                                    options.error (data.userCtx);
-                                            }
-                                        }
-                                    );
+                                // check for Admin Party
+                                if (-1 != data.userCtx.roles.indexOf ("_admin"))
+                                {
+                                    if (options.success)
+                                        options.success ({ name: data.userCtx.name, roles: data.userCtx.roles });
+                                }
                                 else
-                                    if (options.error)
-                                        options.error (data.userCtx);
+                                {
+                                    // see if autologin is enabled
+                                    credentials = getCredentials ();
+                                    if (credentials && credentials.autologin)
+                                        $.couch.login
+                                        (
+                                            {
+                                                name: credentials.name,
+                                                password: credentials.password,
+                                                success: function (result)
+                                                {
+                                                    delete result.ok;
+                                                    menu_adjust (result.name);
+                                                    if (options.success)
+                                                        options.success (result);
+                                                    // reset the application
+                                                    reinitialize ("login");
+                                                },
+                                                error: function (status)
+                                                {
+                                                    if (options.error)
+                                                        options.error (data.userCtx);
+                                                }
+                                            }
+                                        );
+                                    else
+                                        if (options.error)
+                                            options.error (data.userCtx);
+                                }
                             }
                         else
                             if (options.error)

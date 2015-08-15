@@ -1,18 +1,24 @@
 /**
  * @fileOverview View of the thing tracker network.
+ * This module includes functions for handling the discover page.
+ * The discover page allows the user to federate the <em>things</em>
+ * instance with other <em>things</em> in the cloud -- called tracking --
+ * and also make local copies of other <em>things</em> public databases
+ * -- called joining -- to be able to access and search the files from the other database.
  * @name discover
+ * @module discover
  * @author Derrick Oswald
  * @version 1.0
  */
 define
 (
     ["configuration", "page", "mustache", "deluge", "login", "database"],
-    /**
-     * @summary Functions for handling the discover page.
-     * @name discover
-     * @exports discover
-     * @version 1.0
-     */
+//    /**
+//     * @summary Functions for handling the discover page.
+//     * @name discover
+//     * @exports discover
+//     * @version 1.0
+//     */
     function (configuration, page, mustache, deluge, login, database)
     {
         // logged in state
@@ -34,7 +40,10 @@ define
         var trackers_template =
             "<h2>Discovery</h2>" +
             "<h3>Update the global record for this <em>thing tracker</em></h3>" +
-            "<p>This step creates or updates the record for this local tracker in the <em>thing tracker</em> database." +
+            "<p>The <em>Post my things</em> button creates or updates the record for this local tracker in the " +
+            "<em>thing tracker</em> database. Normally this manual step won't be needed because the " +
+            "operations of publishing a <em>thing</em> will update the thing-tracker database as well as " +
+            "the <em>public things</em> database. But, in case they get out of sync somehow, you can use this button.</p>" +
             "If the <em>thing tracker</em> database is joined to other trackers (see below) then these federated trackers " +
             "will also be updated via CouchDB continuous replication (when they are available online).</p>" +
             "<div class='form-horizontal'>" +
@@ -50,23 +59,30 @@ define
             "</div>" +
             "<h3>Start bi-directional replication with a new <em>thing tracker</em>.</h3>" +
             "<p>This is the step that bootstraps this <em>thing tracker</em> into a cloud of other similar systems.</p>" +
+            "<img class='pull-right' src='img/blackboard.png' width='25%'>" +
+            "<p>The <em>thing tracker</em> cloud can be thought of as an infinite blackboard where you can post " +
+            "a note that tells people how to find your thing tracker.</p>" +
             "<p>By clicking the <em>Join tracker</em> button, a bi-directional non-permanent replication " +
             "is perfomed which does two things:</p>" +
             "<ul>" +
-                "<li>this tracker is added into the <em>thing tracker</em> database of the other system (replication from " +
-                "this system to the specified remote system)</li>" +
+                "<li>this tracker, and other trackers in the local <em>thing tracker</em> database, " +
+                "are added into the <em>thing tracker</em> database of the other system (replication from " +
+                "this system to the specified remote system) - basically writing your name on that blackboard</li>" +
                 "<li>any new or updated trackers in the database of the remote system are added to the local " +
-                "<em>thing tracker</em> database (replication from the specified remote system to this system)</li>" +
+                "<em>thing tracker</em> database (replication from the specified remote system to this system) " +
+                "- basically copying all the names that are currently on that blackboard to your blackboard</li>" +
             "</ul>" +
             "<p>This bi-directional replication is not permanent. In order to create a " +
             "permanent join, wait until the other system is displayed in the list of trackers below (a page " +
             "refresh may be required), and then click the \"Join\" icon next to the tracker URL.</p>" +
             "<p>Due to the nature of CouchDB <em>eventual consistency</em>, joining multiple trackers (permanently) " +
             "will join their respective clouds together -- because it is a single multi-way replicated CouchDb database " +
-            "there really is only one global federated database of <em>thing trackers</em>" +
-            "<p>Each permanently joined <em>thing tracker</em> adds a redundant connection from this tracker to the cloud. " +
-            "Each tracker is stored under the unique uuid of the CouchDb database (this can be seen in the CouchDB <b>Welcome</b> " +
-            "message by navigating to the root of the CouchDB web server).</p>" +
+            "there really is only one global federated database of <em>thing trackers</em>, that is, one big blackboard. " +
+            "Each permanently joined <em>thing tracker</em> adds a redundant connection from this tracker to the cloud.</p>" +
+            "<p>Each tracker is stored in the <em>thing tracker</em> database as a document with the same name as its uuid. " +
+            "This uuid is listed under the Configuration tab under Instance UUID, and for a single user system this corresponds " +
+            "to the CouchDB uuid, which can be seen in the CouchDB <b>Welcome</b> " +
+            "message by navigating to the root of the CouchDB web server.</p>" +
             "<div class='form-horizontal'>" +
                 "<div class='form-group'>" +
                     "<label class='col-sm-3 control-label' for='local_database'>New tracker URL</label>" +
@@ -84,6 +100,17 @@ define
                     "</div>" +
                 "</div>" +
             "</div>" +
+            "<h3>Track Others</h3>" +
+            "<p>This Discovery tab also allows you to set up tracking - making copies of other trackers <em>things</em>.</p>" +
+            "<p>This works by creating a local database that is a continuously replicated copy of the remote database. " +
+            "By having the database locally, you can search, view and access the files of these other things, without " +
+            "an internet connection. &lt;TBD&gt;Using the <b>lightweight</b> tracking option you can replicate the " +
+            "metadata of the other things without replicating the associated files - which conserves disk space.&lt;/TBD&gt;</p>" +
+            "<p>To begin tracking another <em>things</em> system click on the <em>Track</em> button beside its " +
+            "name in the <em>Tracker List</em> below. This will set up a unidirectional CouchDB continuous replication " +
+            "between the remote machine and a local database named 'z'+(uuid of the remote), and show it in the database " +
+            "list (on the right or above) so you can view the contents.</p>" +
+            "<p></p>" +
             "<h2>Tracker List</h2>" +
             "<div id='count_of_trackers'>{{#total_rows}}{{total_rows}} trackers{{/total_rows}}{{^total_rows}}no documents{{/total_rows}}</div>" +
             "<ul class='tracker_list'>" +

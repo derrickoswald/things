@@ -1,14 +1,28 @@
 **Raspberry Pi
 Installation Instructions**
 
-Install Raspbian following instructions on [http://raspbian.org/](http://raspbian.org/). Extend the file system to use the entire SD card and set the locale and time zone, e.g. en\_US.UTF-8 UTF-8, using raspi-config as described at https://www.raspberrypi.org/documentation/configuration/raspi-config.md.
+Overview
+========
+
+These instructions cover installing the things system ([https://github.com/derrickoswald/things](https://github.com/derrickoswald/things)) on a Raspberry Pi single board computer ([https://www.raspberrypi.org/](https://www.raspberrypi.org/)). Although this was tested with the original board, the instructions should be the same for a Raspberry Pi 2 board.
+
+Prerequisites
+=============
+
+Install Raspbian on an Sdcard bigger than 2GB following instructions on [http://raspbian.org/](http://raspbian.org/). Extend the file system to use the entire SD card and set the locale and time zone, e.g. en\_US.UTF-8 UTF-8, using raspi-config as described at [https://www.raspberrypi.org/documentation/configuration/raspi-config.md](https://www.raspberrypi.org/documentation/configuration/raspi-config.md).
 
 CouchDB
 =======
 
-Ssh pi@*\<pi IP address\>*, e.g. ssh pi@192.168.10.142
+### Check Version
 
-password raspberry
+Establish an ssh terminal session to your Pi using the IP address, the default password is raspberry:
+
+ssh pi@*\<pi IP address\>* e.g. ssh pi@192.168.10.142
+
+pi@192.168.10.142's password: raspberry
+
+You should check the version of CouchDB that would be installed by default using apt-get (i.e. using command sudo apt-get install couchdb), but at the time of writing, the version was only 1.2 and the *things* system relies on version 1.6
 
 pi@raspberrypi \~ \$ aptitude show couchdb
 
@@ -18,21 +32,17 @@ State: not installed
 
 Version: ***1.2.0-5***
 
-too old! so don't do this:
+### Custom Install
 
-\# sudo apt-get install couchdb
+Instead follow the instructions that are found at [https://cwiki.apache.org/confluence/display/COUCHDB/Debian](https://cwiki.apache.org/confluence/display/COUCHDB/Debian) for Debian versions \>= 7.0, and CouchDB up to 1.6.x, except for the following changes:
 
-Instead follow the instructions at https://cwiki.apache.org/confluence/display/COUCHDB/Debian for Debian versions \>= 7.0, and CouchDB version 1.6.1, except for these changes:
+(see also [http://jeeonthepi.blogspot.ch/2014/08/installing-couchdb-1.html](http://jeeonthepi.blogspot.ch/2014/08/installing-couchdb-1.html))
 
-(see also http://jeeonthepi.blogspot.ch/2014/08/installing-couchdb-1.html)
+-   install libmozjs185-1.0 instead of sudo apt-get install libmozjs185
 
-sudo apt-get install libmozjs185-1.0
+-   skip the install of build-essentials, it's already the most recent
 
-instead of sudo apt-get install libmozjs185
-
-skip the install of build-essentials, it's already the most recent
-
-change the ownership of /usr/local/etc/couchdb/local.ini to couchdb
+-   change the ownership of /usr/local/etc/couchdb/local.ini to couchdb
 
 sudo apt-get install -y lsb-release
 
@@ -78,9 +88,15 @@ sudo update-rc.d couchdb defaults
 
 sudo chown couchdb:couchdb /usr/local/etc/couchdb/local.ini
 
+### Test
+
+You can test if it works by fetching the root page from the CouchDB server:
+
 curl http://127.0.0.1:5984/
 
-cd ..
+Which should respond with something like:
+
+{"couchdb":"Welcome","uuid":"2bfcb62ac1b0338cac0c993076d240a9","version":"1.6.1","vendor":{"name":"The Apache Software Foundation","version":"1.6.1"}}
 
 Query Servers
 
@@ -623,7 +639,7 @@ and under a custom properties section called user\_manager (this is the way the 
 
 **password = secret**
 
-where the 8000 agrees with the httpod\_global\_handlers setting and the username and password will login administrative access to create new users.
+where the 8000 agrees with the httpd\_global\_handlers setting and the username and password will login administrative access to create new users.
 
 Restart couchdb:
 
