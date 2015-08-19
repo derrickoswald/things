@@ -4,11 +4,10 @@
     <link rel="stylesheet" href="../../css/things.css">
 }}
 <h2>Set up for Importing</h2>
-<p>To import a thing requires enabling CORS support in the local CouchDB,
-with the PUT accept method and Thingiverse as an allowed site prior to
-visiting the page on Thingiverse and performing the actual import.</p>
-<p>Note that the name of the pending database is currently hard coded into
-the generated user script.</p> 
+<p>To import a thing requires enabling <a href="https://en.wikipedia.org/wiki/Cross-origin_resource_sharing" target="_blank">cross-origin
+resource sharing</a> (CORS) support in the local CouchDB,
+with the GET,POST, and PUT accept methods and Thingiverse as an allowed site prior to
+visiting the page on Thingiverse and performing the actual import.</p> 
 <div class="form-horizontal">
     <div class="form-group">
         <label class="col-sm-3 control-label" for="cors_enabled">CORS enabled</label>

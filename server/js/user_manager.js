@@ -9,10 +9,310 @@ var http = require ("http");
 var https = require ("https");
 var sys = require ("sys");
 var url = require ("url");
-var nano = require ("nano")({ url: "http://localhost:5984" });
 
+/**
+ * Command line arguments.
+ * <em>not used yet</em>
+ */
+var args = process.argv.slice (2);
+
+/**
+ * The port that this server should listen on.
+ */
+var listen_port = 8000;
+
+/**
+ * The URL for the CouchDB server.
+ * Value read from user_manager/couchdb configuration.
+ * Theoretically this could be constructed from daemons/httpsd, httpd/bind_address, httpd/port
+ * except the bind address is usually 0.0.0.0 - which means 'any' and hence is not really available.
+ */
+var couchdb = "http://localhost:5984";
+
+/**
+ * The user (administrator) to connect as.
+ * Value read from user_manager/username configuration.
+ */
 var username = "admin";
-var userpass = "secret";
+
+/**
+ * The user's password.
+ * Value read from user_manager/couchdb configuration.
+ * NOTE: This should only be specified when *not* using proxy authentication.
+ * NOTE: Using password authentication is not recommended because the
+ * password is in plain text in the configuration file.
+ */
+var userpass = null;
+
+/**
+ * The user's role (or roles).
+ * Value read from user_manager/userrole configuration.
+ * Only used with proxy authentication.
+ */
+var userrole = "_admin";
+
+/**
+ * The shared secret (32 character hexadecimal value).
+ * Value read from couch_httpd_auth/secret configuration.
+ * Only used with proxy authentication.
+ * @see http://docs.couchdb.org/en/latest/api/server/authn.html#proxy-authentication
+ */
+var secret = null;
+
+/**
+ * Connection to CouchDB using nano.
+ * @see https://github.com/dscape/nano
+ */
+var nano = null;
+
+/// Begin sha1.js
+/// I'm too lazy to figure out what is absolutely required - so this is the whole file.
+
+/*
+ * A JavaScript implementation of the Secure Hash Algorithm, SHA-1, as defined
+ * in FIPS PUB 180-1
+ * Version 2.1a Copyright Paul Johnston 2000 - 2002.
+ * Other contributors: Greg Holt, Andrew Kepert, Ydnar, Lostinet
+ * Distributed under the BSD License
+ * See http://pajhome.org.uk/crypt/md5 for details.
+ */
+
+/*
+ * Configurable variables. You may need to tweak these to be compatible with
+ * the server-side, but the defaults work in most cases.
+ */
+var hexcase = 0;  /* hex output format. 0 - lowercase; 1 - uppercase        */
+var b64pad  = "="; /* base-64 pad character. "=" for strict RFC compliance   */
+var chrsz   = 8;  /* bits per input character. 8 - ASCII; 16 - Unicode      */
+
+/*
+ * These are the functions you'll usually want to call
+ * They take string arguments and return either hex or base-64 encoded strings
+ */
+function hex_sha1(s){return binb2hex(core_sha1(str2binb(s),s.length * chrsz));}
+function b64_sha1(s){return binb2b64(core_sha1(str2binb(s),s.length * chrsz));}
+function str_sha1(s){return binb2str(core_sha1(str2binb(s),s.length * chrsz));}
+function hex_hmac_sha1(key, data){ return binb2hex(core_hmac_sha1(key, data));}
+function b64_hmac_sha1(key, data){ return binb2b64(core_hmac_sha1(key, data));}
+function str_hmac_sha1(key, data){ return binb2str(core_hmac_sha1(key, data));}
+
+/*
+ * Perform a simple self-test to see if the VM is working
+ */
+function sha1_vm_test()
+{
+  return hex_sha1("abc") == "a9993e364706816aba3e25717850c26c9cd0d89d";
+}
+
+/*
+ * Calculate the SHA-1 of an array of big-endian words, and a bit length
+ */
+function core_sha1(x, len)
+{
+  /* append padding */
+  x[len >> 5] |= 0x80 << (24 - len % 32);
+  x[((len + 64 >> 9) << 4) + 15] = len;
+
+  var w = Array(80);
+  var a =  1732584193;
+  var b = -271733879;
+  var c = -1732584194;
+  var d =  271733878;
+  var e = -1009589776;
+
+  for(var i = 0; i < x.length; i += 16)
+  {
+    var olda = a;
+    var oldb = b;
+    var oldc = c;
+    var oldd = d;
+    var olde = e;
+
+    for(var j = 0; j < 80; j++)
+    {
+      if(j < 16) w[j] = x[i + j];
+      else w[j] = rol(w[j-3] ^ w[j-8] ^ w[j-14] ^ w[j-16], 1);
+      var t = safe_add(safe_add(rol(a, 5), sha1_ft(j, b, c, d)),
+                       safe_add(safe_add(e, w[j]), sha1_kt(j)));
+      e = d;
+      d = c;
+      c = rol(b, 30);
+      b = a;
+      a = t;
+    }
+
+    a = safe_add(a, olda);
+    b = safe_add(b, oldb);
+    c = safe_add(c, oldc);
+    d = safe_add(d, oldd);
+    e = safe_add(e, olde);
+  }
+  return Array(a, b, c, d, e);
+
+}
+
+/*
+ * Perform the appropriate triplet combination function for the current
+ * iteration
+ */
+function sha1_ft(t, b, c, d)
+{
+  if(t < 20) return (b & c) | ((~b) & d);
+  if(t < 40) return b ^ c ^ d;
+  if(t < 60) return (b & c) | (b & d) | (c & d);
+  return b ^ c ^ d;
+}
+
+/*
+ * Determine the appropriate additive constant for the current iteration
+ */
+function sha1_kt(t)
+{
+  return (t < 20) ?  1518500249 : (t < 40) ?  1859775393 :
+         (t < 60) ? -1894007588 : -899497514;
+}
+
+/*
+ * Calculate the HMAC-SHA1 of a key and some data
+ */
+function core_hmac_sha1(key, data)
+{
+  var bkey = str2binb(key);
+  if(bkey.length > 16) bkey = core_sha1(bkey, key.length * chrsz);
+
+  var ipad = Array(16), opad = Array(16);
+  for(var i = 0; i < 16; i++)
+  {
+    ipad[i] = bkey[i] ^ 0x36363636;
+    opad[i] = bkey[i] ^ 0x5C5C5C5C;
+  }
+
+  var hash = core_sha1(ipad.concat(str2binb(data)), 512 + data.length * chrsz);
+  return core_sha1(opad.concat(hash), 512 + 160);
+}
+
+/*
+ * Add integers, wrapping at 2^32. This uses 16-bit operations internally
+ * to work around bugs in some JS interpreters.
+ */
+function safe_add(x, y)
+{
+  var lsw = (x & 0xFFFF) + (y & 0xFFFF);
+  var msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+  return (msw << 16) | (lsw & 0xFFFF);
+}
+
+/*
+ * Bitwise rotate a 32-bit number to the left.
+ */
+function rol(num, cnt)
+{
+  return (num << cnt) | (num >>> (32 - cnt));
+}
+
+/*
+ * Convert an 8-bit or 16-bit string to an array of big-endian words
+ * In 8-bit function, characters >255 have their hi-byte silently ignored.
+ */
+function str2binb(str)
+{
+  var bin = Array();
+  var mask = (1 << chrsz) - 1;
+  for(var i = 0; i < str.length * chrsz; i += chrsz)
+    bin[i>>5] |= (str.charCodeAt(i / chrsz) & mask) << (32 - chrsz - i%32);
+  return bin;
+}
+
+/*
+ * Convert an array of big-endian words to a string
+ */
+function binb2str(bin)
+{
+  var str = "";
+  var mask = (1 << chrsz) - 1;
+  for(var i = 0; i < bin.length * 32; i += chrsz)
+    str += String.fromCharCode((bin[i>>5] >>> (32 - chrsz - i%32)) & mask);
+  return str;
+}
+
+/*
+ * Convert an array of big-endian words to a hex string.
+ */
+function binb2hex(binarray)
+{
+  var hex_tab = hexcase ? "0123456789ABCDEF" : "0123456789abcdef";
+  var str = "";
+  for(var i = 0; i < binarray.length * 4; i++)
+  {
+    str += hex_tab.charAt((binarray[i>>2] >> ((3 - i%4)*8+4)) & 0xF) +
+           hex_tab.charAt((binarray[i>>2] >> ((3 - i%4)*8  )) & 0xF);
+  }
+  return str;
+}
+
+/*
+ * Convert an array of big-endian words to a base-64 string
+ */
+function binb2b64(binarray)
+{
+  var tab = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  var str = "";
+  for(var i = 0; i < binarray.length * 4; i += 3)
+  {
+    var triplet = (((binarray[i   >> 2] >> 8 * (3 -  i   %4)) & 0xFF) << 16)
+                | (((binarray[i+1 >> 2] >> 8 * (3 - (i+1)%4)) & 0xFF) << 8 )
+                |  ((binarray[i+2 >> 2] >> 8 * (3 - (i+2)%4)) & 0xFF);
+    for(var j = 0; j < 4; j++)
+    {
+      if(i * 8 + j * 6 > binarray.length * 32) str += b64pad;
+      else str += tab.charAt((triplet >> 6*(3-j)) & 0x3F);
+    }
+  }
+  return str;
+}
+
+/// End sha1.js
+
+/**
+ * Initialize nano.
+ */
+function need_nano (cookie)
+{
+    var options =
+    {
+        url: couchdb,
+        parseUrl: false,
+        log: function (id, message)
+        {
+            var prefix;
+            var suffix;
+
+            if (id)
+                prefix = JSON.stringify (id) + ": ";
+            else
+                prefix = "";
+            if (message)
+                suffix = JSON.stringify (message);
+            else
+                suffix = "";
+            console.log (JSON.stringify (["log", prefix + suffix]));
+        },
+    };
+    if (secret)
+        options.requestDefaults =
+        {
+            headers:
+            {
+                "X-Auth-CouchDB-UserName": username,
+                "X-Auth-CouchDB-Roles": userrole,
+                "X-Auth-CouchDB-Token": binb2hex (core_hmac_sha1 (secret, username))
+            }
+        };
+
+    if (cookie)
+        options.cookie = cookie;
+    return (require ("nano")(options));
+}
 
 /**
  * Send a log message to be included in CouchDB's log files.
@@ -21,6 +321,8 @@ var log = function (mesg)
 {
     console.log (JSON.stringify (["log", mesg]));
 };
+
+/// The following are duplicated from the database.js file:
 
 // expected views in a things database
 var standard_views =
@@ -170,76 +472,8 @@ function eat_cookie (headers)
 {
     // change the cookie if couchdb tells us to
     if (headers && headers["set-cookie"])
-        nano = require ("nano")
-        (
-            {
-                url : "http://localhost:5984",
-                cookie: headers["set-cookie"]
-            }
-        );
+        nano = need_nano (headers["set-cookie"]);
 }
-
-function keybase_test (req, resp)
-{
-    var username = "joe";
-    var keybase = "keybase.io";
-    var keybase_lookup = "/_/api/1.0/user/lookup.json?usernames=" + username;
-    var options =
-    {
-        hostname: keybase,
-        port: 443,
-        path: keybase_lookup,
-        method: "GET"
-    };
-
-    var request = https.request
-    (
-        options,
-        function (response)
-        {
-            response.on
-            (
-                "data",
-                function (data)
-                {
-                    resp.writeHead (200, {"Content-Type": "text/plain"});
-                    resp.end (data + "\n");
-                }
-            );
-        }
-    );
-    request.end ();
-    
-    request.on (
-        "error",
-            function(e)
-            {
-                log (e);
-            }
-        );
-};
-
-function dblist_test (req, resp)
-{
-    nano.db.list
-    (
-        function (err, body, header)
-        {
-            var dbs = "";
-            body.forEach
-            (
-                function (db)
-                {
-                    if ("" != dbs)
-                        dbs += ", ";
-                    dbs += db;
-                }
-            );
-            resp.writeHead (200, {"Content-Type": "text/plain"});
-            resp.end (dbs + "\n");
-        }
-    );
-};
 
 function login (callback)
 {
@@ -618,6 +852,8 @@ function make_user (options)
  */
 var server = http.createServer
 (
+    // only one operation define so far: make a new user
+    // needs two parameters: username and password
     function (req, resp)
     {
         log (req.method + " " + req.url);
@@ -628,19 +864,31 @@ var server = http.createServer
             if (valid_name (query.username))
                 try
                 {
-                    login
-                    (
-                        make_user.bind
+                    // there are two ways to authenticate, 1) username and password or 2) proxy authentication
+                    if (userpass) // userpass specified means 1)
+                        login
                         (
-                            this,
+                            make_user.bind
+                            (
+                                this,
+                                {
+                                    request: req,
+                                    response: resp,
+                                    username: query.username,
+                                    password: query.password
+                                }
+                            )
+                        );
+                    else // no userpass specified means 2)
+                        make_user
+                        (
                             {
                                 request: req,
                                 response: resp,
                                 username: query.username,
                                 password: query.password
                             }
-                        )
-                    );
+                        );
                 }
                 catch (exception)
                 {
@@ -671,12 +919,55 @@ stdin.on
     "data",
     function (data)
     {
-        var section = JSON.parse (data);
-        var port = parseInt (section.port);
-        username = section.username;
-        userpass = section.password;
-        log ("listening on port " + port + " as user " + username + "/" + userpass.replace (/./g, "*") + "\n");
-        server.listen (port);
+        var section;
+        var reconnect = false;
+        var relisten = false;
+
+        section = JSON.parse (data);
+        if (section.listen_port)
+        {
+            listen_port = parseInt (section.listen_port);
+            relisten = true;
+        }
+        if (section.username)
+        {
+            username = section.username;
+            reconnect = true;
+        }
+        if (section.password)
+        {
+            userpass = section.password;
+            reconnect = true;
+        }
+        if (section.userrole)
+        {
+            userrole = section.userrole;
+            reconnect = true;
+        }
+        if (section.couchdb)
+        {
+            couchdb = section.couchdb;
+            reconnect = true;
+        }
+        if (section.secret)
+        {
+            secret = section.secret;
+            reconnect = true;
+        }
+
+        if (reconnect)
+        {
+            nano = need_nano ();
+            log ("using " + couchdb + " as user " + username + (secret ? "[" + userrole + "]" : "") + (userpass ? "/" + userpass.replace (/./g, "*") : "") + "\n");
+        }
+        if (relisten)
+        {
+            server.listen (listen_port);
+            log ("listening on port " + listen_port + "\n");
+        }
+        if ((null == secret) && (null == userpass))
+            // ask for the secret
+            console.log (JSON.stringify (["get", "couch_httpd_auth"]));
     }
 );
 
@@ -691,3 +982,4 @@ stdin.on
 
 // send the request for the port to listen on and credentials
 console.log (JSON.stringify (["get", "user_manager"]));
+

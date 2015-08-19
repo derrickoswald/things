@@ -1,0 +1,79 @@
+{{!
+    <link rel="stylesheet" href="../../css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/static/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../../css/things.css">
+}}
+<h2>Proxies and Daemons</h2>
+<p>The CouchDB database provides the capability to proxy requests through to other web services.
+This capability is used by the <em>things</em> system to access services, both on the host and out on
+the internet, without using <a href="https://en.wikipedia.org/wiki/Cross-origin_resource_sharing" target="_blank">cross-origin
+resource sharing</a> (CORS).
+These proxies need to be set up on new installations, either manually by editing the CouchDB .ini files,
+or by using this page.</p>
+<p>In addition to the above, the <a href="http://docs.couchdb.org/en/1.6.1/externals.html" target="_blank">externals
+capability</a> of CouchDB provides a means to run external programs
+(daemon processes) on the host system, and to restart them should they crash.
+This is also used by the <em>things</em> system, and can be done manually or using this page.</p>
+<p>The keybase proxy is the CouchDB configuration entry that allows the client side program running in
+your browser to access the Keybase site.
+Normally this should be set to <a href="https://keybase.io" target="_blank">https://keybase.io</a>.</p> 
+<p>The deluge proxy is the CouchDB configuration entry that allows the client side program running in
+your browser to access the deluge web server. Normally this is running on the same host system as
+the CouchDB server, so this would be the same URL seen your address bar, but with the deluge port number,
+e.g. <a href="http://localhost:8112" target="_blank">http://localhost:8112</a>.</p>
+<p>The user management proxy is the CouchDB configuration entry that allows the client side program running in
+your browser to access the <a href="https://nodejs.org/" target="_blank">nodejs</a> server that handles requests
+for new users. Unfortunately, at the moment, it needs manual editing in order to get the daemon to work:</p>
+<pre>
+[os_daemons]
+user_manager = /usr/bin/node /home/derrick/code/things/server/js/user_manager.js
+
+[user_manager]
+port = 8000
+username = admin
+password = secret
+</pre>
+<p>The full text search proxy is the CouchDB configuration entry that allows the client side program running in
+your browser to access the <a href="http://lucene.apache.org/" target="_blank">Lucene</a> full text search engine.
+Unfortunately,at the moment, it needs manual editing in order to get the daemon to work:</p>
+<pre>
+[os_daemons]
+couchdb_lucene = /home/derrick/code/couchdb-lucene/target/couchdb-lucene-1.1.0-SNAPSHOT/bin/run
+</pre>
+<div class="form-horizontal">
+    <div class="configuration_group">
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="keybase_proxy">Keybase proxy</label>
+            <div class="col-sm-9">
+                <input id="keybase_proxy" class="form-control" type="text" name="keybase_proxy" value="https://keybase.io">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="deluge_proxy">Deluge proxy</label>
+            <div class="col-sm-9">
+                <input id="deluge_proxy" class="form-control" type="text" name="deluge_proxy" value="http://localhost:8112">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="user_manager_proxy">User Manager proxy</label>
+            <div class="col-sm-9">
+                <input id="user_manager_proxy" class="form-control" type="text" name="user_manager_proxy" value="http://localhost:8000">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="fti_proxy">Full Text Index proxy</label>
+            <div class="col-sm-9">
+                <input id="fti_proxy" class="form-control" type="text" name="fti_proxy" value="http://localhost:5985">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="save_proxies"></label>
+            <div class="col-sm-9">
+                <button id="save_proxies" class="btn btn-primary start">
+                    <i class="glyphicon glyphicon-save"></i>
+                    <span>Save</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

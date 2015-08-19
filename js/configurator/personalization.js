@@ -19,103 +19,6 @@ define
         var userdata = null;
 
         /**
-         * Show or hide admin elements on the page.
-         * @param {boolean} admin - if <code>true</> show the elements with the admin class
-         * @function show_hide_admin
-         * @memberOf module:configurator/personalization
-         */
-        function show_hide_admin (admin)
-        {
-            var elements;
-
-            elements = document.getElementsByClassName ("admin");
-            for (var i = 0; i < elements.length; i++)
-                if (admin)
-                    elements[i].classList.remove ("hidden");
-                else
-                    elements[i].classList.add ("hidden");
-            elements = document.getElementsByClassName ("nonadmin");
-            for (var i = 0; i < elements.length; i++)
-                if (admin)
-                    elements[i].classList.add ("hidden");
-                else
-                    elements[i].classList.remove ("hidden");
-        }
-
-        /**
-         * @summary Get the current proxies from the CouchDB local configuration.
-         * @description Gets all options from the httpd_global_handlers section.
-         * @function get_proxy
-         * @memberOf module:configurator/personalization
-         */
-        function get_proxy ()
-        {
-            var proxy = document.getElementById ("keybase_proxy");
-            proxy.innerHTML = "";
-            $.couch.config
-            (
-                {
-                    success: function (data)
-                    {
-                        if (data.keybase)
-                            proxy.innerHTML = data.keybase;
-                    },
-                },
-                "httpd_global_handlers"
-            );
-        }
-
-        /**
-         * @summary Create a proxy entry.
-         * @description Creates an http proxy entry for the provided name and url.
-         * @param {object} options - functions for success and error callback
-         * @function create_proxy
-         * @memberOf module:configurator/personalization
-         */
-        function create_proxy (name, url, options)
-        {
-            $.couch.config
-            (
-                options,
-                "httpd_global_handlers",
-                name,
-                "{couch_httpd_proxy, handle_proxy_req, <<\"" + url + "\">>}"
-            );
-        }
-
-        /**
-         * @summary Create proxy entry for keybase.io in the CouchDB local configuration.
-         * @description Creates an http proxy entry for keybase.io.
-         * @param {object} options - functions for success and error callback
-         * @function create_keybase_proxy
-         * @memberOf module:configurator/personalization
-         */
-        function create_keybase_proxy (options)
-        {
-            create_proxy ("keybase", "https://keybase.io", options);
-        }
-
-        /**
-         * @summary Create the Keybase.io proxy and restart the CouchDB server.
-         * @description Event handler for the Keybase button.
-         * @param {object} event - the click event, <em>not used</em>
-         * @function keybase_click
-         * @memberOf module:configurator/personalization
-         */
-        function keybase_click (event)
-        {
-            create_keybase_proxy
-            (
-                {
-                    success: function ()
-                    {
-                        restart.inject ();
-                    }
-                }
-            );
-        }
-
-        /**
          * @summary Save button event handler.
          * @description Saves the form values as the current configuration document.
          * If the configuration database doesn't yet exist it is created.
@@ -281,16 +184,10 @@ define
          */
         function init (event)
         {
-            var admin;
-
             document.getElementById ("instance_name").value = configuration.getConfigurationItem ("instance_name");
             document.getElementById ("instance_uuid").value = configuration.getConfigurationItem ("instance_uuid");
             document.getElementById ("keybase_username").value = configuration.getConfigurationItem ("keybase_username");
-            admin = -1 != this.roles.indexOf ("_admin");
-            if (admin)
-                get_proxy ();
             get_user_data ();
-            show_hide_admin (admin);
         }
 
         return (
@@ -305,7 +202,6 @@ define
                             hooks:
                             [
                                 { id: "save_personalization", event: "click", code: save },
-                                { id: "configure_keybase_proxy", event: "click", code: keybase_click },
                                 { id: "generate_uuid", event: "click", code: create_uuid },
                                 { id: "keybase_username", event: "input", code: get_user_data }
                             ],
