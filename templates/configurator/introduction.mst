@@ -9,11 +9,9 @@
 <ul>
     <li>personalization and identification</li>
     <li>database naming, creation and configuration</li>
+    <li>proxy URLs and daemon paths</li>
+    <li>CORS settings necessary for import operations</li>
     <li>BitTorrent client setup</li>
-    <li>CouchDB CORS settings necessary for import operations</li>
-
-    <li>system specific paths and URLs</li>
-    <li>user names and passwords to access various components</li>
 </ul>
 <p>It is highly recommended that you perform all the steps before using the system, even though some steps are not 
 really required until the later stages of your workflow. At a minimum, you must create the databases used by the system.</p>
