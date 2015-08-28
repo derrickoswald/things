@@ -8,10 +8,11 @@
     "TestDriver.conf",
     "run_tests",
     "start_jstestdriver",
-    "test/*",
+    "archive/*",
+    "docker_run/*",
     "resources/*",
     "server/*",
-    "docker_run/*",
+    "test/*",
     "credentials*",
     "setpassword.xml"
 ]
