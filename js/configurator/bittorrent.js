@@ -45,6 +45,7 @@ function (configuration, page, mustache, login, database, restart)
         };
         configuration.setConfigurationItem ("deluge_password", document.getElementById ("deluge_password").value.trim ());
         configuration.setConfigurationItem ("torrent_directory", document.getElementById ("torrent_directory").value.trim ());
+        configuration.setConfigurationItem ("deluge_couch_url", document.getElementById ("deluge_couch_url").value.trim ());
 
         configuration.configuration_exists (
         {
@@ -79,6 +80,7 @@ function (configuration, page, mustache, login, database, restart)
     {
         document.getElementById ("deluge_password").value = configuration.getConfigurationItem ("deluge_password");
         document.getElementById ("torrent_directory").value = configuration.getConfigurationItem ("torrent_directory");
+        document.getElementById ("deluge_couch_url").value = configuration.getConfigurationItem ("deluge_couch_url");
     }
 
     return (

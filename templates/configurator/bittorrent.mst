@@ -15,13 +15,19 @@ usually http://localhost:8112, and checking the <b>Download to:</b> folder under
         <div class="form-group">
             <label class="col-sm-3 control-label" for="deluge_password">Deluge password</label>
             <div class="col-sm-9">
-                <input id="deluge_password" class="form-control" type="text" name="deluge_password" placeholder="deluge">
+                <input id="deluge_password" class="form-control" type="text" name="deluge_password" placeholder="e.g. deluge">
             </div>
         </div>
         <div class="form-group">
             <label class="col-sm-3 control-label" for="torrent_directory">Torrent download directory</label>
             <div class="col-sm-9">
-                <input id="torrent_directory" class="form-control" type="text" name="torrent_directory" placeholder="torrent_directory">
+                <input id="torrent_directory" class="form-control" type="text" name="torrent_directory" placeholder="e.g. /torrents">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="deluge_couch_url">Deluge CouchDb access URL</label>
+            <div class="col-sm-9">
+                <input id="deluge_couch_url" class="form-control" type="text" name="deluge_couch_url" placeholder="e.g. http://127.0.0.1:5984">
             </div>
         </div>
         <div class="form-group">

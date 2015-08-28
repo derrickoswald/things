@@ -66,7 +66,7 @@ needed to keep it running.
         <div class="form-group">
             <label class="col-sm-3 control-label" for="user_manager_daemon">User Manager daemon</label>
             <div class="col-sm-9">
-                <input id="user_manager_daemon" class="form-control" type="text" name="user_manager_daemon" placeholder="e.g. /usr/bin/node /root/user_manager.js">
+                <input id="user_manager_daemon" class="form-control" type="text" name="user_manager_daemon" placeholder="e.g. node user_manager.js">
             </div>
         </div>
         <div class="form-group">
@@ -78,7 +78,7 @@ needed to keep it running.
         <div class="form-group">
             <label class="col-sm-3 control-label" for="fti_daemon">Full Text Index daemon</label>
             <div class="col-sm-9">
-                <input id="fti_daemon" class="form-control" type="text" name="fti_daemon" placeholder="e.g. /root/couchdb-lucene/bin/run">
+                <input id="fti_daemon" class="form-control" type="text" name="fti_daemon" placeholder="e.g. couchdb-lucene/bin/run">
             </div>
         </div>
         <div class="form-group">

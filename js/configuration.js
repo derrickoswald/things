@@ -32,7 +32,8 @@ define
             instance_uuid: "", // retrieved from the Welcome response
             keybase_username: "",
             deluge_password: "deluge",
-            torrent_directory: "/home/derrick/Torrents"
+            torrent_directory: "/torrents",
+            deluge_couch_url: "http://127.0.0.1:5984"
         };
 
         /**

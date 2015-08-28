@@ -55,7 +55,8 @@ RUN apt-get install --assume-yes --force-yes \
     make && \
     curl -sL https://deb.nodesource.com/setup_0.12 | sudo bash -  && \
     apt-get install --assume-yes --force-yes \
-    nodejs
+    nodejs && \
+    npm install nano
     
 # Install Deluge
 # See http://dev.deluge-torrent.org/wiki/UserGuide/Service/Upstart

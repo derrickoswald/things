@@ -127,7 +127,7 @@ define
 
                         // add the webseed
                         doc["url-list"] =
-                            configuration.getDocumentRoot () + "/" +
+                            configuration.getConfigurationItem ("deluge_couch_url") + "/" +
                             configuration.getConfigurationItem ("public_database") +
                             "/" + primary_key + "/";
                         if (!doc.info.files)
@@ -196,7 +196,7 @@ define
                         {
                             alert ("deluge login succeeded");
                             deluge.addTorrent (
-                                configuration.getDocumentRoot () + "/" +
+                                configuration.getConfigurationItem ("deluge_couch_url") + "/" +
                                 configuration.getConfigurationItem ("public_database") +
                                 "/" + primary_key + "/" + primary_key + ".torrent",
                                 {
