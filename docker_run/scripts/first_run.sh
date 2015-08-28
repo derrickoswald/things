@@ -16,6 +16,7 @@ curl --request PUT http://localhost:5984/_config/httpd/secure_rewrites --data '"
 # alter the configuration to allow proxy authentication
 echo "Allowing proxy authentication"
 echo \"`curl --request GET --silent http://localhost:5984/_config/httpd/authentication_handlers | tr --delete '"'`, {couch_httpd_auth, proxy_authentication_handler}\" | curl --request PUT --header 'Content-Type: application/json' --data @- http://localhost:5984/_config/httpd/authentication_handlers
+curl --request GET --silent http://localhost:5984/_uuids | grep --regexp=\\[\".*\"\\] --only-matching | grep --regexp=\".*\" --only-matching | curl --request PUT --header 'Content-Type: application/json' --data @- http://localhost:5984/_config/couch_httpd_auth/secret
 curl --request PUT http://localhost:5984/_config/couch_httpd_auth/proxy_use_secret --data '"true"'
 
 # enable CORS

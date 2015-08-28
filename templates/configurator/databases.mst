@@ -23,7 +23,7 @@ nodes on the <em>Thing Tracker Network</em>.
             <label class="col-sm-3 control-label" for="local_database">Local database</label>
             <div class="col-sm-9">
                 <div class="input-group">
-                    <span id="local_database_security" class="input-group-addon">
+                    <span class="input-group-addon">
                         <input id="local_database_secure" type="checkbox" aria-label="local_secure_label">
                         <span id="local_secure_label">Secure</span>
                     </span>

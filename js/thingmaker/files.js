@@ -108,7 +108,7 @@ define
                 document.getElementById ("file_table").classList.remove ("hidden");
             else
                 document.getElementById ("file_table").classList.add ("hidden");
-            // add Contextual backgrounds to the directory input field if it's required
+            // add contextual backgrounds to the directory input field if it's required
             if (data.files && ((1 < data.files.length) && !data.directory))
                 document.getElementById ("directory_group").classList.add ("has-error");
             else

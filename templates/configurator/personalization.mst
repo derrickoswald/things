@@ -37,7 +37,7 @@ server is used within the system for signing things and making version inheritan
                 </div>
             </div>
         </div>
-        <div class="form-group">
+        <div  id="keybase_group" class="form-group">
             <label class="col-sm-3 control-label" for="keybase_username">Keybase user name</label>
             <div class="col-sm-9">
                 <input id="keybase_username" class="form-control" type="text" name="keybase_username" placeholder="user name from https://keybase.io">

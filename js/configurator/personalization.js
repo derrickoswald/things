@@ -138,6 +138,11 @@ define
                         if (data.them[0].public_keys.primary.bundle)
                             document.getElementById ("public_key").innerHTML = "<pre>" + data.them[0].public_keys.primary.bundle + "</pre>";
             }
+            // add contextual backgrounds to the keybase user name field
+            if ((null == data) && ("" != document.getElementById ("keybase_username").value))
+                document.getElementById ("keybase_group").classList.add ("has-error");
+            else
+                document.getElementById ("keybase_group").classList.remove ("has-error");
         }
 
         /**

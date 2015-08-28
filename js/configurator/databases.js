@@ -179,9 +179,6 @@ define
             configuration.setConfigurationItem ("pending_database", document.getElementById ("pending_database").value.trim ());
             configuration.setConfigurationItem ("public_database", document.getElementById ("public_database").value.trim ());
             configuration.setConfigurationItem ("tracker_database", document.getElementById ("tracker_database").value.trim ());
-            configuration.setConfigurationItem ("torrent_directory", document.getElementById ("torrent_directory").value.trim ());
-            configuration.setConfigurationItem ("instance_name", document.getElementById ("instance_name").value.trim ());
-            configuration.setConfigurationItem ("keybase_username", document.getElementById ("keybase_username").value.trim ());
 
             configuration.configuration_exists
             (
@@ -223,19 +220,8 @@ define
                         success: function (secure)
                         {
                             var element;
-                            element = document.getElementById ("local_database_security");
-                            element.classList.remove ("hidden");
                             element = document.getElementById ("local_database_secure");
-                            element.removeAttribute ("disabled");
                             element.checked = secure;
-                        },
-                        error: function ()
-                        {
-                            var element;
-                            element = document.getElementById ("local_database_security");
-                            element.classList.add ("hidden");
-                            element = document.getElementById ("local_database_secure");
-                            element.setAttribute ("disabled", "disabled");
                         }
                     }
                 );
