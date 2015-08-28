@@ -74,7 +74,10 @@ RUN apt-get install --assume-yes --force-yes \
     cd couchdb-lucene && \
     mvn && \
     cd .. && \
-    unzip couchdb-lucene/target/couchdb-lucene-1.1.0-SNAPSHOT-dist.zip
+    unzip couchdb-lucene/target/couchdb-lucene-1.1.0-SNAPSHOT-dist.zip && \
+    rm -rf /couchdb-lucene && \
+    mv couchdb-lucene-1.1.0-SNAPSHOT couchdb-lucene && \
+    rm -rf /root/.m2
 # add this step if you aren't running CouchDb in Admin Party mode:
 #    sed --expression 's/url = http:\/\/localhost:5984/url = http:\/\/admin:secret@localhost:5984/g' --in-place couchdb-lucene-1.1.0-SNAPSHOT/conf/couchdb-lucene.ini
 
@@ -84,6 +87,7 @@ RUN chmod +x /scripts/*.sh
 RUN touch /.firstrun
 ADD config/deluge /usr/local/etc/deluge/
 ADD logs/deluge /etc/logrotate.d/
+ADD js /js
 
 # Set environment variables
 ENV HOME /root
