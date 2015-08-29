@@ -125,7 +125,7 @@ define
                             "(owner: {{owner}} public_url: {{public_url}} tracker_url: {{tracker_url}} {{id}})" +
                             "<ul class='thinglist'>" +
                                 "{{#things}}" +
-                                "<li>{{.}}</li>" +
+                                "<li><a href='magnet:?xt=urn:btih:{{id}}&dn={{title}}'>{{title}}<img src='img/magnet.svg' style='width:1em; height: 1em; margin-left: 4px;' alt='magnet link'></a></li>" +
                                 "{{/things}}" +
                             "</ul>" +
                         "</div>" +
@@ -333,6 +333,7 @@ define
             $.couch.db (public_name).allDocs
             (
                 {
+                    include_docs: true,
                     success: function (data)
                     {
                         var doc = { _id: uuid };
@@ -348,7 +349,21 @@ define
                             function (item)
                             {
                                 if ("_" != item.id.charAt (0))
-                                    doc.things.push (item.id);
+                                {
+                                    var text = item.id;
+                                    if (item.doc && item.doc.info)
+                                        if (item.doc.info.thing.title)
+                                            text = item.doc.info.thing.title;
+                                        else
+                                            if (item.doc.info.name)
+                                                text = item.doc.info.name;
+                                    var thing =
+                                    {
+                                        id: item.id,
+                                        title: text
+                                    };
+                                    doc.things.push (thing);
+                                }
                             }
                         );
                         // get the current post

@@ -515,6 +515,7 @@ define
 
             areas = page.get_layout ();
             areas.left.innerHTML = ""; // ToDo: find a better way for wizards to clean up after themselves
+            areas.content.innerHTML = "";
             database = page.get_current ();
             options = { del: delete_document };
             if (database == configuration.getConfigurationItem ("local_database"))
