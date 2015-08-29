@@ -7,40 +7,34 @@
         <delete dir="api"/>
     </target>
 
-    <target name="phase1">
+    <target name="md">
+        <mkdir dir="tutorials${file.separator}"/>
+    </target>
+
+    <target name="phase1" depends="md">
         <apply executable="${libreoffice-path}" dir="documentation">
             <arg value="--headless"/>
             <arg value="--convert-to"/>
             <arg value="html"/>
+            <arg value="--outdir"/>
+            <arg value="..${file.separator}tutorials"/>
             <fileset dir="documentation" casesensitive="yes">
                 <include name="**/*.odt"/>
             </fileset>
         </apply>
     </target>
 
-    <target name="md">
-        <mkdir dir="tutorials${file.separator}"/>
-    </target>
-
     <target name="phase2" depends="phase1,md">
-        <apply executable="${pandoc-path}" dir="documentation" verbose="true" relative="true">
+        <apply executable="${pandoc-path}" dir="tutorials" verbose="true" relative="true">
             <arg value="--from=html"/>
             <arg value="--to=markdown_github"/>
             <targetfile prefix="--output="/>
             <srcfile/>
-            <fileset dir="documentation" casesensitive="yes">
+            <fileset dir="tutorials" casesensitive="yes">
                 <include name="**/*.html"/>
             </fileset>
             <mapper type="glob" from="*.html" to="..${file.separator}tutorials${file.separator}*.md"/>
         </apply>
-    </target>
-
-    <target name="phase3" depends="phase2">
-        <delete>
-            <fileset dir="documentation" casesensitive="yes">
-                <include name="**/*.html"/>
-            </fileset>
-        </delete>
     </target>
 
 </project>
