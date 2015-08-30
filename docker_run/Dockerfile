@@ -1,10 +1,11 @@
  
 # Usage:
-#     sudo docker build -t derrickoswald/things .
+#     sudo docker build --tag=derrickoswald/things .
 # interactive:
-#     sudo docker run -ti --rm --name things -p 6984:5984 -p 9112:8112 derrickoswald/things
+#     sudo docker run --tty --interactive --rm --name things --publish=6984:5984 --publish=9112:8112 derrickoswald/things
 # background:
-#     sudo docker run --detach --name things -p 6984:5984 -p 9112:8112 derrickoswald/things /scripts/run.sh
+#     sudo docker run --detach --name things --publish=6984:5984 --publish=9112:8112 derrickoswald/things /scripts/run.sh
+
 
 FROM ubuntu:trusty
 MAINTAINER Derrick Oswald <derrick.oswald@gmail.com>

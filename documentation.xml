@@ -7,11 +7,15 @@
         <delete dir="api"/>
     </target>
 
-    <target name="md">
+    <target name="md_tutorials">
         <mkdir dir="tutorials${file.separator}"/>
     </target>
 
-    <target name="phase1" depends="md">
+    <target name="md_markdown">
+        <mkdir dir="markdown${file.separator}"/>
+    </target>
+
+    <target name="phase1" depends="md_tutorials">
         <apply executable="${libreoffice-path}" dir="documentation">
             <arg value="--headless"/>
             <arg value="--convert-to"/>
@@ -24,7 +28,7 @@
         </apply>
     </target>
 
-    <target name="phase2" depends="phase1,md">
+    <target name="phase2" depends="phase1,md_markdown">
         <apply executable="${pandoc-path}" dir="tutorials" verbose="true" relative="true">
             <arg value="--from=html"/>
             <arg value="--to=markdown_github"/>
@@ -33,7 +37,7 @@
             <fileset dir="tutorials" casesensitive="yes">
                 <include name="**/*.html"/>
             </fileset>
-            <mapper type="glob" from="*.html" to="..${file.separator}tutorials${file.separator}*.md"/>
+            <mapper type="glob" from="*.html" to="..${file.separator}markdown${file.separator}*.md"/>
         </apply>
     </target>
 

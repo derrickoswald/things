@@ -1,10 +1,13 @@
 things
 ======
 
-Thing Tracker Network experimentation.
+Thing Tracker Network implementation.
 
 #Architecture
-An architecture document is available in open document format in the documentation directory, or [online](tutorials/things%20Architecture.md)
+An architecture document is available in open document format in the documentation directory, or [online](markdown/things%20Architecture.md).
+
+#Quick Start
+If you would like to try out a pre-built image, follow the instructions for spinning up a Docker container in the documentation directory, or [online](markdown/Docker%20Installation%20Instructions.md).
 
 #Developer Instructions
 These instructions are fairly rough and haven't been tried out on a virgin machine, but this is pretty much what you need to do to contribute to or develop code for **_things_**.
