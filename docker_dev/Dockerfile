@@ -54,10 +54,10 @@ RUN wget --output-document=/usr/local/bin/erica https://people.apache.org/~dch/d
     fonts-lyx \
     fonts-sil-gentium \
     fonts-texgyre \
-    fonts-tlwg-purisa && \
+    fonts-tlwg-purisa \
+    libswt-gtk-3-java && \
     apt-get remove --assume-yes --force-yes \
-    libreoffice-gnome && \
-    git clone https://github.com/derrickoswald/things.git
+    libreoffice-gnome
 
 COPY org.eclipse.core.variables.prefs /home/developer/workspace/.metadata/.plugins/org.eclipse.core.runtime/.settings/
 
@@ -81,6 +81,6 @@ RUN export uid=1000 gid=1000 && \
 USER developer
 ENV HOME /home/developer
 WORKDIR /home/developer
-RUN sudo apt-get update && \
-    sudo apt-get install libswt-gtk-3-java -y
+RUN git clone https://github.com/derrickoswald/things.git
+
 CMD /usr/local/eclipse/eclipse
