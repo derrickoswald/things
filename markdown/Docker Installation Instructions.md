@@ -156,4 +156,4 @@ and the databases created and maintained by CouchDB are accessible from the host
 
 /var/lib/docker/volumes/ffee...5d84/\_data
 
-See further [Docker](http://docs.docker.com/)[documentation](http://docs.docker.com/) for managing images, containers and volumes.
+See further [Docker documentation](http://docs.docker.com/) for managing images, containers and volumes.

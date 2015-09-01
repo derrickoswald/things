@@ -57,6 +57,7 @@ RUN apt-get install --assume-yes --force-yes \
     curl -sL https://deb.nodesource.com/setup_0.12 | sudo bash -  && \
     apt-get install --assume-yes --force-yes \
     nodejs && \
+    npm config set prefix '/usr/local' && \
     npm install nano
     
 # Install Deluge
@@ -67,10 +68,16 @@ RUN mkdir --parents /usr/local/etc/deluge && \
     deluged \
     deluge-webui
 
+# Download JDK 8u60 from Oracle download site
+ENV JAVA_DOWNLOAD_URL http://download.oracle.com/otn-pub/java/jdk/8u60-b27/jdk-8u60-linux-x64.tar.gz
+ENV JAVA_INSTALLATION_DIR /opt
+RUN curl --location "$JAVA_DOWNLOAD_URL" --header "Cookie: oraclelicense=accept-securebackup-cookie; gpw_e24=Dockerfile" | tar --extract --gzip --directory=$JAVA_INSTALLATION_DIR && \
+    ln --symbolic $JAVA_INSTALLATION_DIR/jdk1.8.0_60/bin/* /usr/local/bin/ 
+ENV JAVA_HOME $JAVA_INSTALLATION_DIR/jdk1.8.0_60
+
 # Install couchdb-lucene
 # See https://github.com/rnewson/couchdb-lucene/
 RUN apt-get install --assume-yes --force-yes \
-    openjdk-7-jdk \
     maven2 && \
     git clone https://github.com/rnewson/couchdb-lucene.git && \
     cd couchdb-lucene && \

@@ -1,0 +1,2 @@
+eclipse.preferences.version=1
+org.eclipse.core.variables.valueVariables=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?>\n<valueVariables>\n<valueVariable description\="" name\="couchdb_admin" readOnly\="false" value\=""/>\n<valueVariable description\="" name\="couchdb_password" readOnly\="false" value\=""/>\n<valueVariable description\="" name\="couchdb_port" readOnly\="false" value\="5984"/>\n<valueVariable description\="" name\="couchdb_host" readOnly\="false" value\="localhost"/>\n</valueVariables>\n
