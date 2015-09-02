@@ -60,6 +60,8 @@ define
         /**
          * @summary Lookup someone in Keybase.
          * @description Tries to get information about the username.
+         * Note: Doesn't play well with Privacy badger in Chromium.
+         * @see https://github.com/keybase/keybase-issues/issues/1758
          * @param {string} username the user to look up in Keybase
          * @param {object} options callback functions for success() and error(),
          * success function passed the lookup results

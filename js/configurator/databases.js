@@ -172,6 +172,8 @@ define
                 // refresh display of databases after the save operation
                 list = null;
                 update_database_state ();
+                // refresh display on the RHS
+                page.fetch_databases ({ success: page.draw });
             };
             cb.error = function (status) { console.log (status); alert ("Configuration save failed."); };
 

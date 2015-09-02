@@ -589,6 +589,7 @@ define
                 get_layout: get_layout,
                 get_current: get_current,
                 set_current: set_current,
+                fetch_databases: fetch_databases,
                 draw: draw
             }
         );
