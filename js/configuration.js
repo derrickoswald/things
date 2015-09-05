@@ -6,6 +6,7 @@
  */
 define
 (
+    ["database"],
     /**
      * @summary Functions for loading and saving configuration data.
      * @description Functions for loading and saving
@@ -15,8 +16,9 @@ define
      * @exports configuration
      * @version 1.0
      */
-    function ()
+    function (database)
     {
+        var version = 1.0;
         var configuration_database = "configuration";
         var primary_key = "default_configuration";
         var instance_uuid = "";
@@ -33,11 +35,26 @@ define
             keybase_username: "",
             deluge_password: "deluge",
             torrent_directory: "/torrents",
-            deluge_couch_url: "http://127.0.0.1:5984"
+            deluge_couch_url: "http://127.0.0.1:5984",
+            upstream_things: "" // retrieved from logs of replication requests, if possible
         };
 
         /**
+         * @summary Return the version of this things code.
+         * @returns the version as a floating point number
+         * @function getVersion
+         * @memberOf module:configuration
+         */
+        function getVersion ()
+        {
+            return (version);
+        }
+
+        /**
          * @summary Return the local CouchDB instance UUID.
+         * @returns the UUID value from the CouchDB .ini file set,
+         * or "" if the asynchronous call hasn't completed,
+         * or the manually set UIUD if this configuration is for a user.
          * @function getInstanceUUID
          * @memberOf module:configuration
          */
@@ -200,26 +217,22 @@ define
          * @function saveConfiguration
          * @memberOf module:configuration
          */
-        function saveConfiguration (options)
+        function save (options)
         {
             var copy;
 
-            // set up response if none provided
-            options = options || {};
-            options.success = options.success || function (data) { console.log (data); };
-            options.error = options.error || function (status) { console.log (status); };
             // get the name of the configuration document
             getConfigurationName
             (
                 {
-                    success: function (config)
+                    success: function (config_name)
                     {
                         // copy the current configuration
                         copy = JSON.parse (JSON.stringify (configuration));
                         // get the current document
                         $.couch.db (getConfigurationDatabase ()).openDoc
                         (
-                            config,
+                            config_name,
                             {
                                 success: function (data)
                                 {
@@ -233,7 +246,7 @@ define
                                 },
                                 error: function (status)
                                 {
-                                    copy._id = config;
+                                    copy._id = config_name;
                                     $.couch.db (getConfigurationDatabase ()).saveDoc
                                     (
                                         copy,
@@ -241,6 +254,47 @@ define
                                     );
                                 }
                             }
+                        );
+                    }
+                }
+            );
+        }
+
+        /**
+         * @summary Saves the configuration to a document.
+         * @description Creates or updates the current configuration document in
+         * the configuration database, after creating the configuration database if needed.
+         * @param {object} options Handlers (success and error) for the response.
+         * @function saveConfiguration
+         * @memberOf module:configuration
+         */
+        function saveConfiguration (options)
+        {
+            // set up response if none provided
+            options = options || {};
+            options.success = options.success || function (data) { console.log (data); };
+            options.error = options.error || function (status) { console.log (status); };
+            configuration_exists
+            (
+                {
+                    success : function ()
+                    {
+                        save (options);
+                    },
+                    error : function ()
+                    {
+                        database.make_database
+                        (
+                            getConfigurationDatabase (),
+                            {
+                                success : function ()
+                                {
+                                    save (options);
+                                },
+                                error : options.error
+                            },
+                            null,
+                            database.standard_validation
                         );
                     }
                 }
@@ -355,7 +409,7 @@ define
 
         /**
          * @summary Get the current CouchDB unique uuid.
-         * @description Calls the options.success function with the value of this instance's UUID value;
+         * @description Calls the options.success function with the value of this instance's UUID value.
          * @function get_uuid
          * @memberOf module:configuration
          */
@@ -373,6 +427,52 @@ define
                     options.success (welcome.uuid);
                 }
             );
+        }
+
+        /**
+         * @summary Try and populate the upstream_things member.
+         * @description Examines the CouchDB logs looking for evidence of a _replication to this
+         * things system from another one, and if found, fill in the upstream_things field
+         * in the configuration with this value.
+         * @function check_for_replication
+         * @memberOf module:configuration
+         */
+        function check_for_replication ()
+        {
+            if ("" == getConfigurationItem ("upstream_things")) // only do this if it isn't set yet
+            {
+                var url;
+                var xmlhttp;
+
+                url = getDocumentRoot () + "/_log?bytes=1000000";
+                xmlhttp = new XMLHttpRequest ();
+                xmlhttp.open ("get", url, true);
+                xmlhttp.setRequestHeader ("Content-Type", "application/json");
+                xmlhttp.onreadystatechange = function ()
+                {
+                    if (4 == xmlhttp.readyState)
+                        if (200 == xmlhttp.status)
+                        {
+                            var regexp;
+                            var match;
+
+                            // [Fri, 04 Sep 2015 05:23:59 GMT] [info] [<0.108.0>] starting new replication `b2682537a732b1b49969082d18b78701+create_target` at <0.158.0> (`http://thingtracker.no-ip.org/root/things/` -> `things`)
+                            regexp = /starting new replication.*\(\`(.*)\` \-\> \`things\`\)/;
+                            match = regexp.exec (xmlhttp.responseText);
+                            if (match)
+                                setConfigurationItem ("upstream_things", match[1]);
+                            else
+                                console.log ("no replication entry found in the logs");
+                        }
+                        else
+                            console.log ("failed to read logs when checking for replication");
+                };
+                xmlhttp.send ();
+            }
+        }
+
+        function dummy () // just here so Eclipse's brain dead outline mode works
+        {
         }
 
         /**
@@ -431,7 +531,11 @@ define
                                 {
                                     loadConfiguration (options);
                                 },
-                                error: options.error
+                                error: function ()
+                                {
+                                    check_for_replication ();
+                                    options.error ();
+                                }
                             }
                         );
                     },
@@ -442,6 +546,7 @@ define
 
         return (
             {
+                getVersion: getVersion,
                 getInstanceUUID: getInstanceUUID,
                 getConfigurationDatabase: getConfigurationDatabase,
                 saveConfiguration: saveConfiguration,

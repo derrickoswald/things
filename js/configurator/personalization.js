@@ -6,7 +6,7 @@
  */
 define
 (
-    ["../configuration", "../page", "../mustache", "../login", "../database", "../restart", "../keybase", "../sha1"],
+    ["../configuration", "../page", "../mustache", "../login", "../restart", "../keybase", "../sha1"],
     /**
      * @summary Instance personalization step.
      * @description Sets the identifying information for this instance of the <em>things</em> system.
@@ -14,14 +14,13 @@ define
      * @exports configurator/personalization
      * @version 1.0
      */
-    function (configuration, page, mustache, login, database, restart, keybase, sha1)
+    function (configuration, page, mustache, login, restart, keybase, sha1)
     {
         var userdata = null;
 
         /**
          * @summary Save button event handler.
          * @description Saves the form values as the current configuration document.
-         * If the configuration database doesn't yet exist it is created.
          * @param {object} event - the save button press event
          * @function save
          * @memberOf module:configurator/personalization
@@ -31,35 +30,14 @@ define
             event.preventDefault ();
             event.stopPropagation ();
 
-            var cb =
-            {
-                success: function (data) { console.log (data); alert ("Configuration saved."); },
-                error: function (status) { console.log (status); alert ("Configuration save failed."); }
-            };
             configuration.setConfigurationItem ("instance_name", document.getElementById ("instance_name").value.trim ());
             configuration.setConfigurationItem ("instance_uuid", document.getElementById ("instance_uuid").value.trim ());
             configuration.setConfigurationItem ("keybase_username", document.getElementById ("keybase_username").value.trim ());
-
-            configuration.configuration_exists
+            configuration.saveConfiguration
             (
                 {
-                    success: function ()
-                    {
-                        configuration.saveConfiguration (cb);
-                    },
-                    error: function ()
-                    {
-                        database.make_database
-                        (
-                            configuration.getConfigurationDatabase (),
-                            {
-                                success: function () { configuration.saveConfiguration (cb); },
-                                error: cb.error
-                            },
-                            null,
-                            database.standard_validation
-                        );
-                    }
+                    success: function (data) { console.log (data); alert ("Configuration saved."); },
+                    error: function (status) { console.log (status); alert ("Configuration save failed."); }
                 }
             );
         }

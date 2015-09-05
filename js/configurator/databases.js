@@ -127,9 +127,49 @@ define
         }
 
         /**
+         * @summary Make the databases that don't already exist.
+         * @description Calls the creation function for each database that isn't listed yet.
+         * @param {object} event - the save button press event
+         * @function make_databases
+         * @memberOf module:configurator/databases
+         */
+        function make_databases ()
+        {
+            var db;
+            var secure;
+
+            db = configuration.getConfigurationItem ("local_database");
+            secure = document.getElementById ("local_database_secure").checked;
+            if ("" != db)
+            {
+                if (-1 == list.indexOf (db))
+                    if (secure)
+                        create_secure_local ();
+                    else
+                        create_local ();
+                else
+                    // no name change, change in security only?
+                    change_security (configuration.getConfigurationItem ("local_database"), secure);
+            }
+            db = configuration.getConfigurationItem ("pending_database");
+            if (("" != db) && (-1 == list.indexOf (db)))
+                create_pending ();
+            db = configuration.getConfigurationItem ("public_database");
+            if (("" != db) && (-1 == list.indexOf (db)))
+                create_public ();
+            db = configuration.getConfigurationItem ("tracker_database");
+            if (("" != db) && (-1 == list.indexOf (db)))
+                create_tracker ();
+            // refresh display of databases after the save operation
+            list = null;
+            update_database_state ();
+            // refresh display on the RHS
+            page.fetch_databases ({ success: page.draw });
+        };
+
+        /**
          * @summary Save button event handler.
-         * @description Saves the form values as the current configuration document.
-         * If the configuration database doesn't yet exist it is created.
+         * @description Saves the form values as the current configuration document and makes the databases.
          * @param {object} event - the save button press event
          * @function save
          * @memberOf module:configurator/databases
@@ -139,69 +179,15 @@ define
             event.preventDefault ();
             event.stopPropagation ();
 
-            var cb = {};
-            cb.success = function (xxx)
-            {
-                var db;
-                var secure;
-
-                alert ("Configuration saved.");
-
-                db = configuration.getConfigurationItem ("local_database");
-                secure = document.getElementById ("local_database_secure").checked;
-                if ("" != db)
-                {
-                    if (-1 == list.indexOf (db))
-                        if (secure)
-                            create_secure_local ();
-                        else
-                            create_local ();
-                    else
-                        // no name change, change in security only?
-                        change_security (configuration.getConfigurationItem ("local_database"), secure);
-                }
-                db = configuration.getConfigurationItem ("pending_database");
-                if (("" != db) && (-1 == list.indexOf (db)))
-                    create_pending ();
-                db = configuration.getConfigurationItem ("public_database");
-                if (("" != db) && (-1 == list.indexOf (db)))
-                    create_public ();
-                db = configuration.getConfigurationItem ("tracker_database");
-                if (("" != db) && (-1 == list.indexOf (db)))
-                    create_tracker ();
-                // refresh display of databases after the save operation
-                list = null;
-                update_database_state ();
-                // refresh display on the RHS
-                page.fetch_databases ({ success: page.draw });
-            };
-            cb.error = function (status) { console.log (status); alert ("Configuration save failed."); };
-
             configuration.setConfigurationItem ("local_database", document.getElementById ("local_database").value.trim ());
             configuration.setConfigurationItem ("pending_database", document.getElementById ("pending_database").value.trim ());
             configuration.setConfigurationItem ("public_database", document.getElementById ("public_database").value.trim ());
             configuration.setConfigurationItem ("tracker_database", document.getElementById ("tracker_database").value.trim ());
-
-            configuration.configuration_exists
+            configuration.saveConfiguration
             (
                 {
-                    success: function ()
-                    {
-                        configuration.saveConfiguration (cb);
-                    },
-                    error: function ()
-                    {
-                        database.make_database
-                        (
-                            configuration.getConfigurationDatabase (),
-                            {
-                                success: function () { configuration.saveConfiguration (cb); },
-                                error: cb.error
-                            },
-                            null,
-                            database.standard_validation
-                        );
-                    }
+                    success: function (data) { alert ("Configuration saved."); make_databases (); },
+                    error: function (status) { console.log (status); alert ("Configuration save failed."); }
                 }
             );
         }

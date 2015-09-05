@@ -36,7 +36,6 @@ define
                     details.removeClass ("hidden");
                 else
                     details.addClass ("hidden");
-
             };
             function problem (status)
             {

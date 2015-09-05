@@ -6,7 +6,7 @@
 	<meta name="generator" content="LibreOffice 4.2.8.2 (Linux)">
 	<meta name="created" content="20150811;193413167766508">
 	<meta name="changedby" content="Derrick Oswald">
-	<meta name="changed" content="20150830;151000318798898">
+	<meta name="changed" content="20150903;184626148167014">
 	<meta name="classification" content="Installation of things system in a Docker container.">
 	<meta name="keywords" content="docker things ubuntu">
 	<style type="text/css">
@@ -35,8 +35,9 @@ way to easily bring up a <i><b>things</b></i> system using Amazon Web
 Services&lt;TBD&gt;, but that use case is described elsewhere&lt;/TBD&gt;.</p>
 <p class="western">The instructions assume that you have installed
 Docker according to the <a href="http://docs.docker.com/linux/started/" target="_blank">instructions
-for Ubuntu linux</a>. <i>&lt;TBD&gt;?? Windows and Mac installation
-</i><i>possible </i><i>??&lt;/TBD&gt; </i>The commands shown as
+for Ubuntu linux</a>. For Windows the sequence of steps is similar:
+commands can be entered at the Kitematic Command Line Interface (CLI)
+prompt.  <i>&lt;TBD&gt;Mac ??&lt;/TBD&gt; </i>The commands shown as
 examples below further assume that you are a <a href="https://docs.docker.com/installation/ubuntulinux/#optional-configurations-for-docker-on-ubuntu" target="_blank">member
 of the docker group</a> which obviates the need to preface each
 command with <b>sudo</b>.</p>
@@ -117,6 +118,10 @@ web interface:</p>
 <p class="code-western"><a href="http://localhost:9112/" target="_blank">http://localhost:9112/</a></p>
 <p class="western">which will show a password dialog (the password is
 the default: <font face="FreeMono, monospace">deluge</font>).</p>
+<p class="western">NOTE: For Windows, you will need to use the IP
+address shown by the <font face="FreeMono, monospace">docker-machine
+ip</font> command, e.g. 192.168.99.100, rather than <font face="FreeMono, monospace">localhost</font>:</p>
+<p class="code-western">docker-machine ip default</p>
 <h1 class="western">Configure things</h1>
 <p class="western">Clicking OK on the <b>configuration not found</b>
 alert box will take you to the Configurator wizard. Here you will

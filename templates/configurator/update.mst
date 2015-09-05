@@ -1,0 +1,35 @@
+{{!
+    <link rel="stylesheet" href="../../css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/static/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../../css/things.css">
+}}
+<h2>Update</h2>
+<p>This page allows an administrator to update the <em>things</em> system.</p>
+<p>Clicking the button replicates the <em>things</em> document
+- which is the CouchDB design document (code) that runs this system -
+from the specified location.</p>
+<p>If the thingtracker database indicates that the upstream system still has the same version,
+an "up to date" message is shown below.</p>
+<div class="form-horizontal">
+    <div class="configuration_group">
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="replication_source">Upstream <em>things</em> System</label>
+            <div class="col-sm-9">
+                <input id="replication_source" class="form-control" type="text" name="replication_source" placeholder="e.g. http://thingtracker.no-ip.org/root/things/">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="replicate"></label>
+            <div class="col-sm-9">
+                <button id="replicate" class="btn btn-primary start">
+                    <i class="glyphicon glyphicon-copy"></i>
+                    <span>Replicate</span>
+                </button>
+                <span id="things_up_to_date" class="hidden">
+                    <span class="glyphicon glyphicon-ok ok" aria-hidden="true"></span>
+                    <span><em>things</em> is up to date</span>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>

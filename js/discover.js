@@ -63,14 +63,15 @@ define
             "<p>The <em>thing tracker</em> cloud can be thought of as an infinite blackboard where you can post " +
             "a note that tells people how to find your thing tracker.</p>" +
             "<p>By clicking the <em>Join tracker</em> button, a bi-directional non-permanent replication " +
-            "is perfomed which does two things:</p>" +
+            "(merging two blackboards into one) is perfomed which does two things:</p>" +
             "<ul>" +
                 "<li>this tracker, and other trackers in the local <em>thing tracker</em> database, " +
                 "are added into the <em>thing tracker</em> database of the other system (replication from " +
-                "this system to the specified remote system) - basically writing your name on that blackboard</li>" +
+                "this system to the specified remote system) - basically writing your name (and others) from " +
+                "your blackboard onto the combined blackboard</li>" +
                 "<li>any new or updated trackers in the database of the remote system are added to the local " +
                 "<em>thing tracker</em> database (replication from the specified remote system to this system) " +
-                "- basically copying all the names that are currently on that blackboard to your blackboard</li>" +
+                "- basically copying all the names you haven't got from that blackboard to the combined blackboard</li>" +
             "</ul>" +
             "<p>This bi-directional replication is not permanent. In order to create a " +
             "permanent join, wait until the other system is displayed in the list of trackers below (a page " +
@@ -337,8 +338,9 @@ define
                     success: function (data)
                     {
                         var doc = { _id: uuid };
-                        doc.version = "1.0";
+                        doc.version = configuration.getVersion ();
                         doc.url = document.location.origin + "/";
+                        doc.things_url = configuration.getDocumentRoot () + "/things/";
                         doc.public_url = configuration.getDocumentRoot () + "/" + public_name + "/";
                         doc.tracker_url = configuration.getDocumentRoot () + "/" + tracker_name + "/";
                         doc.name = configuration.getConfigurationItem ("instance_name");

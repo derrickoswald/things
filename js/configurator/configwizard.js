@@ -6,7 +6,7 @@
  */
 define
 (
-    ["page", "wizard", "configuration", "login", "mustache", "configurator/personalization", "configurator/databases", "configurator/proxies", "configurator/import", "configurator/bittorrent"],
+    ["page", "wizard", "configuration", "login", "mustache", "configurator/personalization", "configurator/databases", "configurator/proxies", "configurator/import", "configurator/bittorrent", "configurator/update"],
     /**
      * @summary Set up the system with one-time or custom configuration.
      * @description Step by step configuration of the system.
@@ -14,7 +14,7 @@ define
      * @exports configurator/configwizard
      * @version 1.0
      */
-    function (page, wiz, configuration, login, mustache, personalization, databases, proxies, imp, bittorrent) // note: "import" is a keyword or something, so "imp" it is
+    function (page, wiz, configuration, login, mustache, personalization, databases, proxies, imp, bittorrent, update) // note: "import" is a keyword or something, so "imp" it is
     {
         // register for login/logout events
         login.on
@@ -68,7 +68,8 @@ define
                                     databases.getStep (),
                                     proxies.getStep (),
                                     imp.getStep (),
-                                    bittorrent.getStep ()
+                                    bittorrent.getStep (),
+                                    update.getStep ()
                             ];
                         wiz.wizard
                         (

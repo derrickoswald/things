@@ -1,6 +1,6 @@
 These instructions demonstrate how to get the [***things***](https://github.com/derrickoswald/things) system running in a [Docker](https://www.docker.com/) container. This is a way to give it a spin without installing the components natively on your host system. It could also be used as a way to easily bring up a ***things*** system using Amazon Web Services\<TBD\>, but that use case is described elsewhere\</TBD\>.
 
-The instructions assume that you have installed Docker according to the [instructions for Ubuntu linux](http://docs.docker.com/linux/started/). *\<TBD\>?? Windows and Mac installation**possible**??\</TBD\>*The commands shown as examples below further assume that you are a [member of the docker group](https://docs.docker.com/installation/ubuntulinux/#optional-configurations-for-docker-on-ubuntu) which obviates the need to preface each command with **sudo**.
+The instructions assume that you have installed Docker according to the [instructions for Ubuntu linux](http://docs.docker.com/linux/started/). For Windows the sequence of steps is similar: commands can be entered at the Kitematic Command Line Interface (CLI) prompt. *\<TBD\>Mac ??\</TBD\>*The commands shown as examples below further assume that you are a [member of the docker group](https://docs.docker.com/installation/ubuntulinux/#optional-configurations-for-docker-on-ubuntu) which obviates the need to preface each command with **sudo**.
 
 Pull or Build the Image
 =======================
@@ -64,6 +64,10 @@ You should also be able to browse to the deluge web interface:
 <http://localhost:9112/>
 
 which will show a password dialog (the password is the default: deluge).
+
+NOTE: For Windows, you will need to use the IP address shown by the docker-machine ip command, e.g. 192.168.99.100, rather than localhost:
+
+docker-machine ip default
 
 Configure things
 ================
