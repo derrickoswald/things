@@ -6,17 +6,18 @@
  */
 define
 (
-    ["../configuration"],
+    ["../configuration", "../restart"],
     /**
      * @summary Perform setup operations for the thingimporter.
      * @name configurator/import
      * @exports configurator/import
      * @version 1.0
      */
-    function (configuration)
+    function (configuration, restart)
     {
         /**
          * Check that CORS is set up accordingly.
+         * @function check_CORS
          * @memberOf module:configurator/import
          */
         function check_CORS ()
@@ -26,16 +27,16 @@ define
                 var cors_enabled = configuration.httpd.enable_cors;
                 var methods = configuration.cors.methods;
                 var origins = configuration.cors.origins;
-                var cors = (cors_enabled && (-1 != methods.indexOf ("PUT")) && (-1 != origins.indexOf ("thingiverse.com")));
-                document.getElementById ("cors_enabled").innerHTML = (cors_enabled ? "true" : "false");
-                document.getElementById ("cors_methods").innerHTML = methods;
-                document.getElementById ("cors_origins").innerHTML = origins;
-                document.getElementById ("configure_cors_button").disabled = cors;
-                var details = $ ("#cors_configured");
+                var cors = (cors_enabled && (-1 != methods.indexOf ("PUT")) &&
+                    ((-1 != origins.indexOf ("thingiverse.com")) || ("*" == origins)));
+                document.getElementById ("cors_enabled").checked = (cors_enabled ? "true" : "false");
+                document.getElementById ("cors_methods").value = methods;
+                document.getElementById ("cors_origins").value = origins;
+                var details = document.getElementById ("cors_configured");
                 if (cors)
-                    details.removeClass ("hidden");
+                    details.classList.remove ("hidden");
                 else
-                    details.addClass ("hidden");
+                    details.classList.add ("hidden");
             };
             function problem (status)
             {
@@ -51,6 +52,7 @@ define
 
         /**
          * Turn on CORS support.
+         * @param {object} options - object with the callback functions (success and error).
          * @memberOf module:configurator/import
          */
         function enable_cors (options)
@@ -60,7 +62,7 @@ define
                 options,
                 "httpd",
                 "enable_cors",
-                "true"
+                String (document.getElementById ("cors_enabled").checked)
             );
         }
 
@@ -75,7 +77,7 @@ define
                 options,
                 "cors",
                 "methods",
-                "GET,POST,PUT"
+                document.getElementById ("cors_methods").value
             );
         }
 
@@ -90,7 +92,7 @@ define
                 options,
                 "cors",
                 "origins",
-                "http://www.thingiverse.com"
+                document.getElementById ("cors_origins").value
             );
         }
 
@@ -114,7 +116,10 @@ define
                                     set_origins
                                     (
                                         {
-                                            success: function () { alert ("Restart CouchDB for changes to take effect"); check_CORS (); },
+                                            success: function ()
+                                            {
+                                                restart.inject ({ success: check_CORS });
+                                            },
                                             error: function () { alert ("Allowing http://www.thingiverse.com as an origin failed"); check_CORS (); }
                                         }
                                     );
@@ -149,11 +154,7 @@ define
                             template: "templates/configurator/import.mst",
                             hooks:
                             [
-                                {
-                                    id: "configure_cors_button",
-                                    event: "click",
-                                    code: setup_cors
-                                }
+                                { id: "configure_cors_button", event: "click", code: setup_cors }
                             ],
                             transitions:
                             {

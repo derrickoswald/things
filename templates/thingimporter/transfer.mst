@@ -3,8 +3,12 @@
     <link rel="stylesheet" href="../../css/static/bootstrap-theme.min.css">
     <link rel="stylesheet" href="../../css/things.css">
 }}
-                <h1>Pending Things</h1>
-                <p>
-                    <strong>List of <em>Things</em> in pending state.</strong>
-                </p>
-                <div id="listing"></div>
+<h1>Pending Things</h1>
+<p>
+    <strong>List of <em>things</em> in pending state.</strong>
+</p>
+<p>
+From the list below, click the blue <em>Transfer</em> arrow to move the things
+into the protected local database. 
+</p>
+<div id="listing"></div>

@@ -54,7 +54,7 @@ define
          * @summary Return the local CouchDB instance UUID.
          * @returns the UUID value from the CouchDB .ini file set,
          * or "" if the asynchronous call hasn't completed,
-         * or the manually set UIUD if this configuration is for a user.
+         * or the manually set UUID if this configuration is for a user.
          * @function getInstanceUUID
          * @memberOf module:configuration
          */

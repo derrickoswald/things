@@ -4,36 +4,96 @@
     <link rel="stylesheet" href="../../css/things.css">
 }}
 <h2>Install User Script</h2>
-<p>Install a user script in your browser (either Chrome or Firefox) that performs the import.</p>
+<p><strong>Install a user script in your browser</strong>.</p>
+<p>In these two steps you download (save it locally) a user script that performs thing importing and
+then manually install it as an extension to your browser (either Chrome or Firefox).</p>
+<p>A user script is a file of <a href="https://en.wikipedia.org/wiki/JavaScript" target="_blank">Javascript</a>
+code that executes in the context of the pages it is allowed to run on -- <em>but provided from local
+storage and not the site you are browsing</em>.
+With this capability it can alter (or even completely replace) the contents of the site as shown by your browser.
+This is a very powerful and hence dangerous capability (think of code running while you are doing online banking).
+This is why these steps must be manually performed - to avoid malware infections.</p>
+<p>The user script, downloaded by pushing the button below, is meant to only run on http://thingiverse.com
+and simply adds a thing upload form to the left hand side of each thing page on Thingiverse.
+&lt;TBD&gt;Scripts for other sites such as Youmagine and GrabCAD are also possible, but haven't been written yet.&lt;/TBD&gt;</p>
+<p>You can examine the code with a text editor between downloading it and installing it in your browser,
+but generally there is a lot of trust involved.</p> 
 <div class="form-horizontal">
-    <div class="form-group">
-        <label class="col-sm-3 control-label" for="download_user_script_button"></label>
-        <div class="col-sm-9">
-            <a id="script_link" href="TBD">
-                <button id="download_user_script_button" class="btn btn-primary start">
-                    <span class="glyphicon glyphicon-download" aria-hidden="true"></span>
-                    <span>Download user script</span>
+    <div class="configuration_group">
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="download_user_script_button"></label>
+            <div class="col-sm-9">
+                <div id="download_userscript_help" class="help-block nonexpert">
+                    <p>Click the <em>Download user script</em> button.
+                    If you are using Firefox, choose to save the file.
+                    For both Firefox and Chrome, select the directory (and optionally the file name)
+                    to save it under.</p>
+                </div>
+                <a id="script_link" href="TBD">
+                    <button id="download_user_script_button" class="btn btn-primary start" aria-describedby="download_userscript_help">
+                        <span class="glyphicon glyphicon-download" aria-hidden="true"></span>
+                        <span>Download user script</span>
+                    </button>
+                </a>
+                <div class="help-block nonexpert">
+                    <p>Next, in both Firefox and Chrome, click the "hamburger icon" in the upper right hand corner
+                    (see image).</p>
+                    <div class="row">
+                        <div class="col-md-3"></div>
+                        <div class="col-md-6">
+                            <img src="img/hamburger_icon.png" alt="hamburger icon" width="100%">
+                        </div>
+                        <div class="col-md-3"></div>
+                    </div>
+                    <p>
+                    Then:
+                    </p>
+                    <ul>
+                        <li>in Firefox, choose Add-ons (the puzzle piece icon) and then User Scripts from the menu on the left</li>
+                        <li>in Chrome, choose Settings and then Extensions from the menu on the left</li>
+                    </ul>
+                    <p>Using your operating systems file browser (e.g. Explorer in Windows, Nautilus in Ubuntu linux, etc.),
+                    navigate to where the user script was downloaded and drag and drop the file into the browser window.</p>
+                    <p>The browser will display a confirmation dialog (see example images):</p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <img src="img/firefox_user_script_install.png" alt="Firefox user script installation confirmation dialog" width="100%">
+                        </div>
+                        <div class="col-md-6">
+                            <img src="img/chrome_user_script_install.png" alt="Chrome user script installation confirmation dialog"  width="100%">
+                        </div>
+                    </div>
+                    <p></p>
+                    <p>
+                    Click <b>Install</b> or <b>Add</b> as appropriate.
+                    The list of installed user scripts/extensions will change to include the <em>ThingiverseImport</em> user script.
+                    </p>
+                 </div>
+            </div>
+        </div>
+    </div>
+    <div class="configuration_group">
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="test_user_script_button"></label>
+            <div class="col-sm-9">
+                <button id="test_user_script_button" class="btn btn-primary start" aria-describedby="test_userscript_help">
+                    <span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span>
+                    <span>Test user script</span>
                 </button>
-            </a>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-3 control-label" for="thingiverse_user_scripted">User script installed</label>
-        <div class="col-sm-9">
-            <span id="thingiverse_user_scripted" class="form-control"></span>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-sm-3 control-label" for="test_user_script_button"></label>
-        <div class="col-sm-9">
-            <button id="test_user_script_button" class="btn btn-primary start">
-                <span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span>
-                <span>Test user script</span>
-            </button>
-            <span id="scripted" class="hidden">
-                <span class="glyphicon glyphicon-ok ok" aria-hidden="true"></span>
-                <span>User script for http://thingiverse.com is installed correctly.</span>
-            </span>
+                <span id="scripted" class="hidden">
+                    <span class="glyphicon glyphicon-ok ok" aria-hidden="true"></span>
+                    <span>User script for http://thingiverse.com is installed correctly.</span>
+                </span>
+                <div id="test_userscript_help" class="help-block nonexpert">
+                    <p>To test the installation, click the <em>Test user script</em> button.
+                    After a short delay (e.g. 30-60 seconds),
+                    a message should be displayed indicating the script is installed correctly.</p>
+                    <p>If no message is displayed, some indication may be visible in the developer console (press F12),
+                    but troubleshooting problems can get quite involved. In general, the observed failure modes
+                    revolve around Ad blockers and other competing scripting like Privacy Badger, so
+                    consider temporarily disabling these.</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>

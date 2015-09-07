@@ -1,0 +1,27 @@
+{{!
+    <link rel="stylesheet" href="../../css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/static/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../../css/things.css">
+}}
+<h1>Thing Importer</h1>
+<p>
+<strong>Import <em>things</em> from Thingiverse.</strong>
+</p>
+Steps involved:
+<ul>
+    <li>Set up the local <em>things</em> system to accept exported things into the <em>pending</em> database.
+    This is an administrator function.
+    Details can be found on the <b>Databases</b> and <b>Importing</b> pages of the Configuration tab.</li>
+    <li>Download the user script that will export things. This script is specific
+    to the site you want to export from (Thingiverse), but as of this time, is independent of
+    the browser you are using. To verify correct installation, you can perform a basic functionality test.</li>
+    <li>Add the script as an extension to your browser.
+    Due to security issues, this cannot be automated and must be done manually.
+    This step differs slightly depending on the browser you are using.</li>
+    <li>If you know the thing number on Thingiverse, enter it in the form, otherwise you can
+    browse to the Thingiverse web site and navigate to the thing desired.</li>
+    <li>Push the <em>Import to things</em> button. This will create the <em>thing</em> in this system.</li>
+    <li>Transfer the imported thing from the <em>pending</em> database where it is
+    imported into the local <em>things</em> database.</li>
+    <li>Publish the thing, if desired. Repeat the last four steps as many times as necessary.</li>
+</ul>

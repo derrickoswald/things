@@ -38,6 +38,8 @@ define
             var xmlhttp;
             var iframe;
 
+            // by default the test is unsuccessful
+            document.getElementById ("scripted").classList.add ("hidden");
             // get the current value of ping time
             ping = configuration.getDocumentRoot () + "/" +
                 configuration.getConfigurationItem ("pending_database") +
@@ -72,7 +74,6 @@ define
                                 {
                                     var next;
                                     var scripted;
-                                    var details;
 
                                     if (4 == xmlhttp.readyState)
                                     {
@@ -82,12 +83,8 @@ define
                                             next = new Date (JSON.parse (xmlhttp.responseText).time);
                                             scripted = (last.valueOf () != next.valueOf ());
                                         }
-                                        document.getElementById ("thingiverse_user_scripted").innerHTML = (scripted ? "true" : "false");
-                                        details = $ ("#scripted");
                                         if (scripted)
-                                            details.removeClass ("hidden");
-                                        else
-                                            details.addClass ("hidden");
+                                            document.getElementById ("scripted").classList.remove ("hidden");
 
                                         // remove the iframe
                                         document.getElementById ("thingiverse_section").removeChild (iframe);
@@ -97,8 +94,6 @@ define
                             };
                         document.getElementById ("thingiverse_section").appendChild (iframe);
                     }
-                    else
-                        document.getElementById ("thingiverse_user_scripted").innerHTML = "false";
             };
             xmlhttp.send ();
         }

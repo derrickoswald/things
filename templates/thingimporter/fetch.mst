@@ -10,7 +10,12 @@
         <div class="form-group">
             <label class="col-sm-3 control-label" for="thing_number">Thing number</label>
             <div class="col-sm-9">
-                <input id="thing_number" class="form-control" type="text" name="thing_number" placeholder="thing number">
+                <input id="thing_number" class="form-control" type="text" name="thing_number" placeholder="thing number" aria-describedby="thing_number_help">
+                <div id="thing_number_help" class="help-block nonexpert">
+                    <p>If you know the thing number from Thingiverse, you can enter it here and click
+                    the <em>Import to things</em> button. If everything goes to plan it will start to import the thing
+                    and after some time display a success message. Alternatively, you can follow the manual steps below.</p>
+                </div>
             </div>
         </div>
         <div class="form-group">
@@ -18,12 +23,48 @@
             <div class="col-sm-9">
                 <button id="import_thing_button" class="btn btn-primary start">
                     <span class="glyphicon glyphicon-save-file" aria-hidden="true"></span>
-                    <span>Fetch things</span>
+                    <span>Import to things</span>
                 </button>
                 <span id="imported" class="hidden">
                     <span class="glyphicon glyphicon-ok ok" aria-hidden="true"></span>
                     <span>Thing <span id="fetched"></span> fetched into pending database.</span>
                 </span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label" for="thing_number"></label>
+            <div class="col-sm-9">
+                <div>
+                    <p><strong>Manual Import a <em>thing</em> from Thingiverse.</strong></p>
+                    <p>With the ThingiverseImport user script installed, browsing to a thing page
+                    (a page that ends in a number, like http://www.thingiverse.com/thing:13772)
+                    should display an import panel on the left hand side (see image):</p>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <img src="img/thingiverseimport_ui.png" alt="thingiverseimport user interface" width="100%">
+                        </div>
+                    </div>
+                    <p>The user interface displays the thing metadata that will be captured,
+                    and the files that will be included.</p>
+                    <p>At the bottom is a message area, that should indicate a successful handshake
+                    with the target database with a message like:</p>
+                    <pre>
+                    Server http://servername:5984 is online
+                    Database pending_things is accessible read-write
+                    </pre>
+                    <p>
+                    To import the thing, press the <em>Import to things</em> button.
+                    </p>
+                    <p>
+                    The only option is a checkbox, that if checked, embeds the thing's images
+                    as <a href="https://en.wikipedia.org/wiki/Data_URI_scheme" target="_blank">data URIs</a>
+                    rather than adding them as attachments. The advantage of data URI's is that
+                    the images are bundled with - and inseparable from - the metadata.
+                    The disadvantage of data URI's is that large images may make the
+                    size of the resulting .torrent file exceed 3MB which will cause failure
+                    in some BitTorrent clients using libtorrent.
+                    </p>
+                </div>
             </div>
         </div>
     </div>

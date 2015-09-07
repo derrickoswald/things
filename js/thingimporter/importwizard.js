@@ -28,7 +28,7 @@ define
         {
             var steps =
             [
-                { id: "overview", title: "Overview", template: "templates/thingimporter/overview.html"},
+                { id: "overview", title: "Overview", template: "templates/thingimporter/overview.mst"},
                 userscript.getStep (),
                 fetch.getStep (),
                 transfer.getStep ()

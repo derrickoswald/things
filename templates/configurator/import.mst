@@ -7,19 +7,41 @@
 <p>To import a thing requires enabling <a href="https://en.wikipedia.org/wiki/Cross-origin_resource_sharing" target="_blank">cross-origin
 resource sharing</a> (CORS) support in the local CouchDB,
 with the GET,POST, and PUT accept methods and Thingiverse as an allowed site prior to
-visiting the page on Thingiverse and performing the actual import.</p> 
+visiting the page on Thingiverse and performing the actual import.</p>
+<p>For further details see the
+<a href="http://docs.couchdb.org/en/1.6.1/config/http.html#cross-origin-resource-sharing" target="_blank">Cross-Origin Resource Sharing</a>
+section of the CouchDB manual.</p>
 <div class="form-horizontal">
     <div class="form-group">
         <label class="col-sm-3 control-label" for="cors_enabled">CORS enabled</label>
-        <div class="col-sm-9"><span id="cors_enabled" class="form-control form-control-result"></span></div>
+        <div class="col-sm-9">
+            <input id="cors_enabled" type="checkbox" value="" aria-describedby="cors_enabled_help">
+            <span id="cors_enabled_help" class="help-block nonexpert">
+                Enables or disables cross-origin resource sharing in CouchDB by setting the <em>enable_cors</em> option
+                in the the httpd section of the configuration .ini file.
+            </span>
+        </div>
     </div>
     <div class="form-group">
         <label class="col-sm-3 control-label" for="cors_methods">CORS methods</label>
-        <div class="col-sm-9"><span id="cors_methods" class="form-control form-control-result"></span></div>
+        <div class="col-sm-9">
+            <input id="cors_methods" class="form-control" type="text" name="cors_methods" placeholder="e.g. GET,POST,PUT" aria-describedby="cors_methods_help">
+            <span id="cors_origins_help" class="help-block nonexpert">
+                List of HTTP methods separated by commas.
+                For proper operation of the import user script, <em>GET,POST,PUT</em> should be specified at a minimum.
+            </span>
+        </div>
     </div>
     <div class="form-group">
         <label class="col-sm-3 control-label" for="cors_origins">CORS origins</label>
-        <div class="col-sm-9"><span id="cors_origins" class="form-control form-control-result"></span></div>
+        <div class="col-sm-9">
+            <input id="cors_origins" class="form-control" type="text" name="cors_origins" placeholder="e.g. *" aria-describedby="cors_origins_help">
+            <span id="cors_origins_help" class="help-block nonexpert">
+                List of origins separated by commas, * means accept all.
+                For example, the suggested value of <em>http://www.thingiverse.com</em>
+                limits the protocol to just http and just the Thingiverse site. 
+            </span>
+        </div>
     </div>
     <div class="form-group">
         <label class="col-sm-3 control-label" for="configure_cors_button">
