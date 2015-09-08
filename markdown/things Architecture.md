@@ -5,12 +5,12 @@ Overview
 
 The *things* application is a client-server system intended to create, manage and share *thing* objects. A *thing* is a torrent file with additional metadata as specified by the [Thing Tracker Network](http://thingtracker.net/) as well as the files that are identified by the torrent's file list and normally distributed using the [BitTorrent protocol](http://bittorrent.org/). A simplified view of a sample *thing* is shown in Figure 1.
 
-![diagram of a simplified thing](../img/thing.svg)
+![diagram of a simplified thing](https://rawgit.com/derrickoswald/things/master/img/thing.svg)
 *Figure 1: Simplified Thing*
 
 The three main components of the system are the [Apache CouchDB™ database](https://couchdb.apache.org/), the [Deluge BitTorrent client](http://deluge-torrent.org/), and an [HTML5](https://en.wikipedia.org/wiki/HTML5) compatible browser such as [Chrome](https://www.google.com/chrome/) or [Firefox](https://www.mozilla.org/en-US/firefox/new/). A simplified view of the application is shown in Figure 2.
 
-![Things System](../img/thing%20system.svg)
+![Things System](https://rawgit.com/derrickoswald/things/master/img/thing%20system.svg)
 *Figure 2: Things Application*
 
 {link to another page with a short description of BitTorrent technology}
@@ -32,7 +32,7 @@ In addition to providing the [RESTful APIs](https://en.wikipedia.org/wiki/Repres
 
 The jQuery and Bootstrap components can be served by the [MaxCDN](https://www.maxcdn.com/) content delivery network to ease bandwidth requirements of hosting systems, but a static version of the start page is currently used to to accomplish basic workflows off-line . A simplified view of the client side application is shown in Figure 3.
 
-![Client Side Components](../img/client%20side.svg)
+![Client Side Components](https://rawgit.com/derrickoswald/things/master/img/client%20side.svg)
 *Figure 3: Client Side Components*
 
 Server
@@ -64,7 +64,7 @@ A torrent synchronizing process is also running on the same node. ***TBD***
 
 Multiple installations of the *thing* application are joined together by replication of the thing\_tracker database using the [replication](http://docs.couchdb.org/en/1.6.1/replication/index.html) functionality of CouchDB, such that eventually all connected systems will have a consistent view of all published *things*. A simplified view of the server side application is shown in Figure 4.
 
-![Server Side Components](../img/server%20side.svg)
+![Server Side Components](https://rawgit.com/derrickoswald/things/master/img/server%20side.svg)
 *Figure 4: Server Side Components*
 
 User Scripts
