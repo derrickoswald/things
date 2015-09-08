@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<title></title>
+	<meta name="generator" content="LibreOffice 4.2.8.2 (Linux)">
+	<meta name="author" content="Derrick Oswald">
+	<meta name="created" content="20150908;181540803461237">
+	<meta name="changedby" content="Derrick Oswald">
+	<meta name="changed" content="20150908;201522073297255">
+	<style type="text/css">
+	<!--
+		@page { margin: 20mm }
+		p { margin-bottom: 2.47mm; line-height: 120% }
+	-->
+	</style>
+</head>
+<body lang="en-US" dir="ltr">
+<p>These instructions are fairly rough and haven't been tried out on
+a virgin machine, but this is pretty much what you need to do to
+contribute to or develop code for <i><b>things</b></i>.</p>
+<ul>
+	<li><p>Install git.</p>
+	<li><p>Install eclipse.</p>
+	<li><p>Add the jsTestDriver plugin described at
+	https://code.google.com/p/js-test-driver/wiki/UsingTheEclipsePlugin.</p>
+	<li><p>Configure browser startup commands in the jsTestDriver
+	properties and open the jsTestDriver window under Javascript.</p>
+	<li><p>Install couchdb from http://couchdb.apache.org/ and test that
+	futon can access it (after a reboot on Windows) at
+	http://localhost:5984/_utils/index.html.</p>
+	<li><p>Install erica as described at
+	https://github.com/benoitc/erica (some issues with current git repo,
+	so use prebuilt binaries). The project assumes linux and that erica
+	can be found in /usr/local/bin/erica.</p>
+	<li><p>Install deluge and deluge-web. Enable the web interface under
+	WebUI in preferences.</p>
+	<li><p>Clone the things project found at
+	https://github.com/derrickoswald/things.</p>
+	<li><p>Import the project into eclipse (don't copy into workspace).</p>
+	<li><p>Windows users will need to change the command line for the
+	&quot;erica push to couchdb&quot; builder to C:\Program Files
+	(x86)\Apache Software Foundation\CouchDB\bin\erica.cmd or wherever
+	you placed it.</p>
+	<li><p>All users will need to modify the build variables for
+	${couchdb_admin}, ${couchdb_password}, ${couchdb_host} and
+	${couchdb_port}.</p>
+	<li><p>Add a &quot;run configuration&quot; for jsTestDriver for the
+	project to run every save.</p>
+	<li><p>Install JsDoc as described at http://usejsdoc.org.</p>
+	<li><p>Build the project. On the first build (and after a clean) it
+	will ask you for the couchdb admin password. This should push it to
+	the local couchdb.</p>
+	<li><p>Browse to
+	http://localhost:5984/things/_design/things/_rewrite/ and it will
+	detect there is no configuration database, and take you to the
+	configurator.</p>
+	<li><p>Follow the steps outlined in the configurator</p>
+</ul>
+<p><br><br>
+</p>
+</body>
+</html>
