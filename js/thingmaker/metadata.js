@@ -327,29 +327,30 @@ define
 
                     thing.thumbnailURL = [];
                     data.images = [];
-                    data.thumbnails.forEach
-                    (
-                        function (thumbnail) // { type: "local or remote or embedded", url: "data:1fcd.. or http://yadda", file: f }
-                        {
-                            var name;
-                            switch (thumbnail.type)
+                    if (data.thumbnails)
+                        data.thumbnails.forEach
+                        (
+                            function (thumbnail) // { type: "local or remote or embedded", url: "data:1fcd.. or http://yadda", file: f }
                             {
-                                case "local":
-                                    name = thumbnail.file.name;
-                                    name = uniquename (name, thing.thumbnailURL);
-                                    data.images.push (thumbnail.file);
-                                    break;
-                                case "remote":
-                                    name = thumbnail.url;
-                                    break;
-                                case "embedded":
-                                default:
-                                    name = thumbnail.url;
-                                    break;
+                                var name;
+                                switch (thumbnail.type)
+                                {
+                                    case "local":
+                                        name = thumbnail.file.name;
+                                        name = uniquename (name, thing.thumbnailURL);
+                                        data.images.push (thumbnail.file);
+                                        break;
+                                    case "remote":
+                                        name = thumbnail.url;
+                                        break;
+                                    case "embedded":
+                                    default:
+                                        name = thumbnail.url;
+                                        break;
+                                }
+                                thing.thumbnailURL.push (name);
                             }
-                            thing.thumbnailURL.push (name);
-                        }
-                    );
+                        );
 
                     tor._id = torrent.InfoHash (tor.info);
 
