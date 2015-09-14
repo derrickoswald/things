@@ -163,7 +163,7 @@ requirejs
         define_eventable ();
 
         // to support vhost systems set CouchDB jQuery module base path if main.js is not coming from
-        // some path with the word _rewite in it, e.g. "/things/_design/things/_rewrite
+        // some path with the word _rewrite in it, e.g. "/things/_design/things/_rewrite
         if (-1 == location.pathname.indexOf ("_rewrite"))
         {
             $.couch.urlPrefix = "/root"; // this name must agree with the name used in rewrites.json
