@@ -1,15 +1,24 @@
  
 # Usage:
 #     docker build --tag=derrickoswald/things_dev .
-# interactive:
 # 
-# original:
-#     docker run -it -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix batmat/docker-eclipse
-#     docker run --tty --interactive --rm --env=DISPLAY --volume=/tmp/.X11-unix:/tmp/.X11-unix derrickoswald/things_dev
-#     docker run --tty --interactive --rm --name things_development --publish=6984:5984 --publish=9112:8112 derrickoswald/things_development
-#     docker run --env=DISPLAY --rm --name things_development --publish=6984:5984 --publish=9112:8112 --volume=$HOME/.Xauthority:/home/developer/.Xauthority:ro --net=host derrickoswald/things_development
-#     docker run --env=DISPLAY --rm --name things_development --publish=6984:5984 --publish=9112:8112 --volume=$HOME/.Xauthority:/home/developer/.Xauthority:ro --net=host --user=eclipse --workdir=/home/eclipse derrickoswald/things_dev /usr/local/eclipse/eclipse
-# docker run --tty --interactive --rm --env=DISPLAY --volume=/tmp/.X11-unix:/tmp/.X11-unix derrickoswald/things_dev /bin/bash
+# NOTE: Because of X-windows dependencies, this development environment only works on linux, not on OSX or Windows.
+#
+# To be useful, this image relies on an external directory of the things project that is cloned from GitHub:
+#     cd /path/to/code
+#     git clone https://github.com/derrickoswald/things.git
+# Run it interactively (with appropriate /path/to/code):
+#     docker run --volume /path/to/code/things:/opt/things --tty --interactive --rm --env=DISPLAY --volume=/tmp/.X11-unix:/tmp/.X11-unix --name things_development --publish=6984:5984 --publish=9112:8112 derrickoswald/things_dev /bin/bash
+# from within the container:
+#     sudo /scripts/run.sh
+#     ^Z
+#     bg
+#     /usr/local/eclipse/eclipse
+# In Eclipse, import the things project manually into the workspace:
+#     File-Import-General-Existing Projects into Workspace-Next-Browse-{navigate to /opt/things}-Finish 
+# "Build Project" should push the code as modified to the CouchDB instance.
+# It asks for the admin password via an ant dialog, enter it (if you set it) and press OK. 
+# Browsing to http://localhost:6984/things/_design/things/_rewrite should show you the code as pushed.
 
 FROM derrickoswald/things
 MAINTAINER Derrick Oswald <derrickoswald@gmail.com>
@@ -60,6 +69,7 @@ RUN wget --output-document=/usr/local/bin/erica https://people.apache.org/~dch/d
     libreoffice-gnome
 
 COPY org.eclipse.core.variables.prefs /home/developer/workspace/.metadata/.plugins/org.eclipse.core.runtime/.settings/
+COPY registrymodifications.xcu /home/developer/.config/libreoffice/4/user/
 
 #RUN adduser --disabled-password --quiet --gecos '' eclipse && \
 #    chown -R root:eclipse $ECLIPSE_INSTALLATION_DIR/eclipse && \
@@ -81,6 +91,5 @@ RUN export uid=1000 gid=1000 && \
 USER developer
 ENV HOME /home/developer
 WORKDIR /home/developer
-RUN git clone https://github.com/derrickoswald/things.git
 
 CMD /usr/local/eclipse/eclipse
