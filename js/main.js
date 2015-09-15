@@ -179,6 +179,7 @@ requirejs
                 success: function (data)
                 {
                     // configuration loaded now, safe to do other require calls that depend on that config
+                    document.getElementById ("main").innerHTML = "<em>Loading...</em>";
                     begin ();
                 },
                 error: function ()

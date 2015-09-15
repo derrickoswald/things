@@ -6,7 +6,7 @@
  */
 define
 (
-    [ "mustache", "../torrent", "../records", "../login", "../chooser" ],
+    [ "mustache", "../torrent", "../records", "../login", "../chooser", "../bencoder", "../configuration", "../page"],
     /**
      * @summary Create a torrent file.
      * @description Combines file, metadata and thing information into the torrent file.
@@ -14,7 +14,7 @@ define
      * @exports thingmaker/metadata
      * @version 1.0
      */
-    function (mustache, torrent, records, login, chooser)
+    function (mustache, torrent, records, login, chooser, bencoder, configuration, page)
     {
         /**
          * One time initialization flag.
@@ -247,10 +247,12 @@ define
             a.setAttribute ("download", "test.torrent");
             a.appendChild (document.createTextNode ("Torrent File"));
 
-            content = document.getElementById ('torrent_link');
+            content = document.getElementById ("torrent_link");
             while (content.firstChild)
                 content.removeChild (content.firstChild);
             content.appendChild (a);
+
+            document.getElementById ("thing_created").classList.remove ("hidden");
         }
 
         /**
@@ -275,6 +277,100 @@ define
         }
 
         /**
+         * @summary Upload to the pending database.
+         * @description Upload a thing to the pending database.
+         * @param {object} data - the thingmaker data object, with torrent, files & images
+         * @param {object} options - callback functions success() and error()
+         * @return <em>nothing</em>
+         * @see http://www.bittorrent.org/beps/bep_0019.html
+         * @function upload
+         * @memberOf module:thingmaker/metadata
+         */
+        function upload (data, options)
+        {
+            var primary_key;
+            var copy;
+            var db;
+            var functions;
+
+            primary_key = data.torrent._id;
+
+            // convert the pieces into an array (CouchDB doesn't store ArrayBuffers)
+            data.torrent.info.pieces = torrent.PiecesToArray (data.torrent.info.pieces);
+
+            if (typeof (data.files) == "undefined")
+                data.files = [];
+            if (typeof (data.images) == "undefined")
+                data.images = [];
+
+            // make the list of files for attachment with names adjusted for directory
+            copy = [];
+            data.files.forEach
+            (
+                function (item)
+                {
+                    if (1 < data.files.length)
+                        copy.push (new File ([item], data.torrent.info.name + "/" + item.name, { type: item.type, lastModifiedDate: item.lastModifiedDate }));
+                    else
+                        copy.push (item);
+                }
+            );
+
+            // add the torrent to the copy of the list of files to be saved
+            copy.push (new File ([bencoder.str2ab (bencoder.encode (data.torrent))], primary_key + ".torrent", { type: "application/octet-stream" }));
+
+            // add images to the list of files to be saved
+            copy = copy.concat (data.images);
+            db = configuration.getConfigurationItem ("pending_database");
+            functions =
+            {
+                success: function (result)
+                {
+                    // remove added _rev field for now
+                    delete data.torrent._rev;
+                    // put the pieces back
+                    data.torrent.info.pieces = torrent.ArrayToPieces (data.torrent.info.pieces);
+                    if (options.success)
+                        options.success (result);
+                },
+                error: function (result)
+                {
+                    // put the pieces back
+                    data.torrent.info.pieces = torrent.ArrayToPieces (data.torrent.info.pieces);
+                    if (options.error)
+                        options.error (result);
+                }
+            };
+            $.couch.db (db).openDoc
+            (
+                primary_key,
+                {
+                    success: function (old)
+                    {
+                        data.torrent._rev = old._rev;
+                        records.saveDocWithAttachments
+                        (
+                            db,
+                            data.torrent,
+                            functions,
+                            copy
+                        );
+                    },
+                    error: function (status)
+                    {
+                        records.saveDocWithAttachments
+                        (
+                            db,
+                            data.torrent,
+                            functions,
+                            copy
+                        );
+                    }
+                }
+            );
+        }
+
+        /**
          * @summary Event handler for the make button.
          * @description Creates the in memory torrent object.
          * @param {object} event - the button pressed event
@@ -288,7 +384,7 @@ define
             (
                 data.files,
                 data.piece_length,
-                data.directory,
+                data.directory ? data.directory : null,
                 function (tor)
                 {
                     var thing;
@@ -353,12 +449,23 @@ define
                         );
 
                     tor._id = torrent.InfoHash (tor.info);
-
                     data.torrent = tor;
-
-                    form_initialized_with = null;
-
-                    showlink (torrent.Encode (tor));
+                    upload
+                    (
+                        data,
+                        {
+                            success: function ()
+                            {
+                                form_initialized_with = null;
+                                showlink (torrent.Encode (tor));
+                                page.draw (); // show a badge for the new item
+                            },
+                            error: function (result)
+                            {
+                                alert ("thing creation failed: " + JSON.stringify (result, null, 4));
+                            }
+                        }
+                    );
                 }
             );
         }
@@ -401,6 +508,7 @@ define
             var tags_help;
             var thing;
 
+            document.getElementById ("thing_created").classList.add ("hidden");
             if ((null === form_initialized_with) || (this.torrent && (form_initialized_with !== this.torrent._id)))
             {
                 authors_help =

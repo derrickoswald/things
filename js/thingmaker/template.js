@@ -56,7 +56,7 @@ define
         function update (data)
         {
             // torrent metadata
-            if (data.torrent)
+            if (data && data.torrent && data.torrent.info)
             {
                 var content = document.getElementById ("torrent_content");
                 content.innerHTML = torrent.PrintTorrent (data.torrent);

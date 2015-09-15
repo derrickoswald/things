@@ -94,8 +94,12 @@
                 <i class="glyphicon glyphicon-cog" aria-hidden="true"></i>
                 <span>Make</span>
             </button>
+            <span id="thing_created" class="hidden">
+                <span class="glyphicon glyphicon-ok ok" aria-hidden="true"></span>
+                <span><em>thing</em> created successfully: </span>
+                <span id="torrent_link"></span>
+            </span>
         </div>
     </div>
 </div>
 
-<div id="torrent_link"></div>

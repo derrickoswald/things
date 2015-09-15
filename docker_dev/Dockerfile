@@ -64,12 +64,14 @@ RUN wget --output-document=/usr/local/bin/erica https://people.apache.org/~dch/d
     fonts-sil-gentium \
     fonts-texgyre \
     fonts-tlwg-purisa \
-    libswt-gtk-3-java && \
+    libswt-gtk-3-java \
+    pandoc && \
     apt-get remove --assume-yes --force-yes \
     libreoffice-gnome
 
 COPY org.eclipse.core.variables.prefs /home/developer/workspace/.metadata/.plugins/org.eclipse.core.runtime/.settings/
 COPY registrymodifications.xcu /home/developer/.config/libreoffice/4/user/
+ENV NO_AT_BRIDGE 1
 
 #RUN adduser --disabled-password --quiet --gecos '' eclipse && \
 #    chown -R root:eclipse $ECLIPSE_INSTALLATION_DIR/eclipse && \

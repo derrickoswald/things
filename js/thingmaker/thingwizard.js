@@ -6,13 +6,13 @@
  */
 define
 (
-    ["configuration", "page", "wizard", "thingmaker/overview", "thingmaker/template", "thingmaker/files", "thingmaker/metadata", "thingmaker/sign", "thingmaker/upload", "thingmaker/publish"],
+    ["page", "wizard", "thingmaker/overview", "thingmaker/template", "thingmaker/files", "thingmaker/metadata", "thingmaker/sign", "thingmaker/publish"],
     /**
      * @summary Create a new thing by specifying the files, template and metadata.
      * @exports thingmaker/thingwizard
      * @version 1.0
      */
-    function (configuration, page, wiz, overview, template, files, metadata, sign, upload, publish)
+    function (page, wiz, overview, template, files, metadata, sign, publish)
     {
         /**
          * @summary Wizard data.
@@ -21,7 +21,6 @@ define
          */
         var data =
         {
-            database: configuration.getConfigurationItem ("local_database"),
             piece_length: 16384,
             // files
             // directory
@@ -41,7 +40,6 @@ define
                 files.getStep (),
                 metadata.getStep (),
                 sign.getStep (),
-                upload.getStep (),
                 publish.getStep (),
             ];
 

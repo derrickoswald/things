@@ -143,9 +143,8 @@ define
                         doc.info.pieces = pieces;
 
                         // save to public database
-                        records.saveDocWithAttachments.call
+                        records.saveDocWithAttachments
                         (
-                            records,
                             configuration.getConfigurationItem ("public_database"),
                             doc,
                             {

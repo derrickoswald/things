@@ -453,7 +453,7 @@ define
             if (docs.length != 1)
                 alert ("sorry, currently only one document can be published at a time");
             thingwizard.data.torrent = { _id: docs[0]._id }; // fake torrent... publish only needs the id
-            thingwizard.initialize (6); // publish is the seventh step
+            thingwizard.initialize (5); // publish is the sixth step
         }
 
         /**
@@ -484,6 +484,7 @@ define
                                 {
                                     console.log (data);
                                     delete_document (docs);
+                                    page.draw ();
                                 },
                                 error: function (status) { console.log (status); }
                             },
