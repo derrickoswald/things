@@ -307,6 +307,13 @@ define
             );
         }
 
+        /**
+         * @summary Display unpublished documents
+         * @description Get a list of document key for unpublished documents and pass
+         * it to the home screen document renderer.
+         * @function all_unpublished
+         * @memberOf module:thingmaker/publish
+         */
         function all_unpublished ()
         {
             var pub;

@@ -570,12 +570,12 @@ function make_configuration (options)
                 eat_cookie (headers);
                 body._id = options.configuration;
                 delete body._rev;
-                delete body.keybase_username;
                 body.instance_name = options.username;
+                body.keybase_username = null;
                 body.local_database = options.local_database;
                 body.public_database = options.public_database;
                 body.pending_database = options.pending_database;
-//                body.torrent_directory = ??
+                body.torrent_directory = null;
                 options.document = body;
                 get_uuid (options);
             }

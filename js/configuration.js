@@ -327,22 +327,22 @@ define
                             {
                                 success: function (data)
                                 {
-                                    var copy;
+                                    var custom;
 
                                     // copy the configuration
-                                    copy = JSON.parse (JSON.stringify (data));
+                                    custom = JSON.parse (JSON.stringify (data));
                                     // remove the couchdb specific properties
-                                    delete copy._id;
-                                    delete copy._rev;
+                                    delete custom._id;
+                                    delete custom._rev;
                                     // transfer any items from in-memory configuration that are not in the db configuration
                                     for (var p in configuration)
-                                        if (configuration.hasOwnProperty (p) && !(copy[p]))
-                                            copy[p] = configuration[p];
+                                        if (configuration.hasOwnProperty (p) && !(custom.hasOwnProperty (p)))
+                                            custom[p] = configuration[p];
                                     // delete any items present in db configuration that are not in the in-memory configuration
-                                    for (var property in copy)
-                                        if (copy.hasOwnProperty (property) && !(configuration.hasOwnProperty (property)))
-                                            delete copy[property];
-                                    configuration = copy;
+                                    for (var property in custom)
+                                        if (custom.hasOwnProperty (property) && !(configuration.hasOwnProperty (property)))
+                                            delete custom[property];
+                                    configuration = custom;
                                     options.success (configuration);
                                 },
                                 error: options.error

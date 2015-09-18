@@ -16,7 +16,7 @@ define
     function (configuration, page, mustache, login, torrent)
     {
         var things_template =
-            "<div>{{name}} {{#total_rows}}{{total_rows}} documents{{/total_rows}}{{^total_rows}}no documents{{/total_rows}}</div>" +
+            "<div>{{header}}</div>" +
             "<ul class='thing_property_list'>" +
                 "{{#rows}}" +
                     "{{#value}}" +
@@ -40,8 +40,10 @@ define
                                                 "</span>" +
                                             "{{/options.del}}" +
                                             "{{#options.publish}}" +
-                                                "<span class='publish_id glyphicon glyphicon-book marginleft' data-toggle='tooltip' data-placement='top' title='Publish' data-database='{{database}}' data-id='{{_id}}' data-rev='{{_rev}}'>" +
-                                                "</span>" +
+                                                "{{^published}}" +
+                                                    "<span class='publish_id glyphicon glyphicon-book marginleft' data-toggle='tooltip' data-placement='top' title='Publish' data-database='{{database}}' data-id='{{_id}}' data-rev='{{_rev}}'>" +
+                                                    "</span>" +
+                                                "{{/published}}" +
                                             "{{/options.publish}}" +
                                             "{{#options.transfer}}" +
                                                 "<span class='transfer_id glyphicon glyphicon-share-alt marginleft' data-toggle='tooltip' data-placement='top' title='Transfer' data-database='{{database}}' data-id='{{_id}}' data-rev='{{_rev}}'>" +
@@ -285,6 +287,7 @@ define
         {
             options = options || {};
             result.doc_root = configuration.getDocumentRoot () + "/" + result.database + "/";
+            result.header = result.name + " " + result.rows.length + " document" + (1 == result.rows.length ? "" : "s")
             result.rows.forEach
             (
                 function (item)
@@ -318,6 +321,8 @@ define
                                 }
                             );
                         }
+                    if (options.published)
+                        item.published = (-1 != options.published.indexOf (item.id));
                 }
             );
             result.options =
@@ -373,6 +378,7 @@ define
          *   del: function (array_of_doc) function to delete the documents
          *   publish: function (array_of_doc) function to publish the documents
          *   transfer: function (array_of_doc) function to transfer the documents
+         *   published: list of keys of previously published (exist in public_database)
          * @param {string[]} keys - list of keys for filtering
          * @function build_content
          * @memberOf module:home
@@ -532,6 +538,40 @@ define
         }
 
         /**
+         * @summary Fetch published document keys.
+         * @param {Object} options - containing success(keys[]) callback
+         * @function all_published
+         * @memberOf module:home
+         */
+        function all_published (options)
+        {
+            var pub;
+
+            pub = configuration.getConfigurationItem ("public_database");
+            $.couch.db (pub).allDocs
+            (
+                {
+                    success: function (result)
+                    {
+                        var publics;
+                        var loc;
+
+                        publics = [];
+                        result.rows.forEach
+                        (
+                            function (item)
+                            {
+                                publics.push (item.id);
+                            }
+                        );
+                        if (options.success)
+                            options.success (publics);
+                    }
+                }
+            );
+        }
+
+        /**
          * @summary Render the content of the home page.
          * @function draw_content
          * @memberOf module:home
@@ -549,10 +589,26 @@ define
             database = page.get_current ();
             options = { del: delete_document };
             if (database == configuration.getConfigurationItem ("local_database"))
+            {
                 options.publish = publish;
-            if (database == configuration.getConfigurationItem ("pending_database"))
+                all_published
+                (
+                    {
+                        success: function (published)
+                        {
+                            options.published = published;
+                            build_content (database, "things", areas.content.id, options, null);
+                        }
+                    }
+                );
+            }
+            else if (database == configuration.getConfigurationItem ("pending_database"))
+            {
                 options.transfer = transfer_to_local;
-            build_content (database, "things", areas.content.id, options);
+                build_content (database, "things", areas.content.id, options, null);
+            }
+            else
+                build_content (database, "things", areas.content.id, options, null);
         }
 
         /**
