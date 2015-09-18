@@ -6,7 +6,7 @@
  */
 define
 (
-    ["../configuration", "../restart"],
+    ["../configuration", "./restart"],
     /**
      * @summary Perform setup operations for the thingimporter.
      * @name configurator/import

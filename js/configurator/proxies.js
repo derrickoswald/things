@@ -6,7 +6,7 @@
  */
 define
 (
-    ["../configuration", "../page", "../mustache", "../login", "../database", "../restart", "../keybase", "../sha1"],
+    ["../configuration", "../page", "../mustache", "../login", "../database", "../keybase", "../sha1", "./restart"],
     /**
      * @summary Proxy and daemon configuration step.
      * @description Sets up proxies and daemon entries in the CouchDB configuration file.
@@ -14,7 +14,7 @@ define
      * @exports configurator/proxies
      * @version 1.0
      */
-    function (configuration, page, mustache, login, database, restart, keybase, sha1)
+    function (configuration, page, mustache, login, database, keybase, sha1, restart)
     {
         /**
          * @summary Extracts the URL out of the proxy setting.

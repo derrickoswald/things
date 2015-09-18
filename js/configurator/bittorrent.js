@@ -4,7 +4,7 @@
  * @author Derrick Oswald
  * @version 1.0
  */
-define ([ "../configuration", "../page", "../mustache", "../login", "../restart" ],
+define ([ "../configuration", "../page", "../mustache", "../login", "./restart" ],
 /**
  * @summary BitTorrent setup page.
  * @description Configure download directory, host, port and password for Deluge.

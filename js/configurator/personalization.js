@@ -6,7 +6,7 @@
  */
 define
 (
-    ["../configuration", "../page", "../mustache", "../login", "../restart", "../keybase", "../sha1"],
+    ["../configuration", "../page", "../mustache", "../login", "../keybase", "../sha1", "./restart"],
     /**
      * @summary Instance personalization step.
      * @description Sets the identifying information for this instance of the <em>things</em> system.
@@ -14,7 +14,7 @@ define
      * @exports configurator/personalization
      * @version 1.0
      */
-    function (configuration, page, mustache, login, restart, keybase, sha1)
+    function (configuration, page, mustache, login, keybase, sha1, restart)
     {
         var userdata = null;
 

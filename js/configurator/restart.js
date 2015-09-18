@@ -1,6 +1,6 @@
 /**
  * @fileOverview Restart CouchDB and wait.
- * @name restart
+ * @name configurator/restart
  * @author Derrick Oswald
  * @version 1.0
  */
@@ -12,7 +12,7 @@ define
      * @description Display a yes/no dialog and if the user clicks yes, restart CouchDB
      * and wait on it till it comes back on line.
      * @name restart
-     * @exports restart
+     * @exports configurator/restart
      * @version 1.0
      */
     function (configuration)
@@ -41,7 +41,7 @@ define
          * @summary Restarts the CouchDB server.
          * @description Calls the /_restart HTTP API. Assumes the user is logged in as an administrator.
          * @function restart_couch
-         * @memberOf module:restart
+         * @memberOf module:configurator/restart
          */
         function restart_couch (options)
         {
@@ -73,7 +73,7 @@ define
          * @summary Waits for the CouchDB server.
          * @description Calls the / HTTP API until there is an answer.
          * @function wait_for_couch
-         * @memberOf module:restart
+         * @memberOf module:configurator/restart
          */
         function wait_for_couch (options)
         {
@@ -125,7 +125,7 @@ define
          * @summary Event handler for the restart CouchDB button.
          * @description Restarts the CouchDB server and closes the dialog box.
          * @function restart
-         * @memberOf module:restart
+         * @memberOf module:configurator/restart
          */
         function restart (event)
         {
@@ -190,7 +190,7 @@ define
          * @summary Removes the modal dialog from the DOM.
          * @description Deletes the modal dialog box element from the body of the document.
          * @function outject
-         * @memberOf module:restart
+         * @memberOf module:configurator/restart
          */
         function outject (event)
         {
@@ -206,7 +206,7 @@ define
          * @description Adds the dialog elements and hooks up the listeners.
          * @param {object} options - functions for success and error callback
          * @function inject
-         * @memberOf module:restart
+         * @memberOf module:configurator/restart
          */
         function inject (options)
         {
