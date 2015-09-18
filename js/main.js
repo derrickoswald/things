@@ -112,6 +112,7 @@ requirejs
                              */
                             function (event)
                             {
+                                var nav;
                                 var parent;
                                 var active;
 
@@ -119,13 +120,14 @@ requirejs
                                 event.preventDefault ();
                                 event.stopPropagation ();
                                 // switch class active
-                                parent = event.target.parentElement;
-                                active = parent.parentElement.getElementsByClassName ("active")[0];
+                                nav = document.getElementById ("navigator_menu");
+                                active = nav.getElementsByClassName ("active")[0];
                                 if (active)
                                     active.classList.remove ("active");
+                                parent = event.target.parentElement;
                                 parent.classList.add ("active");
                                 // close the menu (for cell phones)
-                                document.getElementById ("navigator_menu").classList.remove ("in");
+                                nav.classList.remove ("in");
                                 // initialize the new nav
                                 fn ();
                             }
@@ -140,6 +142,8 @@ requirejs
                     document.getElementById ("discover_thing").onclick = activate (discover.initialize);
                     document.getElementById ("about").onclick = activate (about.initialize);
                     document.getElementById ("configurator").onclick = activate (configwizard.initialize);
+                    // a special binding for the publish page of the Thingmaker, publish is the seventh step
+                    document.getElementById ("new_thing").ondblclick = activate (thingwizard.initialize.bind (window, 6));
 
                     // display the home page, or the configuration page if configuration hasn't been done yet
                     configuration.configuration_exists

@@ -6,7 +6,7 @@
  */
 define
 (
-    ["mustache", "../deluge", "../records", "../bencoder", "../login", "../configuration", "../discover", "../torrent", "../chooser"],
+    ["mustache", "../deluge", "../records", "../bencoder", "../login", "../configuration", "../discover", "../torrent", "../chooser", "../home", "../page"],
     /**
      * @summary Publish a thing.
      * @description Provides the functionality to publish a thing to the
@@ -46,7 +46,7 @@ define
      * @exports thingmaker/publish
      * @version 1.0
      */
-    function (mustache, deluge, records, bencoder, login, configuration, discover, torrent, chooser)
+    function (mustache, deluge, records, bencoder, login, configuration, discover, torrent, chooser, home, page)
     {
         var trackers =
         [
@@ -151,6 +151,7 @@ define
                                 success: function ()
                                 {
                                     alert ("announce to public things database succeeded");
+                                    page.draw ();
                                     if (options.success)
                                         options.success ();
                                 },
@@ -240,6 +241,7 @@ define
             options.success =
                 function ()
                 {
+                    all_unpublished ();
                     // post to Deluge
                     post_to_deluge
                     (
@@ -255,52 +257,103 @@ define
         }
 
         /**
-         * Publish button pushed event handler
-         * @param {object} event - the triggering event
+         * @summary Publish handler
+         * @description Executed when the user pushes the publish button on a listing.
+         * @param {Object[]} docs - list of documents to operate on
+         * @param {string} docs[].database - the name of the database the document resides in
+         * @param {string} docs[]._id - the document primary key which is a SHA1 hash code
+         * @param {string} docs[]._rev - the document revision (current revision when the view was queried)
          * @return <em>nothing</em>
          * @function publish_handler
          * @memberOf module:thingmaker/publish
          */
-        function publish_handler (event)
+        function publish (docs)
         {
-            var parameters;
-            var data;
-
-            event.preventDefault ();
-            data = this;
-            parameters =
-            {
-                success: function ()
+            if (docs.length != 1)
+                alert ("sorry, currently only one document can be published at a time");
+            login.isLoggedIn
+            (
                 {
-                    var options;
-                    var comment;
-                    var announce_list;
-
-                    options = {};
-
-                    // add the comment - optional
-                    comment = document.getElementById ("comment").value;
-                    if (comment && ("" !== comment))
-                        options.comment = comment;
-
-                    // add the announce-list - optional
-                    announce_list = [];
-                    tracker_chooser.context.items.forEach (function (item) { if ("" !== item.value) announce_list.push (item.value); });
-                    if (0 !== announce_list.length)
+                    success: function ()
                     {
-                        options.announce = announce_list[0];
-                        if (1 < announce_list.length)
-                            options["announce-list"] = announce_list;
-                    }
+                        var options;
+                        var comment;
+                        var announce_list;
 
-                    announce (data.torrent._id, options);
-                },
-                error: function ()
-                {
-                    alert ("You must login as an admin user");
+                        options = {};
+
+                        // add the comment - optional
+                        comment = document.getElementById ("comment").value;
+                        if (comment && ("" !== comment))
+                            options.comment = comment;
+
+                        // add the announce-list - optional
+                        announce_list = [];
+                        tracker_chooser.context.items.forEach (function (item) { if ("" !== item.value) announce_list.push (item.value); });
+                        if (0 !== announce_list.length)
+                        {
+                            options.announce = announce_list[0];
+                            if (1 < announce_list.length)
+                                options["announce-list"] = announce_list;
+                        }
+
+                        announce (docs[0]._id, options);
+                    },
+                    error: function ()
+                    {
+                        alert ("You must login as an admin user");
+                    }
                 }
-            };
-            login.isLoggedIn (parameters);
+            );
+        }
+
+        function all_unpublished ()
+        {
+            var pub;
+
+            pub = configuration.getConfigurationItem ("public_database");
+            $.couch.db (pub).allDocs
+            (
+                {
+                    success: function (result)
+                    {
+                        var publics;
+                        var loc;
+
+                        publics = [];
+                        result.rows.forEach
+                        (
+                            function (item)
+                            {
+                                publics.push (item.id);
+                            }
+                        );
+                        loc = configuration.getConfigurationItem ("local_database");
+                        $.couch.db (loc).allDocs
+                        (
+                            {
+                                success: function (result)
+                                {
+                                    var keys;
+                                    var view_name;
+
+                                    keys = [];
+                                    result.rows.forEach
+                                    (
+                                        function (item)
+                                        {
+                                            if ((-1 == publics.indexOf (item.id)) && ('_' != item.id[0]))
+                                                keys.push (item.id);
+                                        }
+                                    );
+                                    view_name = "things";
+                                    home.build_content (loc, view_name, "public_listing", { del: home.delete_document, publish: publish }, keys);
+                                }
+                            }
+                        );
+                    }
+                }
+            );
         }
 
         /**
@@ -313,6 +366,7 @@ define
         {
             tracker_chooser = new chooser.Chooser ("tracker_list", "Trackers", trackers[0], trackers);
             tracker_chooser.render ();
+            all_unpublished ();
         }
 
         return (
@@ -324,14 +378,6 @@ define
                             id: "publish",
                             title: "Publish the thing",
                             template: "templates/thingmaker/publish.mst",
-                            hooks:
-                            [
-                                {
-                                    id: "publish_button",
-                                    event: "click",
-                                    code: publish_handler
-                                },
-                            ],
                             transitions:
                             {
                                 enter: init

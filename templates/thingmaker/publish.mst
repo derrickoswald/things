@@ -34,8 +34,7 @@ while others are unspecified as yet, namely comment and announce-list - the list
 (torrent) trackers which have nothing to do with the Thing Tracker Network per se.
 Some tracker URLs have been provided, but you are free to provide your own choice.
 If you do not include at least one tracker, it becomes a trackerless torrent.
-<form id="publish_form" class="form-horizontal">
-
+<div class="form-horizontal">
     <div class="form-group">
         <label for="comment" class="col-sm-3 control-label">
             Comment
@@ -44,19 +43,7 @@ If you do not include at least one tracker, it becomes a trackerless torrent.
             <input id="comment" type="text" class="form-control" placeholder="comment">
         </div>
     </div>
-
     <div id="tracker_list" class="form-group">
     </div>
-
-    <div class="form-group">
-        <label class="col-sm-3 control-label" for="publish_button"></label>
-        <div class="col-sm-9">
-            <button id="publish_button" class="btn btn-primary publish_form_button" type="submit">
-                <i class="glyphicon glyphicon-book"></i>
-                <span>Publish</span>
-            </button>
-        </div>
-    </div>
-
-</form>
-                    
+</div>
+<div id="public_listing"></div>

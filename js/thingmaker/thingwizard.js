@@ -6,13 +6,13 @@
  */
 define
 (
-    ["page", "wizard", "thingmaker/overview", "thingmaker/template", "thingmaker/files", "thingmaker/metadata", "thingmaker/sign", "thingmaker/publish"],
+    ["page", "wizard", "thingmaker/overview", "thingmaker/template", "thingmaker/files", "thingmaker/metadata", "thingmaker/sign", "thingmaker/transfer", "thingmaker/publish"],
     /**
      * @summary Create a new thing by specifying the files, template and metadata.
      * @exports thingmaker/thingwizard
      * @version 1.0
      */
-    function (page, wiz, overview, template, files, metadata, sign, publish)
+    function (page, wiz, overview, template, files, metadata, sign, transfer, publish)
     {
         /**
          * @summary Wizard data.
@@ -40,6 +40,7 @@ define
                 files.getStep (),
                 metadata.getStep (),
                 sign.getStep (),
+                transfer.getStep (),
                 publish.getStep (),
             ];
 

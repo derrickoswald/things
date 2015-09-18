@@ -1,19 +1,19 @@
 /**
  * @fileOverview Transfer things from pending to local database.
- * @name thingimporter/transfer
+ * @name thingmaker/transfer
  * @author Derrick Oswald
  * @version 1.0
  */
 define
 (
-    ["../home", "../configuration", "../page"],
+    ["../home", "../configuration"],
     /**
      * @summary Transfer things between the pending database from the import operation to the local database.
-     * @name thingimporter/transfer
-     * @exports thingimporter/transfer
+     * @name thingmaker/transfer
+     * @exports thingmaker/transfer
      * @version 1.0
      */
-    function (home, configuration, page)
+    function (home, configuration)
     {
         /**
          * @summary Initialize the transfer page.
@@ -21,7 +21,7 @@ define
          * by calling home.build_content.
          * @param {object} event - the tab being shown event, <em>not used</em>
          * @function init
-         * @memberOf module:thingimporter/transfer
+         * @memberOf thingmaker/transfer
          * @return <em>nothing</em>
          */
         function init (event)
@@ -29,7 +29,7 @@ define
             var db = configuration.getConfigurationItem ("pending_database");
             var view_name = "things";
 
-            home.build_content (db, view_name, "listing", { del: home.delete_document, transfer: home.transfer_to_local });
+            home.build_content (db, view_name, "pending_listing", { del: home.delete_document, transfer: home.transfer_to_local });
         }
 
         return (
@@ -40,7 +40,7 @@ define
                     {
                         id : "transfer",
                         title : "Transfer Things",
-                        template : "templates/thingimporter/transfer.mst",
+                        template : "templates/thingmaker/transfer.mst",
                         transitions:
                         {
                             enter: init

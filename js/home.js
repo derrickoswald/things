@@ -6,14 +6,14 @@
  */
 define
 (
-    ["configuration", "page", "mustache", "thingmaker/thingwizard", "login", "torrent"],
+    ["configuration", "page", "mustache", "login", "torrent"],
     /**
      * @summary Functions to handle the home page.
      * @name home
      * @exports home
      * @version 1.0
      */
-    function (configuration, page, mustache, thingwizard, login, torrent)
+    function (configuration, page, mustache, login, torrent)
     {
         var things_template =
             "<div>{{name}} {{#total_rows}}{{total_rows}} documents{{/total_rows}}{{^total_rows}}no documents{{/total_rows}}</div>" +
@@ -364,59 +364,67 @@ define
         /**
          * @summary Read the database:view and render the data into html_id.
          * @description Uses mustache to display the contents of the database of <em>things</em>.
-         * @param {String} database name of the database to display
-         * @param {String} view name of the view to fetch
-         * @param {String} html_id the id of the element that should be filled with the view
-         * @param {Object} options options to apply to the view (doc={database: duh, id: something, _rev: whatever}):
+         * @param {String} database - name of the database to display
+         * @param {String} view - name of the view to fetch
+         * @param {String} html_id - the id of the element that should be filled with the view
+         * @param {Object} options - options to apply to the view (doc={database: duh, id: something, _rev: whatever}):
          *   select: function (array_of_doc) function to handle selection of the documents
          *   edit: function (array_of_doc) function to edit the documents
          *   del: function (array_of_doc) function to delete the documents
          *   publish: function (array_of_doc) function to publish the documents
          *   transfer: function (array_of_doc) function to transfer the documents
+         * @param {string[]} keys - list of keys for filtering
          * @function build_content
          * @memberOf module:home
          */
-        function build_content (database, view, html_id, options)
+        function build_content (database, view, html_id, options, keys)
         {
+            var obj =
+            {
+                success : function (result)
+                {
+                    result.database = database;
+                    // try and set the database name
+                    var dbs = page.getDatabases ();
+                    if (dbs)
+                        dbs.forEach (function (item) { if (item.database == database) result.name = item.name; });
+                    document.getElementById (html_id).innerHTML = "";
+                    draw (result, html_id, options);
+                },
+                error : function (status)
+                {
+                    if (401 == status)
+                        document.getElementById (html_id).innerHTML = "<h1>Unathorized.</h1><p>Login to view this database.</p>";
+                },
+                reduce : false
+            };
+            if (keys)
+                obj.keys = keys;
             $.couch.db (database).view
             (
                 database + "/" + view,
-                {
-                    success : function (result)
-                    {
-                        result.database = database;
-                        // try and set the database name
-                        var dbs = page.getDatabases ();
-                        if (dbs)
-                            dbs.forEach (function (item) { if (item.database == database) result.name = item.name; });
-                        document.getElementById (html_id).innerHTML = "";
-                        draw (result, html_id, options);
-                    },
-                    error : function (status)
-                    {
-                        if (401 == status)
-                            document.getElementById (html_id).innerHTML = "<h1>Unathorized.</h1><p>Login to view this database.</p>";
-                    },
-                    reduce : false
-                }
+                obj
             );
         };
 
         /**
          * @summary Delete the given ids (SHA1 hash values) from the database.
          * @description Calls removeDoc for each id.
-         * @param {array} ids the array of id values to delete.
+         * @param {Object[]} docs - list of documents to operate on
+         * @param {string} docs[].database - the name of the database the document resides in
+         * @param {string} docs[]._id - the document primary key which is a SHA1 hash code
+         * @param {string} docs[]._rev - the document revision (current revision when the view was queried)
          * @function delete_document
          * @memberOf module:home
          */
-        function delete_document (ids)
+        function delete_document (docs)
         {
             login.isLoggedIn
             (
                 {
                     success: function (userCtx)
                     {
-                        ids.forEach
+                        docs.forEach
                         (
                             function (doc)
                             {
@@ -444,23 +452,44 @@ define
         }
 
         /**
-         * @summary Replicate the given documents to the public database.
-         * @function push_to_public
+         * @summary Publish the documents.
+         * @description Replicate the given documents to the public database,
+         * seed the torrents and update the thing tracker network.
+         * @param {Object[]} docs - list of documents to operate on
+         * @param {string} docs[].database - the name of the database the document resides in
+         * @param {string} docs[]._id - the document primary key which is a SHA1 hash code
+         * @param {string} docs[]._rev - the document revision (current revision when the view was queried)
+         * @function publish
          * @memberOf module:home
          */
-        function push_to_public (docs)
+        function publish (docs)
         {
+            var dblclick;
+
             if (docs.length != 1)
                 alert ("sorry, currently only one document can be published at a time");
-            thingwizard.data.torrent = { _id: docs[0]._id }; // fake torrent... publish only needs the id
-            thingwizard.initialize (5); // publish is the sixth step
+            // doesn't work: document.getElementById ("new_thing").dblclick ();
+            // so:
+            dblclick = new MouseEvent
+            (
+                'dblclick',
+                {
+                    'view': window,
+                    'bubbles': true,
+                    'cancelable': true
+                }
+            );
+            document.getElementById('new_thing').dispatchEvent (dblclick);
         }
 
         /**
          * @summary Transfer the given documents to the local database.
          * @description Uses CouchDB replication to replicate the documents
          * given by docs from the pending database into the local database.
-         * @param {array} docs list of document SHA1 hash codes as strings
+         * @param {Object[]} docs - list of documents to operate on
+         * @param {string} docs[].database - the name of the database the document resides in
+         * @param {string} docs[]._id - the document primary key which is a SHA1 hash code
+         * @param {string} docs[]._rev - the document revision (current revision when the view was queried)
          * @function transfer_to_local
          * @memberOf module:home
          * @return <em>nothing</em>
@@ -469,7 +498,7 @@ define
         {
             var db;
             var list = [];
-            docs.forEach (function (item) { list.push (item._id); db = item.database; });
+            docs.forEach (function (item) { list.push (item._id); db = item.database; }); // ToDo: generalize to many databases
             login.isLoggedIn
             (
                 {
@@ -520,7 +549,7 @@ define
             database = page.get_current ();
             options = { del: delete_document };
             if (database == configuration.getConfigurationItem ("local_database"))
-                options.publish = push_to_public;
+                options.publish = publish;
             if (database == configuration.getConfigurationItem ("pending_database"))
                 options.transfer = transfer_to_local;
             build_content (database, "things", areas.content.id, options);
@@ -584,7 +613,7 @@ define
                 draw: draw,
                 build_content: build_content,
                 delete_document: delete_document,
-                push_to_public: push_to_public,
+                publish: publish,
                 transfer_to_local: transfer_to_local
             }
         );

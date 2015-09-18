@@ -127,6 +127,31 @@ define
         }
 
         /**
+         * @summary Expose or hide the Previous and Next buttons.
+         * @description Based on the supplied index, add or remove the
+         * <code>hidden</code> class on the Previous and Next buttons.
+         * @param {number} index - the index of the current step.
+         * @function showhide_buttons
+         * @memberOf module:wizard
+         */
+        function showhide_buttons (index)
+        {
+            var next_button;
+            var prev_button;
+
+            next_button = document.getElementById ("next");
+            prev_button = document.getElementById ("previous");
+            if (0 < index)
+                prev_button.classList.remove ("hidden");
+            else
+                prev_button.classList.add ("hidden");
+            if (index < stepCount () - 1)
+                next_button.classList.remove ("hidden");
+            else
+                next_button.classList.add ("hidden");
+        }
+
+        /**
          * Initialize a step with nav item, page and listeners.
          * @param {element} list - the DOM element to add nav link items to
          * @param {element} content - the DOM element to add the wizard page to
@@ -145,6 +170,7 @@ define
          * </ul>
          * @param {*} data - the data used as context for each action
          * @param active - if <code>true</code> make this step the active one
+         * @function addStep
          * @memberOf module:wizard
          */
         function addStep (list, content, step, data, active)
@@ -172,22 +198,11 @@ define
                 {
                     var id;
                     var to;
-                    var next_button;
-                    var prev_button;
 
                     event.preventDefault ();
                     id = event.target.getAttribute ("data-tab-id");
                     to = indexOf (id);
-                    next_button = document.getElementById ("next");
-                    prev_button = document.getElementById ("previous");
-                    if (0 < to)
-                        prev_button.classList.remove ("hide");
-                    else
-                        prev_button.classList.add ("hide");
-                    if (to < stepCount () - 1)
-                        next_button.classList.remove ("hide");
-                    else
-                        next_button.classList.add ("hide");
+                    showhide_buttons (to);
                     $ (link).tab ("show");
                 }
             );
@@ -255,13 +270,13 @@ define
             content_template =
                 "<div class='row'>" +
                     "<div class='wizard_button_next'>" +
-                        "<button id='next' class='btn btn-primary btn-large button-next' type='submit'>" +
+                        "<button id='next' class='btn btn-primary btn-large button-next hidden' type='submit'>" +
                             "Next" +
                             "<span class='glyphicon glyphicon-arrow-right wizard_image_next'></span>" +
                         "</button>" +
                     "</div>" +
                     "<div class='wizard_button_prev'>" +
-                        "<button id='previous' class='btn btn-primary btn-large button-previous hide' type='submit'>" +
+                        "<button id='previous' class='btn btn-primary btn-large button-previous hidden' type='submit'>" +
                             "<span class='glyphicon glyphicon-arrow-left wizard_image_prev'></span>" +
                             "Previous" +
                         "</button>" +
@@ -277,6 +292,7 @@ define
 
             for (var i = 0; i < steps.length; i++)
                 addStep (list, content, steps[i], data, start == i);
+            showhide_buttons (start);
         }
 
         return (

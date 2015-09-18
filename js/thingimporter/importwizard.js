@@ -6,16 +6,16 @@
  */
 define
 (
-    ["../page", "wizard", "configuration", "thingimporter/userscript", "thingimporter/fetch", "thingimporter/transfer"],
+    ["../page", "wizard", "configuration", "thingimporter/userscript", "thingimporter/fetch", "thingmaker/transfer", "thingmaker/publish"],
     /**
      * @summary Import things.
-     * @description Imports things from Thingiverse by setting up the database,
-     * setting CouchDb configuration, loading a user script and transferring.
+     * @description Imports things from Thingiverse by loading a user script,
+     * fetching, transferring and publishing things.
      * @name thingimporter/importwizard
      * @exports thingimporter/importwizard
      * @version 1.0
      */
-    function (page, wiz, configuration, userscript, fetch, transfer)
+    function (page, wiz, configuration, userscript, fetch, transfer, publish)
     {
         /**
          * @summary Create the wizard.
@@ -31,7 +31,8 @@ define
                 { id: "overview", title: "Overview", template: "templates/thingimporter/overview.mst"},
                 userscript.getStep (),
                 fetch.getStep (),
-                transfer.getStep ()
+                transfer.getStep (),
+                publish.getStep ()
             ];
 
             /**
