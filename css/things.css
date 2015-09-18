@@ -147,6 +147,13 @@ table.file_list tr:nth-child(even)
     padding: 10px;
 }
 
+.failed
+{
+    color: red;
+    font-size: 1.5em;
+    padding: 10px;
+}
+
 #remember_me, #automatic_login
 {
     display: inherit;

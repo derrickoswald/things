@@ -49,7 +49,8 @@ define
                     {
                         // manually add the database to the list
                         // NOTE: a complete refresh happens after the save operation completes
-                        list.push (name);
+                        if (list)
+                            list.push (name);
                         update_database_state ();
                         if (security)
                             database.make_secure

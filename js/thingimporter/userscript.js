@@ -11,11 +11,11 @@ define
      * @summary Create, download (but not install) and test the user script.
      * @name thingimporter/userscript
      * @exports thingimporter/userscript
-     * @version 2.1
+     * @version 2.6
      */
     function (login, configuration)
     {
-        var script_version = "2.2";
+        var script_version = "2.6";
         var substitutions =
         {
             version: script_version,
@@ -40,6 +40,7 @@ define
 
             // by default the test is unsuccessful
             document.getElementById ("scripted").classList.add ("hidden");
+            document.getElementById ("unscripted").classList.add ("hidden");
             // get the current value of ping time
             ping = configuration.getDocumentRoot () + "/" +
                 configuration.getConfigurationItem ("pending_database") +
@@ -85,6 +86,8 @@ define
                                         }
                                         if (scripted)
                                             document.getElementById ("scripted").classList.remove ("hidden");
+                                        else
+                                            document.getElementById ("unscripted").classList.remove ("hidden");
 
                                         // remove the iframe
                                         document.getElementById ("thingiverse_section").removeChild (iframe);

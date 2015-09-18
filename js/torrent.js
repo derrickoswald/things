@@ -142,39 +142,25 @@ define
             var timestamp;
             var infohash;
             var torrent;
-            var thing;
 
             // JavaScript date is number of milliseconds since epoch
             timestamp = Math.round ((new Date ()).getTime () / 1000.0);
-            if (1 == files.length)
-                infohash = {
-                        "length": files[0].size,
-                        "name": files[0].name,
-                        "piece length": piece_length,
-                        "pieces": "placeholder until hashes are computed"
-                    };
-            else
-            {
-                if (null === directory)
+            if (null === directory)
+                directory = "directory_" + Math.floor ((Math.random () * 1000) + 1);
+            var filedata = [];
+            for (var i = 0; i < files.length; i++)
+                filedata[filedata.length] =
                 {
-                    directory = "directory" + "_" + Math.floor ((Math.random () * 1000) + 1);
-                    console.log ("torrent.MakeTorrent generating required directory " + directory);
-                }
-                var filedata = [];
-                for (var i = 0; i < files.length; i++)
-                    filedata[filedata.length] =
-                    {
-                        length: files[i].size,
-                        path : [files[i].name]
-                    };
-                infohash =
-                {
-                    files: filedata,
-                    name: directory,
-                    "piece length": piece_length,
-                    pieces: "placeholder until hashes are computed"
+                    length: files[i].size,
+                    path : [files[i].name]
                 };
-            }
+            infohash =
+            {
+                files: filedata,
+                name: directory,
+                "piece length": piece_length,
+                pieces: "placeholder until hashes are computed"
+            };
             torrent =
             {
                 "created by": "ThingMaker v2.0",

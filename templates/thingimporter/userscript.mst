@@ -84,6 +84,10 @@ but generally there is a lot of trust involved.</p>
                     <span class="glyphicon glyphicon-ok ok" aria-hidden="true"></span>
                     <span>User script for http://thingiverse.com is installed correctly.</span>
                 </span>
+                <span id="unscripted" class="hidden">
+                    <span class="glyphicon glyphicon-remove failed" aria-hidden="true"></span>
+                    <span>User script for http://thingiverse.com is not installed correctly or could not be confirmed to work correctly.</span>
+                </span>
                 <div id="test_userscript_help" class="help-block nonexpert">
                     <p>To test the installation, click the <em>Test user script</em> button.
                     After a short delay (e.g. 30-60 seconds),

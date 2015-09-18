@@ -148,6 +148,8 @@ define
                         };
                         xmlhttp.send (JSON.stringify ({ doc_ids: ["ping"] }));
                     }
+                    else
+                        options.error ();
                 }
             };
             xmlhttp.send ();

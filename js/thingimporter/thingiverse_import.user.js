@@ -163,7 +163,6 @@ function console_log (message)
      return (ret);
  }
 
-
 /**
  * @summary End of HTTP file fetch function generator.
  * @description Handles ajax readyState DONE to check if this file completes all the downloads.
@@ -201,11 +200,10 @@ function downloadAllFiles (files, callback)
 {
     for (var i = 0; i < files.length; i++)
     {
-        var xmlHttp = new XMLHttpRequest ();
-        xmlHttp.open ('GET', files[i].url, true);
-        xmlHttp.responseType = "blob";
-        xmlHttp.onreadystatechange = fileFinishedFunction (files, i, callback);
-        xmlHttp.send ();
+        var xmlhttp = records.createCORSRequest ("GET", files[i].url, true);
+        xmlhttp.responseType = "blob";
+        xmlhttp.onreadystatechange = fileFinishedFunction (files, i, callback);
+        xmlhttp.send ();
     }
 }
 
@@ -313,18 +311,23 @@ function extract_text (id)
 
     ret = "";
 
-    paragraphs = document.getElementById (id).getElementsByTagName ("p");
-    for (var i = 0; i < paragraphs.length; i++)
+    element = document.getElementById (id);
+    if (null != element)
     {
-        if ("" !== ret)
-            ret += "\n";
-        txt = "";
-        for (var j = 0; j < paragraphs[i].childNodes.length; j++)
-            txt += paragraphs[i].childNodes[j].textContent;
-        ret += txt;
+        paragraphs = element.getElementsByTagName ("p");
+        for (var i = 0; i < paragraphs.length; i++)
+        {
+            if ("" !== ret)
+                ret += "\n";
+            txt = "";
+            for (var j = 0; j < paragraphs[i].childNodes.length; j++)
+                txt += paragraphs[i].childNodes[j].textContent;
+            ret += txt;
+        }
     }
+    ret = bencoder.encode.encode_utf8 (ret.trim ());
 
-    return (ret.trim ());
+    return (ret);
 }
 
 /**
@@ -479,10 +482,7 @@ function upload (tor, directory, files, images)
     (
         function (file)
         {
-            if (1 < files.length)
-                uploadfiles.push (new File ([file.data], directory + "/" + encodeURIComponent (file.name), { type: file.data.type, lastModifiedDate: file.data.lastModifiedDate }));
-            else
-                uploadfiles.push (file.data);
+            uploadfiles.push (new File ([file.data], directory + "/" + encodeURIComponent (file.name), { type: file.data.type, lastModifiedDate: file.data.lastModifiedDate }));
         }
     );
 
