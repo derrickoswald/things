@@ -146,7 +146,7 @@ define
             // JavaScript date is number of milliseconds since epoch
             timestamp = Math.round ((new Date ()).getTime () / 1000.0);
             if (null === directory)
-                directory = "directory_" + Math.floor ((Math.random () * 1000) + 1);
+                directory = "directory_" + Math.floor ((Math.random () * 1000000) + 1);
             var filedata = [];
             for (var i = 0; i < files.length; i++)
                 filedata[filedata.length] =

@@ -128,25 +128,22 @@ define
             delete (doc._attachments); // remove any existing attachments
             if (0 !== files.length)
             {
-                serialized = JSON.stringify (doc, null, "    ");
-                attachments = "";
+                attachments = {};
                 for (i = 0; i < files.length; i++)
                 {
-                    if (0 !== i)
-                        attachments += ",\n";
-                    attachments +=
-                        "        \"" + files[i].name + "\":\n" +
-                        "        {\n" +
-                        "            \"follows\": true,\n" +
-                        ((files[i].type && ("" !== files[i].type)) ? ("            \"content_type\": \"" + files[i].type + "\",\n") : "") +
-                        "            \"length\": " + files[i].size + "\n" +
-                        "        }";
+                    var file =
+                    {
+                        follows: true,
+                        length: files[i].size
+                    };
+                    if (files[i].type && ("" !== files[i].type))
+                        file.content_type = files[i].type;
+                    attachments[files[i].name] = file;
                 }
-                attachments += "\n";
-                attachments = encode_utf8 (attachments);
-                index = serialized.lastIndexOf ("}") - 1; // -1 to also trim off the newline
-                serialized = serialized.substring (0, index) + ",\n    \"_attachments\":\n    {\n" + attachments + "\n    }\n}";
-
+                doc._attachments = attachments;
+                serialized = JSON.stringify (doc, null, "    ");
+                serialized = encode_utf8 (serialized);
+                delete (doc._attachments); // clean up
                 prefix = CRLF +
                     HYPH + boundary + CRLF +
                     CONT + CRLF + CRLF +

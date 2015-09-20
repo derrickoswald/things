@@ -58,10 +58,27 @@ define
         }
 
         /**
+         * @summary Checks if the directory is valid.
+         * @description Currently it just checks for spaces, which is the only thing that isn't acceptable.
+         * @param {string} directory - the path to check
+         * @returns <code>true</code> if the directory is valid
+         * @function valid_directory
+         * @memberOf module:thingmaker/files
+         */
+        function valid_directory (directory)
+        {
+            var ret;
+
+            ret = -1 == directory.indexOf (" ");
+
+            return (ret);
+        }
+
+        /**
          * @summary Update the file list and enable/disable the next button.
+         * @param {object} data - thingmaker data object
          * @function update
          * @memberOf module:thingmaker/files
-         * @param {object} data - thingmaker data object
          */
         function update (data)
         {
@@ -108,16 +125,18 @@ define
                 document.getElementById ("file_table").classList.remove ("hidden");
             else
                 document.getElementById ("file_table").classList.add ("hidden");
-            // add contextual backgrounds to the directory input field if it's required
-            if (data.files && ((1 < data.files.length) && !data.directory))
+            // add contextual backgrounds to the directory input field and set the state of the Next button if it's in error
+            if (data.directory && !valid_directory (data.directory))
+            {
                 document.getElementById ("directory_group").classList.add ("has-error");
-            else
-                document.getElementById ("directory_group").classList.remove ("has-error");
-            // set the state of the Next button
-            if (data.files && ((1 == data.files.length) || ((1 < data.files.length) && data.directory)))
-                document.getElementById ("next").removeAttribute ("disabled");
-            else
                 document.getElementById ("next").setAttribute ("disabled", "disabled");
+            }
+            else
+            {
+                document.getElementById ("directory_group").classList.remove ("has-error");
+                document.getElementById ("next").removeAttribute ("disabled");
+            }
+
             // add delete function to each file
             var removes = document.getElementById ("file_table").getElementsByClassName ("glyphicon-remove");
             var remove = remove_file.bind (data);
@@ -189,6 +208,30 @@ define
         }
 
         /**
+         * Show or hide expert elements on the page.
+         * @param {boolean} expert - if <code>true</> hide the elements with the expert class
+         * @function show_hide_expert
+         * @memberOf module:thingmaker/files
+         */
+        function show_hide_expert (expert)
+        {
+            var elements;
+
+            elements = document.getElementsByClassName ("expert");
+            for (var i = 0; i < elements.length; i++)
+                if (expert)
+                    elements[i].classList.remove ("hidden");
+                else
+                    elements[i].classList.add ("hidden");
+            elements = document.getElementsByClassName ("nonexpert");
+            for (var i = 0; i < elements.length; i++)
+                if (expert)
+                    elements[i].classList.add ("hidden");
+                else
+                    elements[i].classList.remove ("hidden");
+        }
+
+        /**
          * Initialize the page based on the wizard data object.
          * @param {object} event - the tab being shown event, <em>not used</em>
          * @function init
@@ -197,6 +240,12 @@ define
         function init (event)
         {
             update (this);
+            show_hide_expert (this.expert);
+        }
+
+        function clear (event)
+        {
+            document.getElementById ("next").removeAttribute ("disabled");
         }
 
         return (
@@ -218,7 +267,8 @@ define
                             ],
                             transitions:
                             {
-                                enter: init
+                                enter: init,
+                                leave: clear
                             }
                         }
                     );

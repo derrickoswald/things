@@ -39,7 +39,7 @@ define
                 template.getStep (),
                 files.getStep (),
                 metadata.getStep (),
-                sign.getStep (),
+                // sign.getStep (), ToDo: re-enable when login to Keybase.io is working
                 transfer.getStep (),
                 publish.getStep (),
             ];

@@ -295,9 +295,6 @@ define
 
             primary_key = data.torrent._id;
 
-            // convert the pieces into an array (CouchDB doesn't store ArrayBuffers)
-            data.torrent.info.pieces = torrent.PiecesToArray (data.torrent.info.pieces);
-
             if (typeof (data.files) == "undefined")
                 data.files = [];
             if (typeof (data.images) == "undefined")
@@ -309,10 +306,7 @@ define
             (
                 function (item)
                 {
-                    if (1 < data.files.length)
-                        copy.push (new File ([item], data.torrent.info.name + "/" + item.name, { type: item.type, lastModifiedDate: item.lastModifiedDate }));
-                    else
-                        copy.push (item);
+                    copy.push (new File ([item], data.torrent.info.name + "/" + item.name, { type: item.type, lastModifiedDate: item.lastModifiedDate }));
                 }
             );
 
@@ -341,6 +335,10 @@ define
                         options.error (result);
                 }
             };
+
+            // convert the pieces into an array (CouchDB doesn't store ArrayBuffers)
+            data.torrent.info.pieces = torrent.PiecesToArray (data.torrent.info.pieces);
+
             $.couch.db (db).openDoc
             (
                 primary_key,
@@ -380,11 +378,20 @@ define
         function make (event)
         {
             var data = this;
+            if (!data.directory)
+            {
+                var title = document.getElementById ("title").value;
+                if ("" == title)
+                    title = "untitled_thing_" + Math.floor ((Math.random () * 1000000) + 1);
+                else
+                    title = title.replace (/\s/g, "_"); // only spaces are not allowed
+                data.directory = title;
+            }
             torrent.MakeTorrent
             (
                 data.files,
                 data.piece_length,
-                data.directory ? data.directory : null,
+                data.directory,
                 function (tor)
                 {
                     var thing;

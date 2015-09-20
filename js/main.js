@@ -142,8 +142,8 @@ requirejs
                     document.getElementById ("discover_thing").onclick = activate (discover.initialize);
                     document.getElementById ("about").onclick = activate (about.initialize);
                     document.getElementById ("configurator").onclick = activate (configwizard.initialize);
-                    // a special binding for the publish page of the Thingmaker, publish is the seventh step
-                    document.getElementById ("new_thing").ondblclick = activate (thingwizard.initialize.bind (window, 6));
+                    // a special binding for the publish page of the Thingmaker, publish is the sixth step
+                    document.getElementById ("new_thing").ondblclick = activate (thingwizard.initialize.bind (window, 5));
 
                     // display the home page, or the configuration page if configuration hasn't been done yet
                     configuration.configuration_exists

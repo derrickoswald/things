@@ -32,12 +32,12 @@
             </div>
         </div>
         <div class="form-group">
-            <label class="col-sm-3 control-label">or</label>
+            <label class="col-sm-3 control-label">or (recommended)</label>
             <div class="col-sm-9">
                 <div>
                     <p><strong>Manually Import a <em>thing</em> from Thingiverse.</strong></p>
                     <p>With the ThingiverseImport user script installed, browsing to a thing page
-                    (a page that ends in a number, like http://www.thingiverse.com/thing:13772)
+                    (a page that ends in a number like http://www.thingiverse.com/thing:13772),
                     should display an import panel on the left hand side (see image):</p>
                     <div class="row">
                         <div class="col-md-12">
