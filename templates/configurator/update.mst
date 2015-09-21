@@ -9,13 +9,25 @@
 - which is the CouchDB design document (code) that runs this system -
 from the specified location.</p>
 <p>If the thingtracker database indicates that the upstream system still has the same version,
-an "up to date" message is shown below.</p>
+an "up to date" message is shown below, otherwise an "update needed" message is displayed.</p>
 <div class="form-horizontal">
     <div class="configuration_group">
         <div class="form-group">
             <label class="col-sm-3 control-label" for="replication_source">Upstream <em>things</em> System</label>
             <div class="col-sm-9">
                 <input id="replication_source" class="form-control" type="text" name="replication_source" placeholder="e.g. http://thingtracker.no-ip.org/root/things/">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">Local system version</label>
+            <div class="col-sm-9" style="padding-top: 7px;">
+                <span id="local_version"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">Remote system version</label>
+            <div class="col-sm-9" style="padding-top: 7px;">
+                <span id="remote_version"></span>
             </div>
         </div>
         <div class="form-group">
@@ -28,6 +40,10 @@ an "up to date" message is shown below.</p>
                 <span id="things_up_to_date" class="hidden">
                     <span class="glyphicon glyphicon-ok ok" aria-hidden="true"></span>
                     <span><em>things</em> is up to date</span>
+                </span>
+                <span id="things_update_needed" class="hidden">
+                    <span class=" glyphicon glyphicon-refresh failed" aria-hidden="true"></span>
+                    <span><em>things</em> update needed</span>
                 </span>
             </div>
         </div>

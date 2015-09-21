@@ -47,7 +47,7 @@ define
                     if (200 == xmlhttp.status)
                     {
                         alert ("successfully replicated from " + source);
-                        init ();
+                        window.location.reload (true);
                     }
                     else
                         alert ("error: failed to replicate using " + JSON.stringify (replicate, null, 4));
@@ -84,8 +84,9 @@ define
                             function (row)
                             {
                                 // ToDo: handle another upstream things site that has a newer version
-                                if ((null != row.doc.things_url) && (row.doc.things_url == upstream))
-                                    options.success (row.doc.things_url, row.doc.version);
+                                if ("_" != row.id.charAt (0))
+                                    if ((null != row.doc.things_url) && (row.doc.things_url == upstream))
+                                        options.success (row.doc.things_url, row.doc.version);
                             }
                         );
                     },
@@ -105,27 +106,27 @@ define
         {
             var upstream;
             var version;
-            var button;
-            var details;
+            var up2date;
+            var needed;
 
             version = configuration.getVersion ();
             upstream = document.getElementById ("replication_source").value;
-            button = document.getElementById ("replicate");
-            details = document.getElementById ("things_up_to_date");
-            // assume it needs to be updated until proven otherwise
-            button.disabled = false;
-            details.classList.add ("hidden");
+            up2date = document.getElementById ("things_up_to_date");
+            needed = document.getElementById ("things_update_needed");
+            up2date.classList.add ("hidden");
+            needed.classList.add ("hidden");
             check_version
             (
                 upstream,
                 {
                     success: function (url, ver)
                     {
+                        document.getElementById ("local_version").innerHTML = version;
+                        document.getElementById ("remote_version").innerHTML = ver;
                         if (ver <= version)
-                        {
-                            // button.disabled = true;
-                            details.classList.remove ("hidden");
-                        }
+                            up2date.classList.remove ("hidden");
+                        else
+                            needed.classList.remove ("hidden");
                     },
                     error: function ()
                     {

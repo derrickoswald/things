@@ -10,7 +10,7 @@ define
     /**
      * @summary Functions for loading and saving configuration data.
      * @description Functions for loading and saving
-     * configuration data to the configuration database and programatic
+     * configuration data to the configuration database and programmatic
      * access to the configuration settings.
      * @name configuration
      * @exports configuration
@@ -18,7 +18,7 @@ define
      */
     function (database)
     {
-        var version = 1.0;
+        var version = 1.05;
         var configuration_database = "configuration";
         var primary_key = "default_configuration";
         var instance_uuid = "";
