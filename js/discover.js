@@ -654,32 +654,41 @@ define
             login.isLoggedIn
             (
                 {
-                    success: function ()
+                    success: function (context)
                     {
-                        logged_in = true;
-                        $.couch.db ("_replicator").allDocs // http://localhost:5984/_replicator/_all_docs
-                        (
-                            {
-                                success: function (result)
+                        if (-1 != context.roles.indexOf ("_admin"))
+                        {
+                            logged_in = true;
+                            $.couch.db ("_replicator").allDocs // http://localhost:5984/_replicator/_all_docs
+                            (
                                 {
-                                    result.rows.forEach
-                                    (
-                                        function (row)
-                                        {
-                                            if ("_" != row.id.charAt (0))
-                                                replications.push (row);
-                                        }
-                                    );
-                                    if (options.success)
-                                        options.success ();
-                                },
-                                error: function ()
-                                {
-                                    if (options.error)
-                                        options.error ();
+                                    success: function (result)
+                                    {
+                                        result.rows.forEach
+                                        (
+                                            function (row)
+                                            {
+                                                if ("_" != row.id.charAt (0))
+                                                    replications.push (row);
+                                            }
+                                        );
+                                        if (options.success)
+                                            options.success ();
+                                    },
+                                    error: function ()
+                                    {
+                                        if (options.error)
+                                            options.error ();
+                                    }
                                 }
-                            }
-                        );
+                            );
+                        }
+                        else
+                        {
+                            logged_in = false;
+                            if (options.error)
+                                options.error ();
+                        }
                     },
                     error: function ()
                     {
@@ -738,11 +747,14 @@ define
         login.on
         (
             "login",
-            function ()
+            function (event, context)
             {
                 if (!logged_in) // could be set by auto-login
                 {
-                    logged_in = true;
+                    if (-1 != context.roles.indexOf ("_admin"))
+                        logged_in = true;
+                    else
+                        logged_in = false;
                     // if Discover Things is the active page, re-initialize
                     if (document.getElementById ("discover_thing").parentElement.classList.contains ("active"))
                         initialize ();

@@ -70,7 +70,7 @@ define (
                                                     if (options.success)
                                                         options.success (result);
                                                     // reset the application
-                                                    reinitialize ("login");
+                                                    reinitialize ("login", result);
                                                 },
                                                 error: function (status)
                                                 {
@@ -306,15 +306,16 @@ define (
          * @summary Restart the application as a different user.
          * @description Fixes up the configuration as the new user and issues the login/logout notification.
          * @param {string} notification - the event to trigger
+         * @param {any} data - data to pass with notification
          * @function reinitialize
          * @memberOf module:login
          */
-        function reinitialize (notification)
+        function reinitialize (notification, data)
         {
             function notify ()
             {
                 // let registered listeners know about the login/logout
-                _login.trigger (notification);
+                _login.trigger (notification, data);
             };
             // setup configuration to agree with current user
             configuration.configuration_setup
@@ -356,7 +357,7 @@ define (
                         // fix the menu
                         menu_adjust (credentials.username);
                         // reset the application
-                        reinitialize ("login");
+                        reinitialize ("login", data);
                     },
                     error: function (status)
                     {
