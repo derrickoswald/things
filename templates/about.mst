@@ -1,7 +1,7 @@
 {{!
-    <link rel="stylesheet" href="../../css/static/bootstrap.min.css">
-    <link rel="stylesheet" href="../../css/static/bootstrap-theme.min.css">
-    <link rel="stylesheet" href="../../css/things.css">
+    <link rel="stylesheet" href="../css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="../css/static/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../css/things.css">
 }}
 <h2>About</h2>
 <p>The <em>things</em> system is a <a href="https://en.wikipedia.org/wiki/Bittorrent" target="_blank">distributed</a>

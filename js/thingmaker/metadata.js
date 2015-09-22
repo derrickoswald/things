@@ -301,12 +301,11 @@ define
                 data.images = [];
 
             // make the list of files for attachment with names adjusted for directory
-            copy = [];
-            data.files.forEach
+            copy = data.files.map
             (
                 function (item)
                 {
-                    copy.push (new File ([item], data.torrent.info.name + "/" + item.name, { type: item.type, lastModifiedDate: item.lastModifiedDate }));
+                    return (new File ([item], data.torrent.info.name + "/" + item.name, { type: item.type, lastModifiedDate: item.lastModifiedDate }));
                 }
             );
 

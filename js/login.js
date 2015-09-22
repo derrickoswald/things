@@ -353,7 +353,7 @@ define (
                         else
                             clearCredentials ();
                         // close the dropdown
-                        $("#login_button_link").dropdown ("toggle");
+                        $ ("#login_button_link").dropdown ("toggle");
                         // fix the menu
                         menu_adjust (credentials.username);
                         // reset the application
@@ -395,7 +395,7 @@ define (
                         document.getElementById ("password1").value = "";
                         document.getElementById ("password2").value = "";
                         // close the dropdown
-                        $("#create_user_link").dropdown ("toggle");
+                        $ ("#create_user_link").dropdown ("toggle");
                         alert ("Account " + credentials.username + " created");
                     }
                     else

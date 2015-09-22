@@ -327,14 +327,7 @@ define
                         var publics;
                         var loc;
 
-                        publics = [];
-                        result.rows.forEach
-                        (
-                            function (item)
-                            {
-                                publics.push (item.id);
-                            }
-                        );
+                        publics = result.rows.map ( function (item) { return (item.id); } );
                         loc = configuration.getConfigurationItem ("local_database");
                         $.couch.db (loc).allDocs
                         (

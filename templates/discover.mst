@@ -1,0 +1,100 @@
+{{!
+    <link rel="stylesheet" href="../css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="../css/static/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../css/things.css">
+}}
+<h2>Discovery</h2>
+<h3>Update the global record for this <em>thing tracker</em></h3>
+<p>The <em>Post my things</em> button creates or updates the record for this local tracker in the 
+<em>thing tracker</em> database. Normally this manual step won"t be needed because the 
+operations of publishing a <em>thing</em> will update th e thing-tracker database as well as 
+the <em>public things</em> database. But, in case they get out of sync somehow, you can use this button.</p>
+<p>If the <em>thing tracker</em> database is joined to other trackers (see below) then these federated trackers 
+will also be updated via CouchDB continuous replication (when they are available online).</p>
+<div class="form-horizontal">
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="post_my_things"></label>
+        <div class="col-sm-9">
+            <button id="post_my_things" class="btn btn-primary">
+                <i class="glyphicon glyphicon-star marginright"></i>
+                <span>Post my things</span>
+            </button>
+        </div>
+    </div>
+</div>
+<h3>Start bi-directional replication with a new <em>thing tracker</em>.</h3>
+<p>This is the step that bootstraps this <em>thing tracker</em> into a cloud of other similar systems.</p>
+<img class="pull-right" src="img/blackboard.png" width="25%">
+<p>The <em>thing tracker</em> cloud can be thought of as an infinite blackboard where you can post 
+a note that tells people how to find your thing tracker.</p>
+<p>By clicking the <em>Join tracker</em> button, a bi-directional non-permanent replication 
+(merging two blackboards into one) is performed which does two things:</p>
+<ul>
+    <li>this tracker, and other trackers in the local <em>thing tracker</em> database, 
+    are added into the <em>thing tracker</em> database of the other system (replication from 
+    this system to the specified remote system) - basically writing your name (and others) from 
+    your blackboard onto the combined blackboard</li>
+    <li>any new or updated trackers in the database of the remote system are added to the local 
+    <em>thing tracker</em> database (replication from the specified remote system to this system) 
+    - basically copying all the names you haven"t got from that blackboard to the combined blackboard</li>
+</ul>
+<p>This bi-directional replication is not permanent. In order to create a 
+permanent join, wait until the other system is displayed in the list of trackers below (a page 
+refresh may be required), and then click the \Join\ icon next to the tracker URL.</p>
+<p>Due to the nature of CouchDB <em>eventual consistency</em>, joining multiple trackers (permanently) 
+will join their respective clouds together -- because it is a single multi-way replicated CouchDb database 
+there really is only one global federated database of <em>thing trackers</em>, that is, one big blackboard. 
+Each permanently joined <em>thing tracker</em> adds a redundant connection from this tracker to the cloud.</p>
+<p>Each tracker is stored in the <em>thing tracker</em> database as a document with the same name as its uuid. 
+This uuid is listed under the Configuration tab under Instance UUID, and for a single user system this corresponds 
+to the CouchDB uuid, which can be seen in the CouchDB <b>Welcome</b> 
+message by navigating to the root of the CouchDB web server.</p>
+<div class="form-horizontal">
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="local_database">New tracker URL</label>
+        <div class="col-sm-9">
+            <input id="tracker_url" class="form-control" type="text" name="tracker_url" placeholder="http://TheTracker.org">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label" for="join_tracker_button"></label>
+        <div class="col-sm-9">
+            <button id="join_tracker_button" class="btn btn-primary">
+                <i class="glyphicon glyphicon-plus-sign marginright"></i>
+                <span>Join tracker</span>
+            </button>
+        </div>
+    </div>
+</div>
+<h3>Track Others</h3>
+<p>This Discovery tab also allows you to set up tracking - making copies of other trackers <em>things</em>.</p>
+<p>This works by creating a local database that is a continuously replicated copy of the remote database. 
+By having the database locally, you can search, view and access the files of these other things, without 
+an internet connection. &lt;TBD&gt;Using the <b>lightweight</b> tracking option you can replicate the 
+metadata of the other things without replicating the associated files - which conserves disk space.&lt;/TBD&gt;</p>
+<p>To begin tracking another <em>things</em> system click on the <em>Track</em> button beside its 
+name in the <em>Tracker List</em> below. This will set up a unidirectional CouchDB continuous replication 
+between the remote machine and a local database named "z"+(uuid of the remote), and show it in the database 
+list (on the right or above) so you can view the contents.</p>
+<p></p>
+<h2>Tracker List</h2>
+<div id="count_of_trackers">{{#total_rows}}{{total_rows}} trackers{{/total_rows}}{{^total_rows}}no documents{{/total_rows}}</div>
+<ul class="tracker_list">
+    {{#rows}}
+        {{#value}}
+            <div>
+                <h3>
+                    <a href="{{url}}" target="_blank">{{name}}</a>
+                    {{{permanent_join}}}
+                    {{{begin_track}}}
+                </h3>
+                (owner: {{owner}} public_url: {{public_url}} tracker_url: {{tracker_url}} {{id}})
+                <ul class="thinglist">
+                    {{#things}}
+                    <li><a href="magnet:?xt=urn:btih:{{id}}&dn={{title}}">{{title}}<img src="img/magnet.svg" style="width:1em; height: 1em; margin-left: 4px;" alt="magnet link"></a></li>
+                    {{/things}}
+                </ul>
+            </div>
+        {{/value}}
+    {{/rows}}
+</ul>

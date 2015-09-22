@@ -477,12 +477,11 @@ function get_image_mime (name)
 function upload (tor, directory, files, images)
 {
     // make the list of files for attachment with names adjusted for directory
-    var uploadfiles = [];
-    files.forEach
+    var uploadfiles = files.map
     (
         function (file)
         {
-            uploadfiles.push (new File ([file.data], directory + "/" + encodeURIComponent (file.name), { type: file.data.type, lastModifiedDate: file.data.lastModifiedDate }));
+            return (new File ([file.data], directory + "/" + encodeURIComponent (file.name), { type: file.data.type, lastModifiedDate: file.data.lastModifiedDate }));
         }
     );
 

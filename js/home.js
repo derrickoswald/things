@@ -15,138 +15,7 @@ define
      */
     function (configuration, page, mustache, login, torrent)
     {
-        var things_template =
-            "<div>{{header}}</div>" +
-            "<ul class='thing_property_list'>" +
-                "{{#rows}}" +
-                    "{{#value}}" +
-                        "<li class='thing_list_item'>" +
-                            "<div class='container-fluid'>" +
-                                "<div class='row'>" +
-                                    "<div class='col-xs-6'>" +
-                                        "<h2 class='hidden-lg'><a href='{{info.thing.url}}' target='_blank'>{{short_title}}</a></h2>" +
-                                        "<h2 class='hidden-xs hidden-sm hidden-md'><a href='{{info.thing.url}}' target='_blank'>{{info.thing.title}}</a></h2>" +
-                                    "</div>" +
-                                    "<div class='col-xs-6'>" +
-                                        "<div class='pull-right'>" +
-                                            "<span class='fineprint hidden-lg'><a href='{{doc_root}}{{_id}}' target='_blank'>{{short_id}}</a></span>" +
-                                            "<span class='fineprint hidden-xs hidden-sm hidden-md'><a href='{{doc_root}}{{_id}}' target='_blank'>{{_id}}</a></span>" +
-                                            "{{#options.edit}}" +
-                                                "<span class='edit_id glyphicon glyphicon-pencil marginleft' data-toggle='tooltip' data-placement='top' title='Edit' data-database='{{database}}' data-id='{{_id}}' data-rev='{{_rev}}'>" +
-                                                "</span>" +
-                                            "{{/options.edit}}" +
-                                            "{{#options.del}}" +
-                                                "<span class='delete_id glyphicon glyphicon-trash marginleft' data-toggle='tooltip' data-placement='top' title='Delete' data-database='{{database}}' data-id='{{_id}}' data-rev='{{_rev}}'>" +
-                                                "</span>" +
-                                            "{{/options.del}}" +
-                                            "{{#options.publish}}" +
-                                                "{{^published}}" +
-                                                    "<span class='publish_id glyphicon glyphicon-book marginleft' data-toggle='tooltip' data-placement='top' title='Publish' data-database='{{database}}' data-id='{{_id}}' data-rev='{{_rev}}'>" +
-                                                    "</span>" +
-                                                "{{/published}}" +
-                                            "{{/options.publish}}" +
-                                            "{{#options.transfer}}" +
-                                                "<span class='transfer_id glyphicon glyphicon-share-alt marginleft' data-toggle='tooltip' data-placement='top' title='Transfer' data-database='{{database}}' data-id='{{_id}}' data-rev='{{_rev}}'>" +
-                                                "</span>" +
-                                            "{{/options.transfer}}" +
-                                            "{{#options.select}}" +
-                                                "<input class='select_id marginleft' type='checkbox' data-database='{{database}}' data-id='{{_id}}' data-rev='{{_rev}}' checked>" +
-                                            "{{/options.select}}" +
-                                        "</div>" +
-                                    "</div>" +
-                                "</div>" +
-                                "<div class='row'>" +
-                                    "<div class='col-xs-12'>" +
-                                        "{{info.thing.description}}" +
-                                    "</div>" +
-                                "</div>" +
-                                "<div class='row'>" +
-                                    "<div class='col-xs-6'>" +
-                                        "<h5>Authors</h5>" +
-                                        "<ul class='thing_property_list'>" +
-                                            "{{#info.thing.authors}}<li>{{.}}</li>{{/info.thing.authors}}" +
-                                        "</ul>" +
-                                    "</div>" +
-                                    "<div class='col-xs-6'>" +
-                                        "<h5>Licenses</h5>" +
-                                        "<ul class='thing_property_list'>" +
-                                            "{{#info.thing.licenses}}<li>{{.}}</li>{{/info.thing.licenses}}" +
-                                        "</ul>" +
-                                    "</div>" +
-                                "</div>" +
-                                "<div class='row'>" +
-                                    "<div class='col-xs-6'>" +
-                                        "<h5>Tags</h5>" +
-                                        "<ul class='thing_property_list tags'>" +
-                                            "{{#info.thing.tags}}<li>{{.}}</li>{{/info.thing.tags}}" +
-                                        "</ul>" +
-                                    "</div>" +
-                                    "<div class='col-xs-6'>" +
-                                        "<h5>Attachments</h5>" +
-                                        "<ul class='thing_property_list attachment'>" +
-                                            "{{#filelist}}" +
-                                                "<li>" +
-                                                    "<a href='{{url}}' target='_blank'>{{name}}</a>" +
-                                                    "{{#torrent}}" +
-                                                        "<span class='view_torrent glyphicon glyphicon-eye-open marginleft' data-toggle='tooltip' data-placement='top' title='View' data-database='{{database}}' data-id='{{_id}}' data-attachment='{{url}}' data-name='{{name}}'></span>" +
-                                                    "{{/torrent}}" +
-                                                "</li>" +
-                                            "{{/filelist}}" +
-                                        "</ul>" +
-                                    "</div>" +
-                                "</div>" +
-                                "<div class='row'>" +
-                                    "{{#thumbnaillist}}" +
-                                        "<div class='col-xs-6 col-md-3'>" +
-                                            "<a href='{{image}}' class='thumbnail' target='_blank'>" +
-                                                "<img src='{{image}}' alt='{{_id}}_image_{{index}}'>" +
-                                            "</a>" +
-                                        "</div>" +
-                                    "{{/thumbnaillist}}" +
-
-// identical height images... but only one row
-// see http://www.minimit.com/articles/solutions-tutorials/bootstrap-3-responsive-columns-of-same-height
-//                                    "<div class='row-same-height'>" +
-//                                        "{{#thumbnaillist}}" +
-//                                        "<div class='col-xs-6 col-xs-height col-md-3'>" +
-//                                            "<a href='#' class='thumbnail' target='_blank'>" +
-//                                                "<img src='{{image}}' alt='{{_id}}_image_{{index}}'>" +
-//                                            "</a>" +
-//                                        "</div>" +
-//                                        "{{/thumbnaillist}}" +
-//                                    "</div>" +
-
-// carousel that doesn't really work well with different sized images
-//                                    "<div id='{{_id}}_carousel' class='carousel slide col-xs-12 col-md-12' data-ride='carousel'>" +
-//                                        "<ol class='carousel-indicators'>" +
-//                                            "{{#thumbnaillist}}" +
-//                                                "<li data-target='#{{_id}}_carousel' data-slide-to='{{index}}'{{#active}} class='active'{{/active}}></li>" +
-//                                            "{{/thumbnaillist}}" +
-//                                        "</ol>" +
-//                                        "<div class='carousel-inner' role='listbox'>" +
-//                                            "{{#thumbnaillist}}" +
-//                                                "<div class='item{{#active}} active{{/active}}'>" +
-//                                                    "<img src='{{image}}' alt='{{_id}}_image_{{index}}'>" +
-//                                                "</div>" +
-//                                            "{{/thumbnaillist}}" +
-//                                        "</div>" +
-//                                        "<a class='left carousel-control' href='#{{_id}}_carousel' role='button' data-slide='prev' target='_blank'>" +
-//                                            "<span class='glyphicon glyphicon-chevron-left' aria-hidden='true'></span>" +
-//                                            "<span class='sr-only'>Previous</span>" +
-//                                        "</a>" +
-//                                        "<a class='right carousel-control' href='#{{_id}}_carousel' role='button' data-slide='next' target='_blank'>" +
-//                                            "<span class='glyphicon glyphicon-chevron-right' aria-hidden='true'></span>" +
-//                                            "<span class='sr-only'>Next</span>" +
-//                                         "</a>" +
-//                                    "</div>" +
-
-
-                                "</div>" +
-                            "</div>" +
-                        "</li>" +
-                    "{{/value}}" +
-                "{{/rows}}" +
-            "</ul>";
+        var home_template = null;
 
         /**
          * @description Return the short form of an _id.
@@ -280,10 +149,10 @@ define
          *   del: function (array_of_doc) function to delete the documents
          *   publish: function (array_of_doc) function to publish the documents
          *   transfer: function (array_of_doc) function to transfer the documents
-         * @function draw
+         * @function render
          * @memberOf module:home
          */
-        function draw (result, html_id, options)
+        function render (result, html_id, options, template)
         {
             options = options || {};
             result.doc_root = configuration.getDocumentRoot () + "/" + result.database + "/";
@@ -338,7 +207,7 @@ define
 
             // build the contents
             var wrapper = document.createElement ("div");
-            wrapper.innerHTML = mustache.render (things_template, result);
+            wrapper.innerHTML = mustache.render (template, result);
 
             // add the results to the given element
             var element = document.getElementById (html_id);
@@ -347,7 +216,7 @@ define
                 var child = element.appendChild (wrapper.children[0]); // yes, zero
 
                 // activate tooltips
-                $("[data-toggle='tooltip']", child).tooltip ();
+                $ ("[data-toggle='tooltip']", child).tooltip ();
 
                 // attach actions
                 if (options.edit)
@@ -364,6 +233,38 @@ define
                 for (var t = 0; t < torrent_links.length; t++)
                     torrent_links[t].addEventListener ("click", popup_torrent);
             }
+        }
+
+        /**
+         * @summary Render the result set.
+         * @description Show the result set in the given DOM element and attach listeners according to
+         * the options argument.
+         * @param {object} result - like from things view but has .database property added (name of the database it came from),
+         * and .name property added (visible name of the database it came from)
+         * @param {string} html_id - the DOM element to add to (you need to clear this before calling draw)
+         * @param {Object} options options to apply to the view (doc={database: duh, id: something, _rev: whatever}):
+         *   select: function (array_of_doc) function to handle selection of the documents
+         *   edit: function (array_of_doc) function to edit the documents
+         *   del: function (array_of_doc) function to delete the documents
+         *   publish: function (array_of_doc) function to publish the documents
+         *   transfer: function (array_of_doc) function to transfer the documents
+         * @function draw
+         * @memberOf module:home
+         */
+        function draw (result, html_id, options)
+        {
+            if (null == home_template)
+                $.get
+                (
+                    "templates/home.mst",
+                    function (template)
+                    {
+                        home_template = template;
+                        render (result, html_id, options, template);
+                    }
+                );
+            else
+                render (result, html_id, options, home_template);
         }
 
         /**
@@ -545,30 +446,16 @@ define
          */
         function all_published (options)
         {
-            var pub;
-
-            pub = configuration.getConfigurationItem ("public_database");
-            $.couch.db (pub).allDocs
-            (
-                {
-                    success: function (result)
+            if (options.success)
+                $.couch.db (configuration.getConfigurationItem ("public_database")).allDocs
+                (
                     {
-                        var publics;
-                        var loc;
-
-                        publics = [];
-                        result.rows.forEach
-                        (
-                            function (item)
-                            {
-                                publics.push (item.id);
-                            }
-                        );
-                        if (options.success)
-                            options.success (publics);
+                        success: function (result)
+                        {
+                            options.success (result.rows.map (function (item) { return (item.id); }));
+                        }
                     }
-                }
-            );
+                );
         }
 
         /**

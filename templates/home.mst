@@ -1,0 +1,98 @@
+{{!
+    <link rel="stylesheet" href="../css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="../css/static/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../css/things.css">
+}}
+<div>{{header}}</div>
+<ul class='thing_property_list'>
+    {{#rows}}
+        {{#value}}
+            <li class='thing_list_item'>
+                <div class='container-fluid'>
+                    <div class='row'>
+                        <div class='col-xs-6'>
+                            <h2 class='hidden-lg'><a href='{{info.thing.url}}' target='_blank'>{{short_title}}</a></h2>
+                            <h2 class='hidden-xs hidden-sm hidden-md'><a href='{{info.thing.url}}' target='_blank'>{{info.thing.title}}</a></h2>
+                        </div>
+                        <div class='col-xs-6'>
+                            <div class='pull-right'>
+                                <span class='fineprint hidden-lg'><a href='{{doc_root}}{{_id}}' target='_blank'>{{short_id}}</a></span>
+                                <span class='fineprint hidden-xs hidden-sm hidden-md'><a href='{{doc_root}}{{_id}}' target='_blank'>{{_id}}</a></span>
+                                {{#options.edit}}
+                                    <span class='edit_id glyphicon glyphicon-pencil marginleft' data-toggle='tooltip' data-placement='top' title='Edit' data-database='{{database}}' data-id='{{_id}}' data-rev='{{_rev}}'>
+                                    </span>
+                                {{/options.edit}}
+                                {{#options.del}}
+                                    <span class='delete_id glyphicon glyphicon-trash marginleft' data-toggle='tooltip' data-placement='top' title='Delete' data-database='{{database}}' data-id='{{_id}}' data-rev='{{_rev}}'>
+                                    </span>
+                                {{/options.del}}
+                                {{#options.publish}}
+                                    {{^published}}
+                                        <span class='publish_id glyphicon glyphicon-book marginleft' data-toggle='tooltip' data-placement='top' title='Publish' data-database='{{database}}' data-id='{{_id}}' data-rev='{{_rev}}'>
+                                        </span>
+                                    {{/published}}
+                                {{/options.publish}}
+                                {{#options.transfer}}
+                                    <span class='transfer_id glyphicon glyphicon-share-alt marginleft' data-toggle='tooltip' data-placement='top' title='Transfer' data-database='{{database}}' data-id='{{_id}}' data-rev='{{_rev}}'>
+                                    </span>
+                                {{/options.transfer}}
+                                {{#options.select}}
+                                    <input class='select_id marginleft' type='checkbox' data-database='{{database}}' data-id='{{_id}}' data-rev='{{_rev}}' checked>
+                                {{/options.select}}
+                            </div>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='col-xs-12'>
+                            {{info.thing.description}}
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='col-xs-6'>
+                            <h5>Authors</h5>
+                            <ul class='thing_property_list'>
+                                {{#info.thing.authors}}<li>{{.}}</li>{{/info.thing.authors}}
+                            </ul>
+                        </div>
+                        <div class='col-xs-6'>
+                            <h5>Licenses</h5>
+                            <ul class='thing_property_list'>
+                                {{#info.thing.licenses}}<li>{{.}}</li>{{/info.thing.licenses}}
+                            </ul>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        <div class='col-xs-6'>
+                            <h5>Tags</h5>
+                            <ul class='thing_property_list tags'>
+                                {{#info.thing.tags}}<li>{{.}}</li>{{/info.thing.tags}}
+                            </ul>
+                        </div>
+                        <div class='col-xs-6'>
+                            <h5>Attachments</h5>
+                            <ul class='thing_property_list attachment'>
+                                {{#filelist}}
+                                    <li>
+                                        <a href='{{url}}' target='_blank'>{{name}}</a>
+                                        {{#torrent}}
+                                            <span class='view_torrent glyphicon glyphicon-eye-open marginleft' data-toggle='tooltip' data-placement='top' title='View' data-database='{{database}}' data-id='{{_id}}' data-attachment='{{url}}' data-name='{{name}}'></span>
+                                        {{/torrent}}
+                                    </li>
+                                {{/filelist}}
+                            </ul>
+                        </div>
+                    </div>
+                    <div class='row'>
+                        {{#thumbnaillist}}
+                            <div class='col-xs-6 col-md-3'>
+                                <a href='{{image}}' class='thumbnail' target='_blank'>
+                                    <img src='{{image}}' alt='{{_id}}_image_{{index}}'>
+                                </a>
+                            </div>
+                        {{/thumbnaillist}}
+                    </div>
+                </div>
+            </li>
+        {{/value}}
+    {{/rows}}
+</ul>

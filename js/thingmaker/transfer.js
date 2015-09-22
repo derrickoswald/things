@@ -74,8 +74,7 @@ define
         function transfer_to_local (docs)
         {
             var db;
-            var list = [];
-            docs.forEach (function (item) { list.push (item._id); db = item.database; }); // ToDo: generalize to many databases
+            var list = docs.map (function (item) { db = item.database; return (item._id); }); // ToDo: generalize to many databases
             login.isLoggedIn
             (
                 {

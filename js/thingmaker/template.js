@@ -297,8 +297,7 @@ define
             var db = event.target.innerHTML;
             var url = event.target.getAttribute ("href");
             // update current in databases list
-            var dbs = [];
-            this.databases.forEach
+            var dbs = this.databases.map
             (
                 function (item)
                 {
@@ -306,7 +305,7 @@ define
                         item.current = true;
                     else
                         delete item.current;
-                    dbs.push (item);
+                    return (item);
                 }
             );
             this.databases = dbs;
