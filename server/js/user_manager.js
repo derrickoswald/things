@@ -806,7 +806,7 @@ function make_user (options)
  */
 var server = http.createServer
 (
-    // only one operation define so far: make a new user
+    // only one operation defined so far: make a new user
     // needs two parameters: username and password
     function (req, resp)
     {
