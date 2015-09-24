@@ -394,9 +394,13 @@ function thing (callback)
     ret.authors = [ document.getElementsByClassName ("thing-header-data")[0].getElementsByTagName ("h2")[0].getElementsByTagName ("a")[0].innerHTML ];
     ret.licenses = [ document.getElementsByClassName ("thing-license")[0].getAttribute ("title") ];
     ret.tags = [];
-    as = document.getElementsByClassName ("tags")[0].getElementsByTagName ("a");
-    for (var i = 0; i < as.length; i++)
-        ret.tags.push (as[i].innerHTML.trim ());
+    as = document.getElementsByClassName ("tags");
+    if (0 != as.length)
+    {
+        as = as[0].getElementsByTagName ("a");
+        for (var i = 0; i < as.length; i++)
+            ret.tags.push (as[i].innerHTML.trim ());
+    }
     ret.thumbnailURL = get_images ();
     ret.description = extract_text ("description");
     //ret.instructions = extract_text ("instructions");

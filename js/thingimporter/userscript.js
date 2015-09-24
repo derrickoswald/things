@@ -15,7 +15,7 @@ define
      */
     function (login, configuration)
     {
-        var script_version = "2.6";
+        var script_version = "2.7";
         var substitutions =
         {
             version: script_version,
