@@ -65,6 +65,11 @@ var secret = null;
 var nano = null;
 
 /**
+ * Turn on nano logging if true.
+ */
+var verbose = false;
+
+/**
  * The number of milliseconds between polls of the server.
  */
 var poll_interval = 60000;
@@ -74,6 +79,11 @@ var poll_interval = 60000;
  * This needs to be cleaned up when exiting.
  */
 var interval = null;
+
+/**
+ * Configuration cache
+ */
+var configurations = null;
 
 /// Begin sha1.js
 
@@ -246,8 +256,10 @@ function need_nano (cookie)
     var options =
     {
         url: couchdb,
-        parseUrl: false,
-        log: function (id, message)
+        parseUrl: false
+    };
+    if (verbose)
+        options.log = function (id, message)
         {
             var prefix;
             var suffix;
@@ -261,8 +273,7 @@ function need_nano (cookie)
             else
                 suffix = "";
             console.log (JSON.stringify (["log", prefix + suffix]));
-        },
-    };
+        };
     if (secret)
         options.requestDefaults =
         {
@@ -354,12 +365,191 @@ function my_function (options)
     );
 }
 
+/**
+ * Get the configurations.
+ * ToDo: get this once and monitor the changes feed
+ */
+function get_configurations ()
+{
+    var configuration;
+
+    configuration = nano.db.use ("configuration");
+    configuration.get
+    (
+        "_all_docs",
+        {
+            include_docs: true
+        },
+        function (err, body, headers)
+        {
+            if (err)
+                log ("failed to get configuration/_all_docs");
+            else
+            {
+//{"id":"andy_configuration","key":"andy_configuration","value":{"rev":"3-5a4ee47038c53e6835797bcd1144ab92"},
+//    "doc":{"_id":"andy_configuration","_rev":"3-5a4ee47038c53e6835797bcd1144ab92","local_database":"andy_local",
+//        "pending_database":"andy_pending","public_database":"andy_public","tracker_database":"thing_tracker",
+//        "instance_name":"Andrew'sThings","instance_uuid":"aca8072effca552a5103132630001126","keybase_username":"andy",
+// "deluge_password":"deluge","torrent_directory":null,"deluge_couch_url":"http://127.0.0.1:5984","upstream_things":"http://thingtracker.no-ip.org/root/things/"}},
+
+                eat_cookie (headers);
+                configurations = body.rows.reduce
+                (
+                    function (list, item)
+                    {
+                        if ("_" != item.id.charAt (0))
+                            list.push (item.doc);
+
+                        return (list);
+                    },
+                    []
+                );
+//                var report = "";
+//                for (var i = 0; i < configurations.length; i++)
+//                {
+//                    if ("" != report)
+//                        report += ", ";
+//                    report += configurations[i].instance_name;
+//                }
+//                log ("Configurations: " + report);
+            }
+        }
+    );
+}
+
+function get_tracker_database ()
+{
+    var ret;
+
+    ret = configurations.reduce
+    (
+        function (item, ret)
+        {
+            return (ret || (item._id == "default_configuration") ? item.tracker_database : null);
+        }
+    );
+
+    return (ret);
+}
+
+/**
+ * Process things.
+ */
+function process_things (documents)
+{
+    // get all databases
+    nano.something // same as $.couch.allDbs
+    (
+        function (err, body, headers)
+        {
+            if (err)
+                log ("couldn't get all databases");
+            else
+            {
+                // make a list of the names of databases
+                var databases = body.reduce
+                (
+                    function (ret, item, index, tracker_database)
+                    {
+                        if (("_" !== item.charAt (0))
+                            && ("things" != item)
+                            && ("configuration" != item)
+                            && (tracker_database != item))
+                            ret.push (item);
+
+                        return (ret);
+                    },
+                    [],
+                    get_tracker_database ()
+                );
+
+                // determine which trackers are being auto-fetched
+                // (i.e there is a database with the same UUID as a tracker but with a "z" prefix)
+                var candidates = documents.reduce
+                (
+                    function (ret, item, index, dbs)
+                    {
+                        var name = "z" + item.id;
+                        if (-1 != dbs.indexOf (name))
+                            ret.push ({ database: name, document: item });
+                        return (ret);
+                    },
+                    [],
+                    databases
+                )
+            }
+        }
+    );
+}
+
+/**
+ * Check for new things to fetch
+ */
+function check_things ()
+{
+    var thing_tracker;
+
+    thing_tracker = nano.db.use (get_tracker_database ());
+    thing_tracker.get
+    (
+        "_all_docs",
+        {
+            include_docs: true // ToDo: could optimize this and first just fetch the document names and then get the contents one by one
+        },
+        function (err, body, headers)
+        {
+            if (err)
+                log ("failed to get " + get_tracker_database () + "/_all_docs");
+            else
+            {
+// {"id":"2bfcb62ac1b0338cac0c993076d240a9","key":"2bfcb62ac1b0338cac0c993076d240a9","value":{"rev":"10-6fca97964c78e4070cf6409870858251"},
+// "doc":{"_id":"2bfcb62ac1b0338cac0c993076d240a9","_rev":"10-6fca97964c78e4070cf6409870858251","version":1.0500000000000000444,
+// "url":"http://thingtracker.no-ip.org/","things_url":"http://thingtracker.no-ip.org/root/things/",
+// "public_url":"http://thingtracker.no-ip.org/root/public_things/","tracker_url":"http://thingtracker.no-ip.org/root/thing_tracker/",
+// "name":"Raspberry Pi Things","owner":"derrickoswald",
+// "things":[{"id":"6e064c7ecd7ad8e8dee199bcaffd21484b83c6ba","title":"Hinged Smart Citizen Kit Case with Air Vents"},{"id":"de62b9f518676fc3c55cec08d590ae8bbf79d83e","title":"Case for Raspberry Pi model B"}]}}
+                eat_cookie (headers);
+                var documents = body.rows.reduce
+                (
+                    function (list, item)
+                    {
+                        if ("_" != item.id.charAt (0))
+                            list.push (item.doc);
+
+                        return (list);
+                    },
+                    []
+                );
+//                var report = "";
+//                for (var i = 0; i < documents.length; i++)
+//                {
+//                    if ("" != report)
+//                        report += ",";
+//                    report += "\n" + documents[i].name + ": " + JSON.stringify (documents[i].things, null, 4);
+//                }
+//                log ("Things: " + report);
+                process_things (documents);
+            }
+        }
+    );
+}
+
 /*
  * Function to be called each poll.
  */
 function my_thread ()
 {
-    log ("my_thread () polled");
+    try
+    {
+        if (null == configurations)
+            get_configurations ();
+//        else
+//            check_things ();
+    }
+    catch (exception)
+    {
+        log (String (exception));
+    }
 }
 
 /**
@@ -447,6 +637,12 @@ stdin.on
         if (section.secret)
         {
             secret = section.secret;
+            reconnect = true;
+        }
+
+        if (section.verbose)
+        {
+            verbose = section.verbose;
             reconnect = true;
         }
 

@@ -64,6 +64,11 @@ var secret = null;
  */
 var nano = null;
 
+/**
+ * Turn on nano logging if true.
+ */
+var verbose = false;
+
 /// Begin sha1.js
 
 /*
@@ -235,8 +240,10 @@ function need_nano (cookie)
     var options =
     {
         url: couchdb,
-        parseUrl: false,
-        log: function (id, message)
+        parseUrl: false
+    };
+    if (verbose)
+        options.log = function (id, message)
         {
             var prefix;
             var suffix;
@@ -250,8 +257,7 @@ function need_nano (cookie)
             else
                 suffix = "";
             console.log (JSON.stringify (["log", prefix + suffix]));
-        },
-    };
+        };
     if (secret)
         options.requestDefaults =
         {
@@ -909,11 +915,18 @@ stdin.on
             reconnect = true;
         }
 
+        if (section.verbose)
+        {
+            verbose = section.verbose;
+            reconnect = true;
+        }
+
         if (reconnect)
         {
             nano = need_nano ();
             log ("using " + couchdb + " as user " + username + (secret ? "[" + userrole + "]" : "") + (userpass ? "/" + userpass.replace (/./g, "*") : "") + "\n");
         }
+
         if (relisten)
         {
             server.listen (listen_port);

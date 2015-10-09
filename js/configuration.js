@@ -18,7 +18,7 @@ define
      */
     function (database)
     {
-        var version = 1.05;
+        var version = 1.06;
         var configuration_database = "configuration";
         var primary_key = "default_configuration";
         var instance_uuid = "";

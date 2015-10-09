@@ -324,7 +324,7 @@ define
             {
                 var id = event.target.getAttribute ("data-id");
                 var remote_url = event.target.getAttribute ("data-url");
-                id = "z" + id; // Only lowercase characters (a-z), digits (0-9), and any of the characters _, $, (, ), +, -, and / are allowed. Must begin with a letter.
+                id = "x" + id; // Only lowercase characters (a-z), digits (0-9), and any of the characters _, $, (, ), +, -, and / are allowed. Must begin with a letter.
 
                 database.make_database
                 (
@@ -387,7 +387,7 @@ define
             if (logged_in)
             {
                 var id = event.target.getAttribute ("data-id");
-                id = "z" + id;
+                id = "x" + id;
                 $.couch.db ("_replicator").openDoc
                 (
                     id,
@@ -480,7 +480,7 @@ define
 
                             ret = false;
 
-                            id = "z" + id;
+                            id = "x" + id;
                             replications.forEach
                             (
                                 function (item)

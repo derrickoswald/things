@@ -288,8 +288,8 @@ define
                                                     db = db.substring (0, db.length - 1);
                                                 }
                                                 else
-                                                    // otherwise the local database name has a Z prefix (if it exists)
-                                                    db = "z" + row.id;
+                                                    // otherwise the local database name has an x prefix (if it exists)
+                                                    db = "x" + row.id;
                                                 if (-1 != local_databases.indexOf (db))
                                                     databases.push
                                                     (
@@ -361,7 +361,7 @@ define
                         (
                             function (row)
                             {
-                                var localname = (self == row.value._id) ? pub : "z" + row.value._id;
+                                var localname = (self == row.value._id) ? pub : "x" + row.value._id;
                                 var name = row.value.name;
                                 var url = row.value.url;
                                 databases.forEach

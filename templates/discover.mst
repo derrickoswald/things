@@ -74,7 +74,7 @@ an internet connection. &lt;TBD&gt;Using the <b>lightweight</b> tracking option 
 metadata of the other things without replicating the associated files - which conserves disk space.&lt;/TBD&gt;</p>
 <p>To begin tracking another <em>things</em> system click on the <em>Track</em> button beside its 
 name in the <em>Tracker List</em> below. This will set up a unidirectional CouchDB continuous replication 
-between the remote machine and a local database named "z"+(uuid of the remote), and show it in the database 
+between the remote machine and a local database named "x"+(uuid of the remote), and show it in the database 
 list (on the right or above) so you can view the contents.</p>
 <p></p>
 <h2>Tracker List</h2>
