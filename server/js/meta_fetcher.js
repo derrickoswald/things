@@ -70,6 +70,11 @@ var nano = null;
 var verbose = false;
 
 /**
+ * Issue reports and messages if true.
+ */
+var debug = true;
+
+/**
  * The number of milliseconds between polls of the server.
  */
 var poll_interval = 60000;
@@ -81,9 +86,14 @@ var poll_interval = 60000;
 var interval = null;
 
 /**
- * Configuration cache
+ * Configuration cache.
  */
 var configurations = null;
+
+/**
+ * Configuration changes feed.
+ */
+var configuration_feed = null;
 
 /// Begin sha1.js
 
@@ -366,12 +376,36 @@ function my_function (options)
 }
 
 /**
+ * Issue a log message with the current configurations.
+ */
+function log_configurations ()
+{
+    var report;
+
+    report = "";
+    for (var i = 0; i < configurations.length; i++)
+    {
+        if ("" != report)
+            report += ", ";
+        report += configurations[i].instance_name + " " + configurations[i]._rev;
+    }
+    log ("Configurations: " + report);
+}
+
+/**
  * Get the configurations.
- * ToDo: get this once and monitor the changes feed
+ * Get all configurations once and monitor the changes feed.
  */
 function get_configurations ()
 {
     var configuration;
+
+    // turn off any existing continuous feed
+    if (null != configuration_feed)
+    {
+        configuration_feed.stop ();
+        configuration_feed = null;
+    }
 
     configuration = nano.db.use ("configuration");
     configuration.get
@@ -392,6 +426,7 @@ function get_configurations ()
 //        "instance_name":"Andrew'sThings","instance_uuid":"aca8072effca552a5103132630001126","keybase_username":"andy",
 // "deluge_password":"deluge","torrent_directory":null,"deluge_couch_url":"http://127.0.0.1:5984","upstream_things":"http://thingtracker.no-ip.org/root/things/"}},
 
+                // store the global list of configuration documents
                 eat_cookie (headers);
                 configurations = body.rows.reduce
                 (
@@ -404,14 +439,138 @@ function get_configurations ()
                     },
                     []
                 );
-//                var report = "";
-//                for (var i = 0; i < configurations.length; i++)
-//                {
-//                    if ("" != report)
-//                        report += ", ";
-//                    report += configurations[i].instance_name;
-//                }
-//                log ("Configurations: " + report);
+
+                // report if debugging
+                if (debug)
+                    log_configurations ();
+
+                // monitor the changes
+                configuration_feed = configuration.follow
+                (
+                    {
+                        since: "now",
+                        include_docs: true,
+                        heartbeat: 3 * 60 * 1000 // three minutes
+                    }
+                );
+                configuration_feed.on
+                (
+                    "change", // a change occurred; passed the change object from CouchDB
+                    function (change)
+                    {
+                        var updated;
+
+                        log ("configuration feed change: seq "  + change.seq + (change.deleted ? " deleted " : " updated ") + change.doc.instance_name + " uuid " + change.doc.instance_uuid);
+                        log ("change: " + JSON.stringify (change, null, 4));
+                        if ("_" != change.doc._id.charAt (0))
+                        {
+                            updated = false;
+                            configurations = configurations.reduce
+                            (
+                                function (ret, item)
+                                {
+                                    if (item._id == change.doc._id)
+                                    {
+                                        updated = true;
+                                        if (!change.deleted)
+                                            ret.push (change.doc);
+                                    }
+                                    else
+                                        ret.push (item);
+
+                                    return (ret);
+                                },
+                                []
+                            );
+                            if (!updated)
+                                configurations.push (change.doc);
+                            log_configurations ();
+                        }
+                    }
+                );
+
+                if (debug)
+                {
+                    configuration_feed.on
+                    (
+                        "start", // before any i/o occurs
+                        function ()
+                        {
+                            log ("configuration feed start");
+                        }
+                    );
+                    configuration_feed.on
+                    (
+                        "confirm_request", // database confirmation request is sent; passed the request object
+                        function (req)
+                        {
+                            log ("configuration feed confirm_request: "+ JSON.stringify (req, null, 4));
+                        }
+                    );
+                    configuration_feed.on
+                    (
+                        "confirm", // the database is confirmed; passed the couch database object
+                        function (db_obj)
+                        {
+                            log ("configuration feed database confirmed: " + JSON.stringify (db_obj, null, 4));
+                        }
+                    );
+                    configuration_feed.on
+                    (
+                        "catchup", // feed has caught up to the update_seq from the confirm step (assuming no subsequent changes, you have seen all the data)
+                        function (seq_id)
+                        {
+                            log ("configuration feed catchup: " + seq_id);
+                        }
+                    );
+                    configuration_feed.on
+                    (
+                        "wait", // follow is idle, waiting for the next data chunk from CouchDB
+                        function ()
+                        {
+                            // about 1 minute wait intervals - not sure how to affect that
+                            log ("configuration feed wait");
+                        }
+                    );
+                    configuration_feed.on
+                    (
+                        "timeout", // follow did not receive a heartbeat from couch in time (the passed object has .elapsed_ms set to the elapsed time)
+                        function (info)
+                        {
+                            log ("configuration feed timeout: " + JSON.stringify (info, null, 4));
+                        }
+                    );
+                    configuration_feed.on
+                    (
+                        "retry", // retry is scheduled (usually after a timeout or disconnection)
+                        function (info)
+                        {
+                            //    the passed object has
+                            //        .since the current sequence id
+                            //        .after the milliseconds to wait before the request occurs (on an exponential fallback schedule)
+                            //        .db the database url (scrubbed of basic auth credentials)
+                            log ("configuration feed retry: " + JSON.stringify (info, null, 4));
+                        }
+                    );
+                    configuration_feed.on
+                    (
+                        "stop", // feed is stopping, because of an error, or because you called feed.stop()
+                        function ()
+                        {
+                            log ("configuration feed stop");
+                        }
+                    );
+                    configuration_feed.on
+                    (
+                        "error", // an error occurred
+                        function (err)
+                        {
+                            log ("configuration feed error: " + JSON.stringify (err, null, 4));
+                        }
+                    );
+                }
+
+                configuration_feed.follow ();
             }
         }
     );
@@ -433,12 +592,12 @@ function get_tracker_database ()
 }
 
 /**
- * Process things.
+ * Process trackers.
  */
-function process_things (documents)
+function process_trackers (documents)
 {
     // get all databases
-    nano.something // same as $.couch.allDbs
+    nano.db.list // same as $.couch.allDbs
     (
         function (err, body, headers)
         {
@@ -463,6 +622,19 @@ function process_things (documents)
                     get_tracker_database ()
                 );
 
+                // report if debugging
+                if (debug)
+                {
+                    var report = "";
+                    for (var i = 0; i < databases.length; i++)
+                    {
+                        if ("" != report)
+                            report += ",";
+                        report += "\n" + databases[i];
+                    }
+                    log ("Databases: " + report);
+                }
+
                 // determine which trackers are being auto-fetched
                 // (i.e there is a database with the same UUID as a tracker but with a "z" prefix)
                 var candidates = documents.reduce
@@ -476,14 +648,31 @@ function process_things (documents)
                     },
                     [],
                     databases
-                )
+                );
+
+                // process candidates
+                if (0 != candidates.length)
+                {
+                    // report if debugging
+                    if (debug)
+                    {
+                        var report = "";
+                        for (var i = 0; i < candidates.length; i++)
+                        {
+                            if ("" != report)
+                                report += ",";
+                            report += "\n" + candidates[i].database + " " + candidates[i].document;
+                        }
+                        log ("Candidates: " + report);
+                    }
+                }
             }
         }
     );
 }
 
 /**
- * Check for new things to fetch
+ * Check for new things to fetch.
  */
 function check_things ()
 {
@@ -508,6 +697,8 @@ function check_things ()
 // "public_url":"http://thingtracker.no-ip.org/root/public_things/","tracker_url":"http://thingtracker.no-ip.org/root/thing_tracker/",
 // "name":"Raspberry Pi Things","owner":"derrickoswald",
 // "things":[{"id":"6e064c7ecd7ad8e8dee199bcaffd21484b83c6ba","title":"Hinged Smart Citizen Kit Case with Air Vents"},{"id":"de62b9f518676fc3c55cec08d590ae8bbf79d83e","title":"Case for Raspberry Pi model B"}]}}
+
+                // get a list of trackers
                 eat_cookie (headers);
                 var documents = body.rows.reduce
                 (
@@ -520,15 +711,25 @@ function check_things ()
                     },
                     []
                 );
-//                var report = "";
-//                for (var i = 0; i < documents.length; i++)
-//                {
-//                    if ("" != report)
-//                        report += ",";
-//                    report += "\n" + documents[i].name + ": " + JSON.stringify (documents[i].things, null, 4);
-//                }
-//                log ("Things: " + report);
-                process_things (documents);
+
+                // process the trackers
+                if (0 != documents.length)
+                {
+                    // report if debugging
+                    if (debug)
+                    {
+                        var report = "";
+                        for (var i = 0; i < documents.length; i++)
+                        {
+                            if ("" != report)
+                                report += ",";
+                            report += "\n" + documents[i].name + ": " + JSON.stringify (documents[i].things, null, 4);
+                        }
+                        log ("Trackers: " + report);
+                    }
+
+                    process_trackers (documents);
+                }
             }
         }
     );
@@ -541,6 +742,7 @@ function my_thread ()
 {
     try
     {
+        // get the configurations
         if (null == configurations)
             get_configurations ();
 //        else
@@ -646,6 +848,12 @@ stdin.on
             reconnect = true;
         }
 
+        if (section.debug)
+        {
+            debug = section.debug;
+            reconnect = true;
+        }
+
         if (section.poll_interval)
         {
             poll_interval = section.poll_interval;
@@ -656,6 +864,8 @@ stdin.on
         {
             nano = need_nano ();
             log ("using " + couchdb + " as user " + username + (secret ? "[" + userrole + "]" : "") + (userpass ? "/" + userpass.replace (/./g, "*") : "") + "\n");
+
+            // start the background processing
             if (null != interval)
             {
                 log ("clearing background thread\n");
