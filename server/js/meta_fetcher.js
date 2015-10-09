@@ -8,6 +8,7 @@ var http = require ("http");
 var https = require ("https");
 var sys = require ("sys");
 var url = require ("url");
+var zlib = require ("zlib");
 
 /**
  * Command line arguments.
@@ -735,6 +736,207 @@ function check_things ()
     );
 }
 
+/**
+ * Deluge URL.
+ * Corresponds to http://localhost:8112/json as proxied by couchdb
+ * i.e. add this line under the [httpd_global_handlers] section:
+ * <code>json = {couch_httpd_proxy, handle_proxy_req, &lt;&lt;"http://localhost:8112"&gt;&gt;}</code>
+ * NOTE: the json name is not optional, since the cookie contains the path /json and hence
+ * will only match through the proxy if the trigger path is also json, hence the /json/json
+ */
+var deluge_proxy = "/json/json";
+
+/**
+ * Parse a URL.
+ *    parseLocation ("http://example.com:3000/pathname/?search=test#hash") =>
+ *    {
+ *        "protocol": "http:",
+ *        "host": "example.com:3000",
+ *        "hostname": "example.com",
+ *        "port": "3000",
+ *        "pathname": "/pathname/",
+ *        "search": "?search=test",
+ *        "hash": "#hash"
+ *    }
+ */
+function parseLocation (href)
+{
+    var regexp;
+    var match;
+
+    // ToDo: username and password ?
+    regexp = /^(https?\:)\/\/(([^:\/?#]*)(?:\:([0-9]+))?)(\/[^?#]*|)(\?[^#]*|)(#.*|)$/;
+//    var parts = [
+//        "^(https?:)//", // protocol
+//        "(([^:/?#]*)(?::([0-9]+))?)", // host (hostname and port)
+//        "(/[^?#]*|)", // pathname
+//        "(\\?[^#]*|)", // search
+//        "(#.*|)$" // hash
+//    ];
+//    regexp = new RegExp (parts.join (""));
+    match = href.match (regexp);
+    return (
+        match &&
+        {
+            protocol: match[1],
+            host: match[2],
+            hostname: match[3],
+            port: match[4],
+            pathname: match[5],
+            search: match[6],
+            hash: match[7]
+        }
+    );
+}
+
+/**
+ * Get the magic cookie from the deluge-web API.
+ * @param {string} password secret password
+ * @param {object} options to process the login:
+ * <pre>
+ * success: function() to call when the user is logged in
+ * error: function to call when a problem occurs or the user is not logged in
+ * </pre>
+ * @return <em>nothing</em>
+ * @function login
+ */
+function login (password, callbacks)
+{
+    var data = JSON.stringify ({"method": "auth.login", "params": [password], "id": 1}, null, 4);
+    // var url = new URL (deluge_proxy, couchdb);
+    // URL { href: "http://localhost:5984/json/json/", origin: "http://localhost:5984", protocol: "http:", username: "", password: "", host: "localhost:5984", hostname: "localhost", port: "5984", pathname: "/json/json/", search: "" }
+    var url = parseLocation (couchdb + deluge_proxy);
+    // {protocol: "http:", host: "localhost:5984", hostname: "localhost", port: "5984", pathname: "/json/json"…}
+    log (JSON.stringify (url, null, 4));
+    var options =
+    {
+        hostname: url.hostname,
+        port: url.port ? Number (url.port) : (url.protocol == "http:" ? 80 : 443),
+        path: url.pathname,
+        method: "POST",
+        headers:
+        {
+            "Content-Type": "application/json",
+            "Content-Length": data.length,
+            "Accept": "application/json",
+            "Accept-Encoding" : "gzip,deflate"
+
+//  "accept-charset" : "ISO-8859-1,utf-8;q=0.7,*;q=0.3",
+//  "accept-language" : "en-US,en;q=0.8",
+//  "accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+//  "user-agent" : "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) AppleWebKit/537.13+ (KHTML, like Gecko) Version/5.1.7 Safari/534.57.2",
+//  "accept-encoding" : "gzip,deflate",
+        }
+    };
+    function handler (res)
+    {
+        var chunks = [];
+
+        log ("status: " + res.statusCode);
+        log ("headers: " + JSON.stringify (res.headers));
+        //res.setEncoding ("utf8");
+        res.on
+        (
+            "data",
+            function (chunk)
+            {
+                log ("chunk " + chunk);
+                chunks.push (chunk);
+            }
+        );
+        res.on
+        (
+            "end",
+            function ()
+            {
+                log ("end");
+                if (200 == res.statusCode)
+                {
+                    var buffer = Buffer.concat (chunks);
+                    log ("buffer " + buffer); // {"id": 2, "result": true, "error": null}
+                    var encoding = res.headers["content-encoding"];
+                    log (encoding);
+                    if (encoding == "gzip")
+                    {
+                        zlib.gunzip
+                        (
+                            buffer,
+                            function (err, decoded)
+                            {
+                                if (err)
+                                {
+                                    log (JSON.stringify (err, null, 4));
+                                    callbacks.error ({message: err});
+                                }
+                                else
+                                {
+                                    log (decoded.toString ());
+                                    callbacks.success (decoded.toString ());
+                                }
+                            }
+                        );
+                    }
+                    else if (encoding == "deflate")
+                    {
+                        zlib.inflate
+                        (
+                            buffer,
+                            function (err, decoded)
+                            {
+                                if (err)
+                                    callbacks.error ({message: err});
+                                elses
+                                {
+                                    log (decoded.toString ());
+                                    callbacks.success (decoded.toString());
+                                }
+                            }
+                        );
+                    }
+                    else
+                      callbacks.success (buffer.toString ());
+                }
+                else
+                    callbacks.error ({message: "status code " + res.statusCode});
+            }
+        );
+    };
+    // ToDo: https like this too?
+    var request = url.protocol == "http:" ? http.request (options, handler) : https.request (options, handler);
+    request.on
+    (
+        "error",
+        function (error)
+        {
+            callbacks.error (error);
+        }
+    );
+
+    // write data to request body
+    request.write (data);
+    request.end ();
+}
+
+function try_login ()
+{
+    if (null != deluge_proxy)
+        login
+        (
+            "deluge",
+            {
+                success: function (text)
+                {
+                    log ("successfully logged in: " + text);
+                },
+                error: function (error)
+                {
+                    log ("failed to log in: " + error.message);
+                }
+            }
+        );
+    deluge_proxy = null;
+}
+
 /*
  * Function to be called each poll.
  */
@@ -745,6 +947,8 @@ function my_thread ()
         // get the configurations
         if (null == configurations)
             get_configurations ();
+        else
+            try_login ();
 //        else
 //            check_things ();
     }

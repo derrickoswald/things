@@ -6,14 +6,14 @@
  */
 define
 (
-    ["records", "configuration"],
+    ["configuration"],
     /**
      * @summary Functions for interfacing to the Deluge web plugin.
      * @name deluge
      * @exports deluge
      * @version 1.0
      */
-    function (records, configuration)
+    function (configuration)
     {
         /**
          * Deluge URL.
