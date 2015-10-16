@@ -675,6 +675,48 @@ function process_candidates (candidates, torrents)
                                 }
                                 log ("Missing from " + item.document.name + ": " + report);
                             }
+
+                            // find the missing ones where a torrent has been requested (and maybe downloaded)
+                            var work = missing.reduce
+                            (
+                                function (ret, item, i)
+                                {
+                                    var torrent = torrents[item.id];
+                                    if (null == torrent)
+                                        ret.unrequested.push (item);
+                                    else
+                                        ret.requested.push (item);
+
+                                    return (ret);
+                                },
+                                { unrequested: [], requested: [] }
+                            );
+
+                            // report if debugging
+                            if (debug && (0 != work.unrequested.length))
+                            {
+                                var report = "";
+                                for (var i = 0; i < work.unrequested.length; i++)
+                                {
+                                    if ("" != report)
+                                        report += ",";
+                                    report += "\n" + JSON.stringify (work.unrequested[i]);
+                                }
+                                log ("Unrequested for " + item.document.name + ": " + report);
+                            }
+                            if (debug && (0 != work.requested.length))
+                            {
+                                var report = "";
+                                for (var i = 0; i < work.requested.length; i++)
+                                {
+                                    if ("" != report)
+                                        report += ",";
+                                    report += "\n" + JSON.stringify (work.requested[i]);
+                                }
+                                log ("Requested for " + item.document.name + ": " + report);
+                            }
+
+                            // ready to process
                         }
                     }
                 }
@@ -692,7 +734,12 @@ function process_missing (candidates)
             success: function (torrents)
             {
                 if (debug)
-                    log ("deluge_torrents success: " + JSON.stringify (torrents, null, 4));
+                {
+                    var names = [];
+                    for (property in torrents)
+                        names.push (property);
+                    log ("deluge_torrents success: " + JSON.stringify (names.join (", "), null, 4));
+                }
                 process_candidates (candidates, torrents);
             },
             error: function (error)
@@ -1100,7 +1147,6 @@ function deluge_torrents (callbacks)
         {
             success: function (response)
             {
-                log ("deluge_torrents response:" + JSON.stringify (response));
                 if (response.result)
                     callbacks.success (response.result.torrents);
                 else
