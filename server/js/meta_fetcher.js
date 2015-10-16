@@ -613,15 +613,11 @@ function get_tracker_database ()
     return (ret);
 }
 
-function process_missing (to_be_done)
+function process_candidates (candidates, torrents)
 {
-}
-
-function process_candidates (candidates)
-{
-    var tbd = candidates.reduce
+    candidates.forEach
     (
-        function (ret, item, index, array)
+        function (item, index, array)
         {
             // get the documents currently in the database, i.e. already fetched
             nano.request
@@ -638,7 +634,6 @@ function process_candidates (candidates)
                     else
                     {
                         eat_cookie (headers);
-
                         // make a list of the names of existing documents
                         var fetched = body.rows.reduce
                         (
@@ -681,18 +676,33 @@ function process_candidates (candidates)
                                 log ("Missing from " + item.document.name + ": " + report);
                             }
                         }
-
-                        ret.push ({ candidate: item, things: missing });
                     }
                 }
             );
-
-            return (ret);
-        },
-        []
+        }
     );
-    if (0 != tbd.length)
-        process_missing (tbd);
+}
+
+function process_missing (candidates)
+{
+    log ("process_missing " + JSON.stringify (candidates));
+    deluge_torrents
+    (
+        {
+            success: function (torrents)
+            {
+                if (debug)
+                    log ("deluge_torrents success: " + JSON.stringify (torrents, null, 4));
+                process_candidates (candidates, torrents);
+            },
+            error: function (error)
+            {
+                if (debug)
+                    log ("deluge_torrents error: " + JSON.stringify (error, null, 4));
+                log ("failed to fetch torrents from Deluge");
+            }
+        }
+    );
 }
 
 /**
@@ -769,7 +779,7 @@ function process_trackers (trackers)
                         }
                         log ("Candidates: " + report);
                     }
-                    process_candidates (candidates);
+                    process_missing (candidates);
                 }
             }
         }
@@ -905,7 +915,7 @@ function decompression_handler (method, callbacks, err, decoded)
     {
         json = decoded.toString ();
         if (debug)
-            log ("Deluge response: " + json);
+            log ("Deluge response: " + json.substring (0, 128) + (json.length > 128 ? "..." : ""));
         parsed = JSON.parse (json);
         callbacks.success (parsed);
     }
@@ -934,7 +944,7 @@ function deluge_handler (callbacks, res)
         {
             if (debug)
                 log ("Deluge cookies: " + JSON.stringify (cookies, null, 4));
-            deluge_cookies = cookies;
+            deluge_cookies = JSON.parse (JSON.stringify (cookies, null, 4));
         }
     }
     else
@@ -978,6 +988,60 @@ function deluge_handler (callbacks, res)
 };
 
 /**
+ * Perform a deluge API call.
+ * @param {object} data - the JSON data to POST to the server
+ * @param {object} callbacks - options to process the login:
+ * <pre>
+ * success: function() to call when the user is logged in
+ * error: function to call when a problem occurs or the user is not logged in
+ * </pre>
+ * @returns the request object
+ */
+function deluge_call (data, callbacks)
+{
+    var url;
+    var options;
+    var handler;
+    var request;
+
+    data = JSON.stringify (data, null, 4);
+    url = parseLocation (couchdb + deluge_proxy);
+    if (debug)
+        log ("Deluge proxy: " + JSON.stringify (url, null, 4));
+        // {protocol: "http:", host: "localhost:5984", hostname: "localhost", port: "5984", pathname: "/json/json"…}
+    options =
+    {
+        hostname: url.hostname,
+        port: url.port ? Number (url.port) : (url.protocol == "http:" ? 80 : 443),
+        path: url.pathname,
+        method: "POST",
+        headers:
+        {
+            "content-type": "application/json",
+            "content-length": data.length,
+            "accept": "application/json",
+            "accept-encoding" : "gzip,deflate",
+            "connection": "keep-alive"
+        }
+    };
+    if (null != deluge_cookies)
+        options.headers["cookie"] = deluge_cookies;
+    handler = deluge_handler.bind (this, callbacks);
+    request = url.protocol == "http:" ? http.request (options, handler) : https.request (options, handler);
+    request.on
+    (
+        "error",
+        callbacks.error
+    );
+
+    // write data to request body
+    request.write (data);
+    request.end ();
+
+    return (request);
+}
+
+/**
  * Get the magic cookie from the deluge-web API.
  * @param {string} password - secret password
  * @param {object} callbacks - options to process the login:
@@ -990,38 +1054,61 @@ function deluge_handler (callbacks, res)
  */
 function deluge_login (password, callbacks)
 {
-    var data = JSON.stringify ({ method: "auth.login", params: [password], id: ++deluge_sequence }, null, 4);
-    var url = parseLocation (couchdb + deluge_proxy);
-    if (debug)
-        log ("Deluge proxy: " + JSON.stringify (url, null, 4));
-        // {protocol: "http:", host: "localhost:5984", hostname: "localhost", port: "5984", pathname: "/json/json"…}
-    var options =
-    {
-        hostname: url.hostname,
-        port: url.port ? Number (url.port) : (url.protocol == "http:" ? 80 : 443),
-        path: url.pathname,
-        method: "POST",
-        headers:
-        {
-            "Content-Type": "application/json",
-            "Content-Length": data.length,
-            "Accept": "application/json",
-            "Accept-Encoding" : "gzip,deflate"
-        }
-    };
-    if (null != deluge_cookies)
-        options.headers["Cookies"] = deluge_cookies;
-    var handler = deluge_handler.bind (this, callbacks);
-    var request = url.protocol == "http:" ? http.request (options, handler) : https.request (options, handler);
-    request.on
-    (
-        "error",
-        callbacks.error
-    );
+    var data = { method: "auth.login", params: [password], id: ++deluge_sequence };
+    deluge_call (data, callbacks);
+}
 
-    // write data to request body
-    request.write (data);
-    request.end ();
+function deluge_torrents (callbacks)
+{
+    var data =
+    {
+        method: "web.update_ui",
+        params:
+        [
+            [
+                "queue",
+                "name",
+                "total_size",
+                "state",
+                "progress",
+                "num_seeds",
+                "total_seeds",
+                "num_peers",
+                "total_peers",
+                "download_payload_rate",
+                "upload_payload_rate",
+                "eta",
+                "ratio",
+                "distributed_copies",
+                "is_auto_managed",
+                "time_added",
+                "tracker_host",
+                "save_path",
+                "total_done",
+                "total_uploaded",
+                "max_download_speed",
+                "max_upload_speed",
+                "seeds_peers_ratio"
+            ],
+            {}
+        ],
+        id: ++deluge_sequence
+    };
+    deluge_call
+    (
+        data,
+        {
+            success: function (response)
+            {
+                log ("deluge_torrents response:" + JSON.stringify (response));
+                if (response.result)
+                    callbacks.success (response.result.torrents);
+                else
+                    callbacks.error (response.error);
+            },
+            error: callbacks.error
+        }
+    );
 }
 
 /*
