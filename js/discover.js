@@ -367,6 +367,9 @@ define
                             alert (name + " database creation failed");
                         }
                     },
+                    // ToDo: determine the use-case where a new design document (with name _design/x<id>) is really needed
+                    // - since the cloned database already has one
+                    // what would we have to change to use the cloned design document (with name _design/public_things maybe)
                     database.standard_views,
                     database.standard_validation,
                     database.standard_search

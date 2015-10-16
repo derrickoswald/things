@@ -96,6 +96,27 @@ var configurations = null;
  */
 var configuration_feed = null;
 
+/**
+ * Deluge proxy URL.
+ * Corresponds to http://localhost:8112/json as proxied by couchdb
+ * i.e. this line has been added under the [httpd_global_handlers] section:
+ * <code>json = {couch_httpd_proxy, handle_proxy_req, &lt;&lt;"http://localhost:8112"&gt;&gt;}</code>
+ * NOTE: the json name is not optional, since the cookie contains the path /json and hence
+ * will only match through the proxy if the trigger path is also json, hence the /json/json
+ */
+var deluge_proxy = "/json/json";
+
+/**
+ * Deluge cookies.
+ * After a successful login, we can use these cookies (usually only one) for authentication.
+ */
+var deluge_cookies = null;
+
+/**
+ * Sequential numbering for deluge requests.
+ */
+var deluge_sequence = 0;
+
 /// Begin sha1.js
 
 /*
@@ -592,10 +613,92 @@ function get_tracker_database ()
     return (ret);
 }
 
+function process_missing (to_be_done)
+{
+}
+
+function process_candidates (candidates)
+{
+    var tbd = candidates.reduce
+    (
+        function (ret, item, index, array)
+        {
+            // get the documents currently in the database, i.e. already fetched
+            nano.request
+            (
+                {
+                    db: item.database,
+                    doc: "_all_docs",
+                    method: "get"
+                },
+                function (err, body, headers)
+                {
+                    if (err)
+                        log ("failed to get all documents for " + item.database);
+                    else
+                    {
+                        eat_cookie (headers);
+
+                        // make a list of the names of existing documents
+                        var fetched = body.rows.reduce
+                        (
+                            function (ret, item, i)
+                            {
+                                if ("_" !== item.charAt (0))
+                                    ret.push (item);
+
+                                return (ret);
+                            },
+                            []
+                        );
+
+                        // now make a list of documents that should exist but don't
+                        // as the difference between the already fetched list and the thing tracker things list
+                        var missing = item.document.things.reduce
+                        (
+                            function (ret, item, i)
+                            {
+                                if (-1 == fetched.indexOf (item.id))
+                                    ret.push (item);
+
+                                return (ret);
+                            },
+                            []
+                        );
+
+                        if (0 != missing.length)
+                        {
+                            // report if debugging
+                            if (debug)
+                            {
+                                var report = "";
+                                for (var i = 0; i < missing.length; i++)
+                                {
+                                    if ("" != report)
+                                        report += ",";
+                                    report += "\n" + JSON.stringify (missing[i]);
+                                }
+                                log ("Missing from " + item.document.name + ": " + report);
+                            }
+                        }
+
+                        ret.push ({ candidate: item, things: missing });
+                    }
+                }
+            );
+
+            return (ret);
+        },
+        []
+    );
+    if (0 != tbd.length)
+        process_missing (tbd);
+}
+
 /**
  * Process trackers.
  */
-function process_trackers (documents)
+function process_trackers (trackers)
 {
     // get all databases
     nano.db.list // same as $.couch.allDbs
@@ -637,18 +740,18 @@ function process_trackers (documents)
                 }
 
                 // determine which trackers are being auto-fetched
-                // (i.e there is a database with the same UUID as a tracker but with a "z" prefix)
-                var candidates = documents.reduce
+                // (i.e there is a database with a name that is the UUID of a tracker but with a "z" prefix)
+                var candidates = trackers.reduce
                 (
-                    function (ret, item, index, dbs)
+                    function (ret, item, index, tks)
                     {
-                        var name = "z" + item.id;
-                        if (-1 != dbs.indexOf (name))
+                        var name = "z" + item._id;
+                        if (-1 != databases.indexOf (name))
                             ret.push ({ database: name, document: item });
+
                         return (ret);
                     },
-                    [],
-                    databases
+                    []
                 );
 
                 // process candidates
@@ -662,10 +765,11 @@ function process_trackers (documents)
                         {
                             if ("" != report)
                                 report += ",";
-                            report += "\n" + candidates[i].database + " " + candidates[i].document;
+                            report += "\n" + candidates[i].database + " " + candidates[i].document.name;
                         }
                         log ("Candidates: " + report);
                     }
+                    process_candidates (candidates);
                 }
             }
         }
@@ -724,7 +828,7 @@ function check_things ()
                         {
                             if ("" != report)
                                 report += ",";
-                            report += "\n" + documents[i].name + ": " + JSON.stringify (documents[i].things, null, 4);
+                            report += "\n" + documents[i].name; // + ": " + JSON.stringify (documents[i].things, null, 4);
                         }
                         log ("Trackers: " + report);
                     }
@@ -735,16 +839,6 @@ function check_things ()
         }
     );
 }
-
-/**
- * Deluge URL.
- * Corresponds to http://localhost:8112/json as proxied by couchdb
- * i.e. add this line under the [httpd_global_handlers] section:
- * <code>json = {couch_httpd_proxy, handle_proxy_req, &lt;&lt;"http://localhost:8112"&gt;&gt;}</code>
- * NOTE: the json name is not optional, since the cookie contains the path /json and hence
- * will only match through the proxy if the trigger path is also json, hence the /json/json
- */
-var deluge_proxy = "/json/json";
 
 /**
  * Parse a URL.
@@ -790,6 +884,100 @@ function parseLocation (href)
 }
 
 /**
+ * Response decompressor.
+ * @param {string} method - the method being used (for error messages)
+ * @param {object} callbacks - options to process the success() or error()
+ * @param {object} err - the (undocumented) zlib error object
+ * @param {object} decoded - the (undocumented) zlib decoded data
+ */
+function decompression_handler (method, callbacks, err, decoded)
+{
+    var json;
+    var parsed;
+
+    if (err)
+    {
+        if (debug)
+            log ("Deluge response " + method + " error: " + JSON.stringify (err, null, 4));
+        callbacks.error ({message: err});
+    }
+    else
+    {
+        json = decoded.toString ();
+        if (debug)
+            log ("Deluge response: " + json);
+        parsed = JSON.parse (json);
+        callbacks.success (parsed);
+    }
+}
+
+/**
+ * Handle Deluge response.
+ * @param {object} callbacks - options to process the success() or error()
+ * @param {object} res - the nodejs http/https response object
+ */
+function deluge_handler (callbacks, res)
+{
+    var cookies;
+    var chunks = [];
+
+    if (debug)
+    {
+        log ("Deluge result status code: " + res.statusCode);
+        log ("Deluge result headers: " + JSON.stringify (res.headers));
+    }
+    if (200 == res.statusCode)
+    {
+        // "set-cookie":["_session_id=7c2b84e58b57932aa9320db5d3d880df2248; Expires=Fri, 16 Oct 2015 07:18:16 GMT; Path=/json"]
+        cookies = res.headers["set-cookie"];
+        if (null != cookies)
+        {
+            if (debug)
+                log ("Deluge cookies: " + JSON.stringify (cookies, null, 4));
+            deluge_cookies = cookies;
+        }
+    }
+    else
+        callbacks.error ({ message: "status code: " + res.statusCode });
+    res.on
+    (
+        "data",
+        function (chunk)
+        {
+            chunks.push (chunk);
+        }
+    );
+    res.on
+    (
+        "end",
+        function ()
+        {
+            var buffer;
+            var encoding;
+
+            buffer = Buffer.concat (chunks);
+            encoding = res.headers["content-encoding"];
+            if (debug)
+                log ("Deluge response encoding: " + encoding);
+            if (encoding == "gzip")
+                zlib.gunzip
+                (
+                    buffer,
+                    decompression_handler.bind (this, "gunzip", callbacks)
+                );
+            else if (encoding == "deflate")
+                zlib.inflate
+                (
+                    buffer,
+                    decompression_handler.bind (this, "inflate", callbacks)
+                );
+            else
+                decompression_handler (null, callbacks, null, buffer);
+        }
+    );
+};
+
+/**
  * Get the magic cookie from the deluge-web API.
  * @param {string} password - secret password
  * @param {object} callbacks - options to process the login:
@@ -802,7 +990,7 @@ function parseLocation (href)
  */
 function deluge_login (password, callbacks)
 {
-    var data = JSON.stringify ({"method": "auth.login", "params": [password], "id": 1}, null, 4);
+    var data = JSON.stringify ({ method: "auth.login", params: [password], id: ++deluge_sequence }, null, 4);
     var url = parseLocation (couchdb + deluge_proxy);
     if (debug)
         log ("Deluge proxy: " + JSON.stringify (url, null, 4));
@@ -821,124 +1009,19 @@ function deluge_login (password, callbacks)
             "Accept-Encoding" : "gzip,deflate"
         }
     };
-    function handler (res)
-    {
-        var chunks = [];
-
-        if (debug)
-        {
-            log ("Deluge login status: " + res.statusCode);
-            log ("Deluge login headers: " + JSON.stringify (res.headers));
-        }
-        res.on
-        (
-            "data",
-            function (chunk)
-            {
-                chunks.push (chunk);
-            }
-        );
-        res.on
-        (
-            "end",
-            function ()
-            {
-                if (200 == res.statusCode)
-                {
-                    var buffer = Buffer.concat (chunks);
-                    var encoding = res.headers["content-encoding"];
-                    if (debug)
-                        log ("Deluge login response encoding: " + encoding);
-                    if (encoding == "gzip")
-                    {
-                        zlib.gunzip
-                        (
-                            buffer,
-                            function (err, decoded)
-                            {
-                                if (err)
-                                {
-                                    if (debug)
-                                        log ("Deluge login response gunzip error: " + JSON.stringify (err, null, 4));
-                                    callbacks.error ({message: err});
-                                }
-                                else
-                                {
-                                    if (debug)
-                                        log ("Deluge login response: " + decoded.toString ());
-                                    callbacks.success (decoded.toString ());
-                                }
-                            }
-                        );
-                    }
-                    else if (encoding == "deflate")
-                    {
-                        zlib.inflate
-                        (
-                            buffer,
-                            function (err, decoded)
-                            {
-                                if (err)
-                                {
-                                    if (debug)
-                                        log ("Deluge login response inflate error: " + JSON.stringify (err, null, 4));
-                                    callbacks.error ({message: err});
-                                }
-                                else
-                                {
-                                    if (debug)
-                                        log ("Deluge login response: " + decoded.toString ());
-                                    callbacks.success (decoded.toString());
-                                }
-                            }
-                        );
-                    }
-                    else
-                    {
-                        if (debug)
-                            log ("Deluge login response: " + buffer.toString ());
-                        callbacks.success (buffer.toString ());
-                    }
-                }
-                else
-                    callbacks.error ({message: "status code " + res.statusCode});
-            }
-        );
-    };
-    // ToDo: https like this too?
+    if (null != deluge_cookies)
+        options.headers["Cookies"] = deluge_cookies;
+    var handler = deluge_handler.bind (this, callbacks);
     var request = url.protocol == "http:" ? http.request (options, handler) : https.request (options, handler);
     request.on
     (
         "error",
-        function (error)
-        {
-            callbacks.error (error);
-        }
+        callbacks.error
     );
 
     // write data to request body
     request.write (data);
     request.end ();
-}
-
-function try_login ()
-{
-    if (null != deluge_proxy)
-        deluge_login
-        (
-            "deluge",
-            {
-                success: function (text)
-                {
-                    log ("successfully logged in: " + text);
-                },
-                error: function (error)
-                {
-                    log ("failed to log in: " + error.message);
-                }
-            }
-        );
-    deluge_proxy = null;
 }
 
 /*
@@ -951,10 +1034,31 @@ function my_thread ()
         // get the configurations
         if (null == configurations)
             get_configurations ();
+        else if (null == deluge_cookies)
+        {
+            if (deluge_sequence < 5) // try to login 5 times
+                deluge_login
+                (
+                    "deluge", // ToDo: don't hardcode the password
+                    {
+                        success: function (response)
+                        {
+                            if (debug)
+                                log ("deluge_login success: " + JSON.stringify (response, null, 4));
+                            if (response.result)
+                                log ("successfully logged in to Deluge");
+                        },
+                        error: function (error)
+                        {
+                            if (debug)
+                                log ("deluge_login error: " + JSON.stringify (error, null, 4));
+                            log ("failed to log in to Deluge");
+                        }
+                    }
+                );
+        }
         else
-            try_login ();
-//        else
-//            check_things ();
+            check_things ();
     }
     catch (exception)
     {
