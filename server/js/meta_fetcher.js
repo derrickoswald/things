@@ -791,23 +791,22 @@ function parseLocation (href)
 
 /**
  * Get the magic cookie from the deluge-web API.
- * @param {string} password secret password
- * @param {object} options to process the login:
+ * @param {string} password - secret password
+ * @param {object} callbacks - options to process the login:
  * <pre>
  * success: function() to call when the user is logged in
  * error: function to call when a problem occurs or the user is not logged in
  * </pre>
  * @return <em>nothing</em>
- * @function login
+ * @function deluge_login
  */
-function login (password, callbacks)
+function deluge_login (password, callbacks)
 {
     var data = JSON.stringify ({"method": "auth.login", "params": [password], "id": 1}, null, 4);
-    // var url = new URL (deluge_proxy, couchdb);
-    // URL { href: "http://localhost:5984/json/json/", origin: "http://localhost:5984", protocol: "http:", username: "", password: "", host: "localhost:5984", hostname: "localhost", port: "5984", pathname: "/json/json/", search: "" }
     var url = parseLocation (couchdb + deluge_proxy);
-    // {protocol: "http:", host: "localhost:5984", hostname: "localhost", port: "5984", pathname: "/json/json"…}
-    log (JSON.stringify (url, null, 4));
+    if (debug)
+        log ("Deluge proxy: " + JSON.stringify (url, null, 4));
+        // {protocol: "http:", host: "localhost:5984", hostname: "localhost", port: "5984", pathname: "/json/json"…}
     var options =
     {
         hostname: url.hostname,
@@ -820,27 +819,22 @@ function login (password, callbacks)
             "Content-Length": data.length,
             "Accept": "application/json",
             "Accept-Encoding" : "gzip,deflate"
-
-//  "accept-charset" : "ISO-8859-1,utf-8;q=0.7,*;q=0.3",
-//  "accept-language" : "en-US,en;q=0.8",
-//  "accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-//  "user-agent" : "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) AppleWebKit/537.13+ (KHTML, like Gecko) Version/5.1.7 Safari/534.57.2",
-//  "accept-encoding" : "gzip,deflate",
         }
     };
     function handler (res)
     {
         var chunks = [];
 
-        log ("status: " + res.statusCode);
-        log ("headers: " + JSON.stringify (res.headers));
-        //res.setEncoding ("utf8");
+        if (debug)
+        {
+            log ("Deluge login status: " + res.statusCode);
+            log ("Deluge login headers: " + JSON.stringify (res.headers));
+        }
         res.on
         (
             "data",
             function (chunk)
             {
-                log ("chunk " + chunk);
                 chunks.push (chunk);
             }
         );
@@ -849,13 +843,12 @@ function login (password, callbacks)
             "end",
             function ()
             {
-                log ("end");
                 if (200 == res.statusCode)
                 {
                     var buffer = Buffer.concat (chunks);
-                    log ("buffer " + buffer); // {"id": 2, "result": true, "error": null}
                     var encoding = res.headers["content-encoding"];
-                    log (encoding);
+                    if (debug)
+                        log ("Deluge login response encoding: " + encoding);
                     if (encoding == "gzip")
                     {
                         zlib.gunzip
@@ -865,12 +858,14 @@ function login (password, callbacks)
                             {
                                 if (err)
                                 {
-                                    log (JSON.stringify (err, null, 4));
+                                    if (debug)
+                                        log ("Deluge login response gunzip error: " + JSON.stringify (err, null, 4));
                                     callbacks.error ({message: err});
                                 }
                                 else
                                 {
-                                    log (decoded.toString ());
+                                    if (debug)
+                                        log ("Deluge login response: " + decoded.toString ());
                                     callbacks.success (decoded.toString ());
                                 }
                             }
@@ -884,17 +879,26 @@ function login (password, callbacks)
                             function (err, decoded)
                             {
                                 if (err)
-                                    callbacks.error ({message: err});
-                                elses
                                 {
-                                    log (decoded.toString ());
+                                    if (debug)
+                                        log ("Deluge login response inflate error: " + JSON.stringify (err, null, 4));
+                                    callbacks.error ({message: err});
+                                }
+                                else
+                                {
+                                    if (debug)
+                                        log ("Deluge login response: " + decoded.toString ());
                                     callbacks.success (decoded.toString());
                                 }
                             }
                         );
                     }
                     else
-                      callbacks.success (buffer.toString ());
+                    {
+                        if (debug)
+                            log ("Deluge login response: " + buffer.toString ());
+                        callbacks.success (buffer.toString ());
+                    }
                 }
                 else
                     callbacks.error ({message: "status code " + res.statusCode});
@@ -920,7 +924,7 @@ function login (password, callbacks)
 function try_login ()
 {
     if (null != deluge_proxy)
-        login
+        deluge_login
         (
             "deluge",
             {
