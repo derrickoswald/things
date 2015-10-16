@@ -63,7 +63,7 @@ define
                                     function (item)
                                     {
                                         item.value = item.doc;
-                                        delete item.doc
+                                        delete item.doc;
                                     }
                                 );
                                 home.draw (result, "search_results", {});

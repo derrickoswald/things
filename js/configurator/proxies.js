@@ -442,7 +442,7 @@ define
                                                                 {
                                                                     success: function ()
                                                                     {
-                                                                        delete_user_manager_password (options)
+                                                                        delete_user_manager_password (options);
                                                                     },
                                                                     error: options.error
                                                                 },

@@ -156,7 +156,7 @@ define
         {
             options = options || {};
             result.doc_root = configuration.getDocumentRoot () + "/" + result.database + "/";
-            result.header = result.name + " " + result.rows.length + " document" + (1 == result.rows.length ? "" : "s")
+            result.header = result.name + " " + result.rows.length + " document" + (1 == result.rows.length ? "" : "s");
             result.rows.forEach
             (
                 function (item)
