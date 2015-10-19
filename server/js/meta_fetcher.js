@@ -1,12 +1,11 @@
 /**
- * Node based metadata fetching server for CouchDB.
+ * Node based metadata fetching subsystem for CouchDB.
  * External Node.js program using nano (https://github.com/dscape/nano) accessed
  * as described in externals (docs/externals.html) to add fetch metadata .torrent files for a things instance.
  */
 
 var http = require ("http");
 var https = require ("https");
-var sys = require ("sys");
 var url = require ("url");
 var zlib = require ("zlib");
 
@@ -17,12 +16,12 @@ var zlib = require ("zlib");
 var args = process.argv.slice (2);
 
 /**
- * The port that this server should listen on.
+ * The port that this HTTP server should listen on.
  */
 var listen_port = 8099;
 
 /**
- * The URL for the CouchDB server.
+ * The URL for CouchDB.
  * Value read from meta_fetcher/couchdb configuration.
  * Theoretically this could be constructed from daemons/httpsd, httpd/bind_address, httpd/port
  * except the bind address is usually 0.0.0.0 - which means 'any' and hence is not really available.
@@ -76,7 +75,7 @@ var verbose = false;
 var debug = true;
 
 /**
- * The number of milliseconds between polls of the server.
+ * The number of milliseconds between polls.
  */
 var poll_interval = 60000;
 
@@ -129,8 +128,8 @@ var deluge_sequence = 0;
  */
 
 /*
- * Configurable variables. You may need to tweak these to be compatible with the
- * server-side, but the defaults work in most cases.
+ * Configurable variables. You may need to tweak these to be compatible with
+ * other programs, but the defaults work in most cases.
  */
 var hexcase = 0; /* hex output format. 0 - lowercase; 1 - uppercase */
 var chrsz = 8; /* bits per input character. 8 - ASCII; 16 - Unicode */
@@ -233,7 +232,7 @@ function core_sha1 (x, len)
 function str2binb (str)
 {
     var ret;
-    
+
     ret = Array ();
     var mask = (1 << chrsz) - 1;
     for (var i = 0; i < str.length * chrsz; i += chrsz)
@@ -371,7 +370,7 @@ function login (callback)
 
 function my_function (options)
 {
-    log ("my_function ()\n");
+    log ("my_function ()");
     // get the current list of users
     nano.request
     (
@@ -598,21 +597,44 @@ function get_configurations ()
     );
 }
 
-function get_tracker_database ()
+/**
+ * Get the default (installed) configuration.
+ * @returns the configuration or <code>null</code> if not found
+ */
+function get_default_configuration ()
 {
     var ret;
 
-    ret = configurations.reduce
-    (
-        function (item, ret)
-        {
-            return (ret || (item._id == "default_configuration") ? item.tracker_database : null);
-        }
-    );
+    ret = null;
+    if (null != configurations)
+        ret = configurations.reduce
+        (
+            function (item, ret)
+            {
+                return (ret || (item._id == "default_configuration") ? item : null);
+            },
+            null
+        );
 
     return (ret);
 }
 
+/**
+ * Get the tracker database name.
+ * @returns the name or <code>null</code> if not found
+ */
+function get_tracker_database ()
+{
+    var def;
+
+    return ((null == (def = get_default_configuration ())) ? null : def.tracker_database);
+}
+
+/**
+ * Process things by either adding them to Deluge's queue or add their metadata into the database.
+ * @param {Object} candidates - contains database and document properties
+ * @param {Object[]} torrents - the list of torrents already being handled in Deluge
+ */
 function process_candidates (candidates, torrents)
 {
     candidates.forEach
@@ -637,7 +659,7 @@ function process_candidates (candidates, torrents)
                         // make a list of the names of existing documents
                         var fetched = body.rows.reduce
                         (
-                            function (ret, item, i)
+                            function (ret, item)
                             {
                                 if ("_" !== item.charAt (0))
                                     ret.push (item);
@@ -651,7 +673,7 @@ function process_candidates (candidates, torrents)
                         // as the difference between the already fetched list and the thing tracker things list
                         var missing = item.document.things.reduce
                         (
-                            function (ret, item, i)
+                            function (ret, item)
                             {
                                 if (-1 == fetched.indexOf (item.id))
                                     ret.push (item);
@@ -679,7 +701,7 @@ function process_candidates (candidates, torrents)
                             // find the missing ones where a torrent has been requested (and maybe downloaded)
                             var work = missing.reduce
                             (
-                                function (ret, item, i)
+                                function (ret, item)
                                 {
                                     var torrent = torrents[item.id];
                                     if (null == torrent)
@@ -717,6 +739,11 @@ function process_candidates (candidates, torrents)
                             }
 
                             // ready to process
+                            // for each item in the requested list,
+                            // if status is seeding or queued
+                            // get the .torrent file and load it into the database
+                            // for each item in the unrequested list,
+                            // add magnet file to deluge
                         }
                     }
                 }
@@ -727,7 +754,6 @@ function process_candidates (candidates, torrents)
 
 function process_missing (candidates)
 {
-    log ("process_missing " + JSON.stringify (candidates));
     deluge_torrents
     (
         {
@@ -767,20 +793,17 @@ function process_trackers (trackers)
             else
             {
                 // make a list of the names of databases
+                var exclude = ["things", "configuration", get_tracker_database ()];
                 var databases = body.reduce
                 (
-                    function (ret, item, index, tracker_database)
+                    function (ret, item)
                     {
-                        if (("_" !== item.charAt (0))
-                            && ("things" != item)
-                            && ("configuration" != item)
-                            && (tracker_database != item))
+                        if (("_" !== item.charAt (0)) && (-1 == exclude.indexOf (item)))
                             ret.push (item);
 
                         return (ret);
                     },
-                    [],
-                    get_tracker_database ()
+                    []
                 );
 
                 // report if debugging
@@ -838,21 +861,25 @@ function process_trackers (trackers)
  */
 function check_things ()
 {
+    var db;
     var thing_tracker;
 
-    thing_tracker = nano.db.use (get_tracker_database ());
-    thing_tracker.get
-    (
-        "_all_docs",
-        {
-            include_docs: true // ToDo: could optimize this and first just fetch the document names and then get the contents one by one
-        },
-        function (err, body, headers)
-        {
-            if (err)
-                log ("failed to get " + get_tracker_database () + "/_all_docs");
-            else
+    db = get_tracker_database ();
+    if (null != db)
+    {
+        thing_tracker = nano.db.use (db);
+        thing_tracker.get
+        (
+            "_all_docs",
             {
+                include_docs: true // ToDo: could optimize this and first just fetch the document names and then get the contents one by one
+            },
+            function (err, body, headers)
+            {
+                if (err)
+                    log ("failed to get " + get_tracker_database () + "/_all_docs");
+                else
+                {
 // {"id":"2bfcb62ac1b0338cac0c993076d240a9","key":"2bfcb62ac1b0338cac0c993076d240a9","value":{"rev":"10-6fca97964c78e4070cf6409870858251"},
 // "doc":{"_id":"2bfcb62ac1b0338cac0c993076d240a9","_rev":"10-6fca97964c78e4070cf6409870858251","version":1.0500000000000000444,
 // "url":"http://thingtracker.no-ip.org/","things_url":"http://thingtracker.no-ip.org/root/things/",
@@ -860,41 +887,42 @@ function check_things ()
 // "name":"Raspberry Pi Things","owner":"derrickoswald",
 // "things":[{"id":"6e064c7ecd7ad8e8dee199bcaffd21484b83c6ba","title":"Hinged Smart Citizen Kit Case with Air Vents"},{"id":"de62b9f518676fc3c55cec08d590ae8bbf79d83e","title":"Case for Raspberry Pi model B"}]}}
 
-                // get a list of trackers
-                eat_cookie (headers);
-                var documents = body.rows.reduce
-                (
-                    function (list, item)
-                    {
-                        if ("_" != item.id.charAt (0))
-                            list.push (item.doc);
-
-                        return (list);
-                    },
-                    []
-                );
-
-                // process the trackers
-                if (0 != documents.length)
-                {
-                    // report if debugging
-                    if (debug)
-                    {
-                        var report = "";
-                        for (var i = 0; i < documents.length; i++)
+                    // get a list of trackers
+                    eat_cookie (headers);
+                    var documents = body.rows.reduce
+                    (
+                        function (list, item)
                         {
-                            if ("" != report)
-                                report += ",";
-                            report += "\n" + documents[i].name; // + ": " + JSON.stringify (documents[i].things, null, 4);
-                        }
-                        log ("Trackers: " + report);
-                    }
+                            if ("_" != item.id.charAt (0))
+                                list.push (item.doc);
 
-                    process_trackers (documents);
+                            return (list);
+                        },
+                        []
+                    );
+
+                    // process the trackers
+                    if (0 != documents.length)
+                    {
+                        // report if debugging
+                        if (debug)
+                        {
+                            var report = "";
+                            for (var i = 0; i < documents.length; i++)
+                            {
+                                if ("" != report)
+                                    report += ",";
+                                report += "\n" + documents[i].name; // + ": " + JSON.stringify (documents[i].things, null, 4);
+                            }
+                            log ("Trackers: " + report);
+                        }
+
+                        process_trackers (documents);
+                    }
                 }
             }
-        }
-    );
+        );
+    }
 }
 
 /**
@@ -1035,8 +1063,8 @@ function deluge_handler (callbacks, res)
 };
 
 /**
- * Perform a deluge API call.
- * @param {object} data - the JSON data to POST to the server
+ * Perform a Deluge API call.
+ * @param {object} data - the JSON data to POST to Deluge
  * @param {object} callbacks - options to process the login:
  * <pre>
  * success: function() to call when the user is logged in
@@ -1170,25 +1198,29 @@ function my_thread ()
         else if (null == deluge_cookies)
         {
             if (deluge_sequence < 5) // try to login 5 times
-                deluge_login
-                (
-                    "deluge", // ToDo: don't hardcode the password
-                    {
-                        success: function (response)
+            {
+                var def = get_default_configuration ();
+                if (def != null)
+                    deluge_login
+                    (
+                        def.deluge_password,
                         {
-                            if (debug)
-                                log ("deluge_login success: " + JSON.stringify (response, null, 4));
-                            if (response.result)
-                                log ("successfully logged in to Deluge");
-                        },
-                        error: function (error)
-                        {
-                            if (debug)
-                                log ("deluge_login error: " + JSON.stringify (error, null, 4));
-                            log ("failed to log in to Deluge");
+                            success: function (response)
+                            {
+                                if (debug)
+                                    log ("deluge_login success: " + JSON.stringify (response, null, 4));
+                                if (response.result)
+                                    log ("successfully logged in to Deluge");
+                            },
+                            error: function (error)
+                            {
+                                if (debug)
+                                    log ("deluge_login error: " + JSON.stringify (error, null, 4));
+                                log ("failed to log in to Deluge");
+                            }
                         }
-                    }
-                );
+                    );
+            }
         }
         else
             check_things ();
@@ -1208,7 +1240,7 @@ var server = http.createServer
     {
         log (req.method + " " + req.url);
         var query = url.parse (req.url, true).query;
-        log (JSON.stringify (query, null, 4) + "\n");
+        log (JSON.stringify (query, null, 4));
         try
         {
             // there are two ways to authenticate, 1) username and password or 2) proxy authentication
@@ -1235,8 +1267,8 @@ var server = http.createServer
         }
         catch (exception)
         {
-            options.response.writeHead (500, {"Content-Type": "text/plain"});
-            options.response.end (JSON.stringify (exception, null, 4) + "\n");
+            resp.writeHead (500, {"Content-Type": "text/plain"});
+            resp.end (JSON.stringify (exception, null, 4) + "\n");
         }
     }
 );
@@ -1308,22 +1340,22 @@ stdin.on
         if (reconnect)
         {
             nano = need_nano ();
-            log ("using " + couchdb + " as user " + username + (secret ? "[" + userrole + "]" : "") + (userpass ? "/" + userpass.replace (/./g, "*") : "") + "\n");
+            log ("using " + couchdb + " as user " + username + (secret ? "[" + userrole + "]" : "") + (userpass ? "/" + userpass.replace (/./g, "*") : ""));
 
             // start the background processing
             if (null != interval)
             {
-                log ("clearing background thread\n");
+                log ("clearing background thread");
                 clearInterval (interval);
                 interval = null;
             }
-            log ("starting background thread with an interval of " + (poll_interval / 1000.0) + " seconds\n");
+            log ("starting background thread with an interval of " + (poll_interval / 1000.0) + " seconds");
             interval = setInterval (my_thread, poll_interval); // [, arg][, ...])
         }
         if (relisten)
         {
             server.listen (listen_port);
-            log ("listening on port " + listen_port + "\n");
+            log ("listening on port " + listen_port);
         }
         if ((null == secret) && (null == userpass))
             // ask for the secret

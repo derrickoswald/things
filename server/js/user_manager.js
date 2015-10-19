@@ -6,7 +6,6 @@
 
 var http = require ("http");
 var https = require ("https");
-var sys = require ("sys");
 var url = require ("url");
 
 /**
@@ -185,7 +184,7 @@ function core_sha1 (x, len)
 function str2binb (str)
 {
     var ret;
-    
+
     ret = Array ();
     var mask = (1 << chrsz) - 1;
     for (var i = 0; i < str.length * chrsz; i += chrsz)
@@ -733,7 +732,7 @@ function create_user (options)
         name: options.username,
         roles: ["user"],
         password: options.password,
-        configuration: options.configuration 
+        configuration: options.configuration
     };
     nano.request
     (
@@ -764,7 +763,7 @@ function valid_name (name)
     // Only lowercase characters (a-z), digits (0-9), and any of the characters _, $, (, ), +, -, and / are allowed.
     // Must begin with a letter.
     var regex = /^[a-z](?:[a-z]|[0-9]|\_|\$|\(|\)|\+|\-|\/|)*$/;
-    return (regex.test (name));  
+    return (regex.test (name));
 }
 
 function make_user (options)
@@ -852,8 +851,8 @@ var server = http.createServer
                 }
                 catch (exception)
                 {
-                    options.response.writeHead (500, {"Content-Type": "text/plain"});
-                    options.response.end (JSON.stringify (exception, null, 4) + "\n");
+                    resp.writeHead (500, {"Content-Type": "text/plain"});
+                    resp.end (JSON.stringify (exception, null, 4) + "\n");
                 }
             else
             {
