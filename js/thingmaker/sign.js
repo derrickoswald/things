@@ -16,6 +16,22 @@ define
      */
     function (mustache, torrent, keybase)
     {
+        /*
+         * notes:
+         * scrypt.run line 28662
+         * salt = WordArray
+         * dklen 320? 96
+         * e
+         * {
+         *     r:8
+         *     p:1
+         *     N: 32768
+         *     C0: 1
+         *     c1: 1
+         *     klass:
+         *     outputSize: 64
+         * }
+         */
         function tryit (event)
         {
             keybase.login (
