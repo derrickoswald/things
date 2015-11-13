@@ -365,6 +365,12 @@ and add the line:
 
 export NODE\_PATH=/usr/local/lib/node\_modules
 
+Or, another way to do the same thing without altering the environment (but only available in linux) is to link the installed global nano module in the same location you will install the server side script(s):
+
+cd /home/pi
+
+npm link nano
+
 user\_manager
 =============
 

@@ -6,7 +6,7 @@
 	<meta name="generator" content="LibreOffice 4.2.8.2 (Linux)">
 	<meta name="created" content="20150426;110544385091645">
 	<meta name="changedby" content="Derrick Oswald">
-	<meta name="changed" content="20150914;215058696150484">
+	<meta name="changed" content="20151018;195132441789284">
 	<style type="text/css">
 	<!--
 		@page { margin: 20mm }
@@ -468,6 +468,13 @@ variable in the CouchDB startup:</p>
 <p class="code-western">sudo vi /usr/local/bin/couchdb</p>
 <p style="margin-bottom: 0mm; line-height: 100%">and add the line:</p>
 <p class="code-western">export NODE_PATH=/usr/local/lib/node_modules</p>
+<p>Or, another way to do the same thing without altering the
+environment (but only available in linux) is to link the installed
+global nano module in the same location you will install the server
+side script(s):</p>
+<p class="code-western">cd /home/pi</p>
+<p class="code-western">npm link nano  
+</p>
 <h1 class="western"><a name="__RefHeading__1310_1398223338"></a>user_manager</h1>
 <h2 class="western">Installation</h2>
 <p style="margin-bottom: 0mm; line-height: 100%"><i><b>NOTE: This
