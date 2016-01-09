@@ -1,13 +1,17 @@
 
-// list function to be used with the OverView view,
-// see http://localhost:5984/things/_design/things/_list/thingtracker/OverView
+// list function to be used with the things view,
+// see http://localhost:5984/things/_design/things/_list/thingtracker/things
 function output (head, req)
 {
-    start({
-        "headers": {
-            "Content-Type": "application/json"
+    start
+    (
+        {
+            "headers":
+            {
+                "Content-Type": "application/json"
+            }
         }
-    });
+    );
     send ("{\n    id: \"things\",\n    things: [\n");
     var records = 0;
     while (row = getRow ())
