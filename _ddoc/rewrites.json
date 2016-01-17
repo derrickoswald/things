@@ -1,12 +1,13 @@
 [
-    { "description": "Deluge access with vhosts enabled (more general rule below)", "from": "json", "to": "../../../json" },
-    { "from": "json/*", "to": "../../../json/*" },
+    { "description": "Access to Deluge with vhosts enabled", "from": "json", "to": "../../../json" },
+    { "description": "Access to Deluge with vhosts enabled", "from": "json/*", "to": "../../../json/*" },
     { "description": "Access to api with vhosts enabled", "from": "root", "to": "../../.." },
-    { "from": "root/*", "to": "../../../*" },
-    { "description": "Access to this database" , "from": "_db" , "to"  : "../.." },
-    { "from": "_db/*" , "to"  : "../../*" },
-    { "description": "Access to this design document" , "from": "_ddoc" , "to"  : "" },
-    { "from": "_ddoc/*" , "to"  : "*"},
-    { "from": "/", "to": "index.html"},
-    { "from": "/*", "to": "*"}
+    { "description": "Access to api with vhosts enabled", "from": "root/*", "to": "../../../*" },
+    { "description": "Shortcut to list of instances", "from": "instances", "to": "../../../configuration/_design/configuration/_list/instances/configs" },
+    { "description": "Access to this database", "from": "_db" , "to"  : "../.." },
+    { "description": "Access to this database", "from": "_db/*" , "to"  : "../../*" },
+    { "description": "Access to this design document", "from": "_ddoc" , "to"  : "" },
+    { "description": "Access to this design document", "from": "_ddoc/*" , "to"  : "*"},
+    { "description": "Access to main page", "from": "/", "to": "index.html"},
+    { "description": "Access to main page", "from": "/*", "to": "*"}
 ]
