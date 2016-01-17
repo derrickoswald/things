@@ -9,8 +9,8 @@ function output (head, req)
             }
         }
     );
-    var vhosted = req.requested_path[0] == 'instances';
-    var root = vhosted ? '/root/' : '/'
+    var vhosted = (req.requested_path[0] == 'instances') || (req.requested_path[0] == 'root');
+    var root = vhosted ? '/instance/' : '/things/_design/things/_rewrite/instance/';
     send ('<!DOCTYPE html>\n<html lang=\'en\'>\n    <body>\n');
     send ('<br>info:' + toJSON (req.info));
     send ('<br>query:' + toJSON (req.query));
@@ -26,21 +26,21 @@ function output (head, req)
         var db = row.value.public_database;
         send (''.concat(
             '            <tr>',
-            '<td><a href=\'' + root + db + '/_design/' + db + '/_rewrite/root?instance_uuid=' + uuid + '&database=' + db + '\' target=_blank>' + name + ' ' + db + '</a></td>',
+            '<td><a href=\'' + root + db + '/root?instance_uuid=' + uuid + '&database=' + db + '\' target=_blank>' + name + ' ' + db + '</a></td>',
             '<td>' + toJSON (row.value) + '</td>',
             '</tr>\n'
         ));
         db = row.value.pending_database;
         send (''.concat(
             '            <tr>',
-            '<td><a href=\'' + root + db + '/_design/' + db + '/_rewrite/root?instance_uuid=' + uuid + '&database=' + db + '\' target=_blank>' + name + ' ' + db + '</a></td>',
+            '<td><a href=\'' + root + db + '/root?instance_uuid=' + uuid + '&database=' + db + '\' target=_blank>' + name + ' ' + db + '</a></td>',
             '<td>' + toJSON (row.value) + '</td>',
             '</tr>\n'
         ));
         db = row.value.local_database;
         send (''.concat(
             '            <tr>',
-            '<td><a href=\'' + root + db + '/_design/' + db + '/_rewrite/root?instance_uuid=' + uuid + '&database=' + db + '\' target=_blank>' + name + ' ' + db + '</a></td>',
+            '<td><a href=\'' + root + db + '/root?instance_uuid=' + uuid + '&database=' + db + '\' target=_blank>' + name + ' ' + db + '</a></td>',
             '<td>' + toJSON (row.value) + '</td>',
             '</tr>\n'
         ));
