@@ -366,7 +366,7 @@ var standard_shows =
             "}" +
             "provides ('json', output);" +
         "}"
-}
+};
 
 // validation function limiting create, update and delete to logged in users
 var standard_validation =

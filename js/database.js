@@ -75,22 +75,22 @@ define
                             "}" +
                         "}" +
                     ");" +
-                    "send (\"{\n    id: \\\"things\\\",\n    things: [\n\");" +
+                    "send (\"{\\n    id: \\\"things\\\",\\n    things: [\\n\");" +
                     "var records = 0;" +
                     "while (row = getRow ())" +
                     "{" +
                         "if (0 != records)" +
-                            "send (\",\n\");" +
+                            "send (\",\\n\");" +
                         "var text = JSON.stringify (row.value, null, 4);" +
-                        "text = \"        \" + text.replace (/\n/g, \"\n        \");" +
+                        "text = \"        \" + text.replace (/\\n/g, \"\\n        \");" +
                         "send (text);" +
                         "records++;" +
                     "}" +
-                    "send (\"\n    ]\n}\");" +
+                    "send (\"\\n    ]\\n}\");" +
                 "}"
         };
 
-        standard_shows:
+        var standard_shows =
         {
             thingtracker:
                 "function (doc, req)" +
@@ -134,7 +134,7 @@ define
                     "}" +
                     "provides ('json', output);" +
                 "}"
-        }
+        };
 
         // validation function limiting create, update and delete to logged in users
         var standard_validation =
