@@ -168,12 +168,14 @@ requirejs
 
         // to support vhost systems set CouchDB jQuery module base path if main.js is not coming from
         // some path with the word _rewrite in it, e.g. "/things/_design/things/_rewrite
-        if (-1 == location.pathname.indexOf ("_rewrite"))
+        if (-1 == location.pathname.indexOf ("_design"))
         {
             $.couch.urlPrefix = "/root"; // this name must agree with the name used in rewrites.json
             // stupid Futon just doesn't work with vhosts, so set it to localhost (means it doesn't work for remote Futons)
             document.getElementById ("futon_link").setAttribute ("href", location.protocol + "//localhost" +
                 (("" !== location.port) ? ":" + location.port : "") + "/_utils/");
+            // change Fauxton url to include the prefix
+            document.getElementById ("fauxton_link").setAttribute ("href", $.couch.urlPrefix + document.getElementById ("fauxton_link").getAttribute ("href"));
         }
 
         // ensure that configuration is loaded first, everything else depends on it
